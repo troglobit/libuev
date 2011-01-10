@@ -1,0 +1,11 @@
+#!/usr/bin/env lua
+
+function system(command)
+    local fd = io.popen(command, "r")
+    string = fd:read("*all")
+    fd:close()
+    return (string.gsub(string, "\n$", ""))
+end
+
+amppath = os.getenv("AMPROOT") or error("AMPROOT not defined")
+print((string.gsub(arg[1] or system("pwd"), "^"..amppath, "")))

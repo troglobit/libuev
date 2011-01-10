@@ -1,0 +1,3 @@
+#!/bin/sh
+dcop kded wmiface findAllWindows '' Thunderbird-bin '' '' '' 0 \
+  | xargs -l dcop kded wmiface forceActiveWindow

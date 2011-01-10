@@ -1,0 +1,4 @@
+#!/bin/bash
+LUADIR=${LUA_CPATH%/?.so}
+LUADIR=${LUADIR##*;}
+EXEC $VALGRIND ${LUADIR}/lua-agent "$@"DIR

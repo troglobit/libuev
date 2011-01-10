@@ -1,0 +1,20 @@
+#!/bin/bash
+export SSH_ASKPASS="/home/fm/bin/gksupass"
+#export SSH_ASKPASS=/usr/bin/gnome-ssh-askpass2
+export DISPLAY=:0
+
+keyFile=$HOME/.ssh/id_dsa
+leaveTime=19:00:00
+leastMins=120
+
+if [[ ! -f ~/.keychain/`uname -n`-lockf &&
+     `/usr/bin/xscreensaver-command -time 2>&1` == *non-blanked* ]]
+then
+    eval $(keychain --eval -q)
+    if [[ `ssh-add -l` != *$keyFile* ]] ;then
+        #mins=$(((($(date -d $leaveTime +%s) - $(date +%s)) / 60)))
+        [[ $mins -lt $leastMins ]] && mins=$leastMins
+        #keychain --lockwait 1 --quiet $keyFile --timeout $mins >/dev/null 2>&1
+        keychain --lockwait 1 --quiet $keyFile >/dev/null 2>&1
+    fi
+fi

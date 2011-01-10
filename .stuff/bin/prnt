@@ -1,0 +1,3 @@
+#!/bin/sh
+enscript --columns=2 --landscape --borders --highlight "$@"
+

@@ -1,0 +1,2 @@
+#!/bin/sh
+grep -v ^time $1 | awk -F $'\t' '{print strftime("%d-%m-%y %T", $1), "\t", $0}'  | cut -d$'\t' -f1,3-

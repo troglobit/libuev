@@ -1,0 +1,65 @@
+#!/bin/bash
+
+HTTOOLS=$HOME/amplex/ampep/HtTools
+
+runBS() {
+    BSSERVER=$1 $HTTOOLS/bsTest $HTTOOLS/bsh/$2.bsh
+}
+
+mkTemp() {
+    mktemp /tmp/.updssh-tmp.XXXXXXXXXX
+}
+
+getList() {
+    local F=`mkTemp`
+    runBS $1 listBoxes > $F
+    if grep --silent ANNOT: $F ;then
+        awk '/\t/' $F | sort
+    else
+        return 1
+    fi
+    rm $F
+}
+
+updFile() {
+    local Ip=`au-sshgw $1 hostip`
+    local F=`mkTemp`
+    [[ $1 == *-stg ]] && Ip=${Ip}:8000
+    echo -n "Updating list for $1 ($Ip) ... "
+    if getList $Ip > $2.tmp ;then
+        mv -f $2.tmp $2
+        echo 'DONE'
+    else
+        rm -f $2.tmp
+        echo 'FAILED'
+    fi
+}
+ 
+if [[ ! $1 ]] ;then
+    echo 'Usage: upd-ssh-boxlists {<Server-list>|UPDATE}' 1>&2
+    exit
+fi
+
+if [[ $1 == UPDATE ]] ;then
+    #sudo vpnc-disconnect
+    #sudo vpnc amp-ae
+    for i in `au-sshgw gwlist | grep ^ad-` ;do
+        File=/opt/toolchain/utils/sshgw/files/boxes-${i}.db
+        [[ -f $File ]] && updFile $i $File
+    done
+    #sudo vpnc-disconnect
+    #sudo vpnc amp-ain
+    for i in `au-sshgw gwlist | grep ^ain-` ;do
+        File=/opt/toolchain/utils/sshgw/files/boxes-${i}.db
+        [[ -f $File ]] && updFile $i $File
+    done
+    svn st /opt/toolchain/utils/sshgw/files
+    #sudo vpnc-disconnect
+    exit
+fi
+
+for i ;do
+    getList $i
+done
+
+

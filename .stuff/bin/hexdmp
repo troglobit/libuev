@@ -1,0 +1,12 @@
+#!/bin/sh
+##
+# $Id$
+# (C) Copyright 2006 Amplex, fm@amplex.dk
+#
+# ABSTRACT: Nice formatted hex dump in bytes, hex & ascii
+##
+exec hexdump -e '"%08.8_Ax\n"' \
+             -e '"%08.8_ax  " 8/1 "%02x " "  " 8/1 "%02x "' \
+             -e '"  |" 16/1 "%_p" "|\n"' \
+             "$@"
+

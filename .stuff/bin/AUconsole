@@ -1,0 +1,8 @@
+#!/usr/bin/kermit +
+set line /dev/ttyS0
+set speed 115200
+set flow none
+set modem none
+set carrier-watch off
+show communications
+connect

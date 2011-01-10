@@ -1,0 +1,7 @@
+#!/bin/sh
+for DEV in "TPPS/2 IBM TrackPoint" "Synaptics Inc. Composite TouchPad / TrackPoint" ;do
+    xinput set-int-prop "$DEV" "Evdev Wheel Emulation" 8 1
+    xinput set-int-prop "$DEV" "Evdev Wheel Emulation Button" 8 2
+    xinput set-int-prop "$DEV" "Evdev Wheel Emulation Axes" 8 6 7 4 5
+done
+

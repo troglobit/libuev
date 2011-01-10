@@ -1,0 +1,2 @@
+#!/bin/sh
+exec make $CROSS_COMPILE_MAKE_ARGS $TOOLCHAIN_MAKE_ARGS "$@"

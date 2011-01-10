@@ -1,0 +1,2 @@
+#!/bin/sh
+exec ck-launch-session startxfce4

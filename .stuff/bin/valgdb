@@ -1,0 +1,2 @@
+#!/bin/sh
+exec valgrind --db-attach=yes --db-command='clewn -ga "%f %p"' "$@"

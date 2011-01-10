@@ -1,0 +1,20 @@
+#!/bin/bash
+##
+# $Id$
+# (C) Copyright 2009 Amplex, fm@amplex.dk
+#
+# ABSTRACT: Global grep with prebuilt index
+##
+
+Dir=$(pwd)
+while [ "$Dir" ] ;do
+   [ -f $Dir/.glimpse_index ] && break
+   Dir=${Dir%/*}
+done
+[ "$Dir" ] || { echo "No glimpse index in this directory branch" ; exit 1; }
+
+echo "-- Paths relative to: $Dir"
+exec glimpse-tt -y -H $Dir "$@"
+
+
+// vim: set sw=3 sts=3 et:

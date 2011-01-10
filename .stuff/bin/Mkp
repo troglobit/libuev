@@ -1,0 +1,8 @@
+#!/bin/sh
+# Mkp - Makepkg front for easy cleanup
+#
+
+mkdir -p BUILD
+cp `ls -1 | grep -v '^BUILD$'` BUILD
+(cd BUILD; makepkg "$@"; rm PKGBUILD)
+

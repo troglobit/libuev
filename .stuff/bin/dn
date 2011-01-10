@@ -1,0 +1,78 @@
+#!/bin/sh 
+#
+# This script is intended to be run as '~+flashboot.cu <args> from inside cu(1)
+#
+# Contact the debug port with 'cu -s 115200 -l /dev/ttyS0' or equivalent
+# You will of course need the cu(1) program (may be part of uucp).
+# You will need chat (from ppp), lsx (lrzsz) and gkermit too.
+# Devdump (for sn.txt) is in arm9/utils/devdump
+#
+# The file boot.bin must be in the current directory.
+# Copy the 'Files' directory from the AUTester to support bootstrap mode.
+# Create the file sn.txt as 7 numbers to have the serialnumber block programmed.
+#
+
+TT=/opt/toolchain/utils/flash-scripts/files
+
+say() { echo "$@" 1>&2; }
+die() { say "$@"; exit 1; }
+
+say "Checking for bootstrap mode ..."
+if chat -t 3 -e CCC '\c' ;then
+    [ -f loader.bin ] && P="" || P="$TT/"
+    [ -f ${P}loader.bin ] \
+      || die "Board is in bootstrap mode but no boot files here!"
+
+    # Prepare for uboot
+    lsx ${P}loader.bin
+
+    [ -f u-boot.bin ] && P="" || P="$TT/"
+    [ -f ${P}u-boot.bin ] \
+      || die "Board is in bootstrap mode but no boot files here!"
+
+    # Send uboot.
+    chat -t 5 -e CCC '\c' || die "Loader did not load"
+    lsx ${P}u-boot.bin
+    chat -e 'autoboot: ' '\rversion' || die "U-boot did not load"
+fi
+[ "$1" = "boot" ] && exit 0
+
+chat -t 10 -e '' 'blah' 'boot>' 'loadb' || die "Not in u-boot mode"
+gkermit --x -s boot.bin 
+
+# Remove write protection for boot area in the flash chip
+chat -t 10 -e 'boot>' "protect off 10000000 10003fff" \
+              'boot>' "erase 10000000 10003fff" \
+              'Erasing' '\c' ECHO OFF \
+              'Erased' '\c' ECHO ON ' 2 sectors' '\c' \
+     || die "Could not erase flash sectors"
+
+# Copy boot.bin from SDRAM to flash. 0x21000000 ==> 0x10000000, 0x3D00 bytes
+chat -t 10 -e 'boot>' "cp.b 21000000 10000000 3D00" \
+              ' done' '\c' \
+     || die "Could not write to flash"
+
+snSize=1c
+if [ -f sn.txt ] ;then
+    # The sn.txt file is five decimal integers in 1 or more lines
+    dumpdev -if sn.txt -iformat D4 -of sn.bin -bs 28
+    if [ -f eth.txt ] ;then
+        # The eth.txt file is six hex bytes in 1 or more lines
+        dumpdev -if eth.txt -iformat H1 -bs 6 >> sn.bin 
+        snSize=22
+    fi
+fi
+if [ -f sn.bin ] ;then
+    # Program the serial number block too (34/0x1C bytes)
+    chat -t 10 -e 'boot>' 'loadb' || die "Missing u-boot prompt ?!"
+    gkermit --x -s sn.bin
+    chat -t 10 -e 'boot>' "cp.b 21000000 10003D00 $snSize" \
+                  ' done' '\c' \
+         || die "Could not write to flash"
+fi
+
+# Reprotect the boot sectors in flash
+chat -t 10 -e 'boot>' "protect on 10000000 10003fff" \
+              'Protected 2 sectors' 'blah' \
+     || die "Could not reprotect flash"
+#

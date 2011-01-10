@@ -1,0 +1,14 @@
+#!/bin/sh -x
+
+/usr/share/wicd/scripts/50-wicd-suspend.sh
+killall vpnc
+/etc/rc.d/dnsmasq stop
+rm -f /var/run/resolvconf/interfaces/*
+
+echo -n mem >/sys/power/state
+
+/etc/rc.d/dnsmasq start
+/usr/share/wicd/scripts/80-wicd-connect.sh
+sleep 2
+/etc/rc.d/tpfand restart
+sh -c 'sleep 10 ; /home/fm/bin/unbind-ultranav-touchpad' &

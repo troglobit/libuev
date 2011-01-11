@@ -8,6 +8,8 @@
 "
 " My .vimrc file
 "
+set nocompatible " TODO: Why did the default change for 7.3 vs 7.2
+
 if has("win32")
    " Use CCI standard setup. This happens automatically on UNIX
    if filereadable($VIM . "/vimrc")
@@ -85,7 +87,7 @@ else
    else
       set directory=/var/preserve//
       if has("gui_running")
-         set guifont=fixed
+         let &guifont="Bitstream Vera Sans Mono 8"
       else
          " Uncomment line below to use :emenu. Adds ~1 second to startup time
          " source $VIMRUNTIME/menu.vim
@@ -124,9 +126,6 @@ else
          cmap <Esc>[1~ <C-P>
          cmap <Esc>[1;2~ <C-P>
       endif
-   endif
-   if has("gui_running")
-      let &guifont="Bitstream Vera Sans Mono 10"
    endif
 endif
 

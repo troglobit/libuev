@@ -1,0 +1,2 @@
+
+exe 'syn match luaOperator /||/'

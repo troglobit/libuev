@@ -1,0 +1,108 @@
+# Configuration file for dircolors, a utility to help you set the
+# LS_COLORS environment variable used by GNU ls with the --color option.
+
+# The keywords COLOR, OPTIONS, and EIGHTBIT (honored by the
+# slackware version of dircolors) are recognized but ignored.
+
+# Below, there should be one TERM entry for each termtype that is colorizable
+TERM linux
+TERM linux-c
+TERM mach-color
+TERM console
+TERM con132x25
+TERM con132x30
+TERM con132x43
+TERM con132x60
+TERM con80x25
+TERM con80x28
+TERM con80x30
+TERM con80x43
+TERM con80x50
+TERM con80x60
+TERM dtterm
+TERM xterm
+TERM xterm-color
+TERM xterm-16color
+TERM xterm-debian
+TERM rxvt
+TERM screen
+TERM screen-w
+TERM vt100
+TERM Eterm
+
+# Below are the color init strings for the basic file types. A color init
+# string consists of one or more of the following numeric codes:
+# Attribute codes:
+# 00=none 01=bold 04=underscore 05=blink 07=reverse 08=concealed
+# Text color codes:
+# 30=black 31=red 32=green 33=yellow 34=blue 35=magenta 36=cyan 37=white
+# Background color codes:
+# 40=black 41=red 42=green 43=yellow 44=blue 45=magenta 46=cyan 47=white
+NORMAL 00	# global default, although everything should be something.
+FILE 00		# normal file
+DIR 34	# directory
+LINK 36	# symbolic link.  (If you set this to 'target' instead of a
+		# numerical value, the color is as for the file pointed to.)
+FIFO 40;33	# pipe
+SOCK 04;35	# socket
+DOOR 04;35	# door
+BLK 33;04	# block device driver
+CHR 33;04	# character device driver
+ORPHAN 40;31;01 # symlink to nonexistent file
+
+# This is for files with execute permission:
+EXEC 32
+
+# List any file extensions like '.gz' or '.tar' that you would like ls
+# to colorize below. Put the extension, a space, and the color init string.
+# (and any comments you want to add after a '#')
+
+# If you use DOS-style suffixes, you may want to uncomment the following:
+#.cmd 01;32 # executables (green)
+#.exe 01;32
+#.com 01;32
+#.btm 01;32
+#.bat 01;32
+
+.tar 31 # archives or compressed (red)
+.tgz 31
+.arj 31
+.taz 31
+.lzh 31
+.zip 31
+.z   31
+.Z   31
+.gz  31
+.bz2 31
+.deb 31
+.rpm 31
+.jar 31
+
+# image formats
+.jpg 35
+.jpeg 35
+.gif 35
+.bmp 35
+.pbm 35
+.pgm 35
+.ppm 35
+.tga 35
+.xbm 35
+.xpm 35
+.tif 35
+.tiff 35
+.png 35
+.mov 35
+.mpg 35
+.mpeg 35
+.avi 35
+.fli 35
+.gl 35
+.dl 35
+.xcf 35
+.xwd 35
+
+# audio formats
+.ogg 35
+.mp3 35
+.wav 35

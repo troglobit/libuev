@@ -2,6 +2,9 @@
 " Extra vim stuff
 " 
 
+map `h <Plug>jdocConvertHere
+map `c <Plug>jdocConvertCompact
+
 nmap <F2> :call SetCHdr()<CR>
 
 map gy "*y
@@ -10,12 +13,14 @@ map g]p "*]p
 map g[P "*[P
 
 function! SetCHdr()
-   call append(0, ["/*",
-         \ "  $Id$",
-         \ "  (C) Copyright ".strftime("%Y")." Amplex, ".$USER."@amplex.dk",
-         \ "",
-         \ "  ABSTRACT: ",
-         \ "*/"])
+   call append(0, ["/**",
+         \ " * @file ".strpart(bufname("%"), strridx(bufname("%"), "/")+1), 
+         \ " * ABSTRACT HERE << ",
+         \ " *",
+         \ " * $Id$",
+         \ " *",
+         \ " * (C) Copyright ".strftime("%Y")." Amplex, ".$USER."@amplex.dk",
+         \ " */"])
    call append(line('$'), ["", "// vim: set sw=3 sts=3 et:"])
    normal 5G$ 
    set sw=3 sts=3 et
@@ -52,7 +57,7 @@ autocmd Private FileType sh call TextEnableCodeSnip('lua', '--LUA--', '--EOF--')
 
 nmap gmd :Glimpse NodeType.<C-R><C-W><CR>
 
-let vimrcdir = expand("<sfile>:h")."/dot/usr/vim"
+let vimrcdir = expand("<sfile>:h").".vim/macros"
 func! CciPostLoad(Pattern, File)
 	augroup CciAutoLoad
 	exe "autocmd BufNewFile ".a:Pattern "source ".g:vimrcdir."/".a:File
@@ -64,7 +69,7 @@ endfunc
 call CciPostLoad("GLM::*", "srcmgr.vim")
 call CciPostLoad("GLW::*", "srcmgr.vim")
 delfunction CciPostLoad
-exe "source  ".expand("<sfile>:h")."/dot/usr/vim/"."utils.vim"
+"exe "source  ".expand("<sfile>:h")."/dot/usr/vim/"."utils.vim"
 "exe "source  ".expand("<sfile>:h")."/dot/usr/vim/"."newfmgr.vim"
 
 nmap              gG      :call OpenSpec("GLW::<C-R><C-W>")<CR>

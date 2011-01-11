@@ -40,6 +40,7 @@ if [ -n "$PS1" ] ;then
                  xargs -i svnlog '-{}' svn+ssh://ampsvn/srv/ampemb/trunk/embedded; }
 
    svnst()     { svn st "$@" | grep -v  '^[X?]'; }
+   hgst()      { hg  st "$@" | grep -v  '^[X?]'; }
    lth()       { ls -lat "$@" | head -20; }
    alias open='kfmclient exec'
    url()       { kfmclient openURL "$*"; }
@@ -182,7 +183,7 @@ if [ -n "$PS1" ] ;then
 
    if [[ -f /opt/toolchain/toolchain-setup ]] ;then
       tt()   { unset TOOLCHAIN_HOME ;. /opt/toolchain/toolchain-setup>/dev/null; }
-      untt() { unset CROSS_COMPILE ARCH TOOLCHAIN_PS1_LABEL TOOLCHAIN_HOME 
+      untt() { unset CROSS_COMPILE ARCH TOOLCHAIN_PS1_LABEL
                unalias make; }
       tt; untt
    fi
@@ -200,7 +201,7 @@ if [ -n "$PS1" ] ;then
       for d in ~  $AMPROOT/{,arm9,arm9/agentframework/{,agents,libs},arm9/apps/{,drivers},arm9/utils,arm9/drivers}  ~/{amplex,releases,src,abs,abs2} ;do
          CDPATH=$CDPATH:$d
       done
-      export LUA_CPATH="$AMPROOT/arm9/agentframework/lua/?.so"
+      export LUA_CPATH=";;$AMPROOT/arm9/agentframework/lua/?.so"
       if [[ ! -n $noCD ]] ;then
          echo $AMPROOT/arm9
          cd $AMPROOT/arm9

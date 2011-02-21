@@ -1,0 +1,21 @@
+#!/usr/bin/env amplua
+
+require "stdlib"
+require "Class"
+local NIL = Class.NIL
+
+local NmeaNode = Class("NmeaNode", nil, {
+    mSinks = NIL,
+    mPortNo = NIL,
+    mListeners = NIL,
+})
+
+local NmeaPort = Class("NmeaPort", NmeaNode, {
+    mPath = NIL,
+    mHispeed = NIL,
+    mDutyIn = NIL,
+    mDutyOut:w
+    = NIL,
+})
+
+

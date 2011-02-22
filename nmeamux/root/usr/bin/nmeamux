@@ -10,12 +10,36 @@ local NmeaNode = Class("NmeaNode", nil, {
     mListeners = NIL,
 })
 
+local NmeaFilter = Class("NmeaFilter", NmeaNode, {
+    mInputs = NIL,
+    mOutputs = NIL,
+    mDutyIn = NIL,
+    mDutyOut = NIL,
+})
+
 local NmeaPort = Class("NmeaPort", NmeaNode, {
     mPath = NIL,
     mHispeed = NIL,
     mDutyIn = NIL,
-    mDutyOut:w
-    = NIL,
+    mDutyOut = NIL,
 })
 
 
+local sampleConf = {
+    outputs = {
+        lospeed_1 = { inputs = { "lospeed_1", "bkhousemux" },
+        lospeed_2 = { inputs = { "gps" }, 
+
+    },
+    ports = {
+        lospeed_1  = { path = "/dev/ttyusb/mos7840-9710-7840/0",  speed = 4800 },
+        lospeed_2  = { path = "/dev/ttyusb/mos7840-9710-7840/1",  speed = 4800 },
+        hispeed    = { path = "/dev/ttyusb/mos7840-9710-7840/2",  speed = 38400 },
+        gps        = { path = "/dev/ttyusb/pl2303-067b-2303/0",   speed = 38400 },
+        ais        = { path = "/dev/ttyusb/ftdi_sio-0403-6001/0", speed = 38400 , port=25001},
+        pactor     = { path = "/dev/ttyusb/ftdi_sio-0403-d010/0", speed = 9600  , port=25002},
+        garmin1    = { path = "/dev/ttyusb/mos7840-9710-7840/3",  speed = 9600  , port=25003},
+        garmin2    = { path = "/dev/ttyS0",                       speed = 9600  , port=25004},
+        bkhousemux = { path = "/dev/ttyusb/BROOKHOUSE10-7840/3",  speed = 38400 , port=25005},
+    },
+}

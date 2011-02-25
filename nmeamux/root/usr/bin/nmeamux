@@ -16,6 +16,7 @@ local NmeaNode = Class("NmeaNode", nil, {
    mName = NIL,
    mSinks = NIL,
    mPortNo = NIL,
+   mSocket = NIL,
    mListeners = NIL,
 })
 
@@ -67,6 +68,40 @@ local sampleConf = {
 
 local nodes = {}
 
+function configure(t)
+   local inp = {}
+   for nm, cfg in pairs(t.ports) do
+      inp[nm] = cfg.input
+      nodes[nm] = NmeaPort(nm, cfg.path, cfg.inputs, cfg.port, cfg.speed)
+   end
+   for nm, cfg in pairs(t.outputs) do
+      inp[nm] = cfg.input
+      nodes[nm] = NmeaOutput(nm, cfg.output, cfg.port, cfg.speed)
+   end
+   for nm, cfg in pairs(t.filter) do
+      inp[nm] = cfg.input
+      nodes[nm] = NmeaFilter(nm, cfg.path, cfg.port, cfg.speed)
+   end
+
+   for nm, inputs in pairs(inp) do
+      for _, i in pairs(inputs) do
+         nodes[i]:addSink(nodes[nm])
+      end
+   end
+end
+
+function startSystem()
+      node:start()
+   end
+end
+
+function stopSystem()
+   for _,n in pairs(nodes) do
+      n:stop()
+   end
+   nodes = {}
+end
+
 function NmeaNode:processInput(str, toListeners)
    -- Simple relay
    for _,s in pairs(self.mSinks) do s:processInput(str) end
@@ -80,8 +115,38 @@ function NmeaNode:addSink(new)
    self.mSinks[new.mName] = new
 end
 
-function NmeaNode:start(str)
+function NmeaNode:start()
    if not self.mPortNo then return end
+   -- TODO Open socket
+   self.mSocket = XXXX
+   self.mListeners = tnew {}
+   appc.addInput(self.mSocket, function(s)
+      local sock = accept()
+      self.mListeners:append(sock)
+      self:acceptSock(sock)
+   end           
 end
 
+function NmeaPort:start()
+   local fd = io.open(self.mPath)
+   self.mPortReg = appc.addInput(self.mSocket, function(s)
+      line = line..s:read()
+end      
+
+function NmeaPort:AcceptSock(sock)
+end
+
+function NmeaNode:stop()
+   if self.mSocket then self.mSocket:close()
+   for _,l in pairs(self.mListeners) do l:close() end
+   self.mSocket = nil
+   self.mListeners = tnew {}
+end
+
+function main()
+   configure()
+   startSystem()
+end
+
+return ac.ADDR_TRANSIENT, main
 -- vim: set sw=3 sts=3 et nu:

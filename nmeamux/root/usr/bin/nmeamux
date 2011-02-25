@@ -1,71 +1,87 @@
 #!/usr/bin/env amplua
+--[[
+ - @file nmeamux
+ - ABSTRACT HERE << 
+ -
+ - $Id$
+ -
+ - (C) Copyright 2011 Amplex, fm@amplex.dk
+--]]
 
 require "stdlib"
 require "Class"
 local NIL = Class.NIL
 
 local NmeaNode = Class("NmeaNode", nil, {
-    mSinks = NIL,
-    mPortNo = NIL,
-    mListeners = NIL,
+   mName = NIL,
+   mSinks = NIL,
+   mPortNo = NIL,
+   mListeners = NIL,
 })
 
 local NmeaFilter = Class("NmeaFilter", NmeaNode, {
-    mInputs = NIL,
-    mOutputs = NIL,
-    mPosList = NIL,
-    mNegList = NIL,
+   mInputs = NIL,
+   mOutputs = NIL,
+   mPosList = NIL,
+   mNegList = NIL,
 })
 
 local NmeaPort = Class("NmeaPort", NmeaNode, {
-    mPath = NIL,
-    mSpeed = NIL,
-    mDutyIn = NIL,
-    mDutyOut = NIL,
+   mPath = NIL,
+   mSpeed = NIL,
+   mDutyIn = NIL,
+   mDutyOut = NIL,
 })
 
 
 local sampleConf = {
-    outputs = {
-        instruments = { inputs = {"p_lospeed_1", "nogps_bkhousemux", "autopilot"}, port=27001,
-                        output = "p_lospeed_1" },
-        --sfeed     = { inputs = { "gps_bkhousemux" },  output = "p_lospeed_2",    port=27002 }, 
-        gpsfeed     = { inputs = { "gps" },             output = "p_lospeed_2",    port=27002 }, 
-        garmin_nmea = { inputs = { "p_lospeed_1", "p_lospeed_2", "p_ais", "p_bkhousemux" },
-                        output = "p_hispeed",                                      port=27003 },
-    },
-    ports = {
-        p_lospeed_1  = { path = "/dev/ttyusb/mos7840-9710-7840/0",  speed=4800  , port=26001},
-        p_lospeed_2  = { path = "/dev/ttyusb/mos7840-9710-7840/1",  speed=4800  , port=26002},
-        p_hispeed    = { path = "/dev/ttyusb/mos7840-9710-7840/2",  speed=38400 , port=26003},
-        p_gps        = { path = "/dev/ttyusb/pl2303-067b-2303/0",   speed=38400 , port=26004},
-        p_ais        = { path = "/dev/ttyusb/ftdi_sio-0403-6001/0", speed=38400 , port=25001},
-        p_pactor     = { path = "/dev/ttyusb/ftdi_sio-0403-d010/0", speed=9600  , port=25002},
-        p_garmin1    = { path = "/dev/ttyusb/mos7840-9710-7840/3",  speed=9600  , port=25003},
-        p_garmin2    = { path = "/dev/ttyS0",                       speed=9600  , port=25004},
-        p_bkhousemux = { path = "/dev/ttyusb/BROOKHOUSE10-7840/3",  speed=38400 , port=25005},
-        p_navtex     = { path = "/dev/ttyusb/NAVTEX-------7840/3",  speed=38400 , port=25006},
-    },
-    filter   = {
-        nogps_bkhousemux = { inputs = { "p_bkhousemux" } , port=28001,
-                             neg = { "^..RMB", "^..VDV" } },
-        gps_bkhousemux   = { inputs = { "p_bkhousemux" } , port=28002,
-                             pos = { "^..RMB", "^..VDV" } },
-        autopilot =        { inputs = { "p_hispeed" },     port=28003, 
-                             pos = { "^..XTE", "^..WPT" } },
-    },
+   outputs = {
+      instruments = { inputs = {"p_lospeed_1", "nogps_bkhousemux", "autopilot"}, port=27001,
+                      output = "p_lospeed_1" },
+      --sfeed     = { inputs = { "gps_bkhousemux" },  output = "p_lospeed_2",    port=27002 }, 
+      gpsfeed     = { inputs = { "gps" },             output = "p_lospeed_2",    port=27002 }, 
+      garmin_nmea = { inputs = { "p_lospeed_1", "p_lospeed_2", "p_ais", "p_bkhousemux" },
+                      output = "p_hispeed",                                      port=27003 },
+   },
+   ports = {
+      p_lospeed_1  = { path = "/dev/ttyusb/mos7840-9710-7840/0",  speed=4800  , port=26001},
+      p_lospeed_2  = { path = "/dev/ttyusb/mos7840-9710-7840/1",  speed=4800  , port=26002},
+      p_hispeed    = { path = "/dev/ttyusb/mos7840-9710-7840/2",  speed=38400 , port=26003},
+      p_gps        = { path = "/dev/ttyusb/pl2303-067b-2303/0",   speed=38400 , port=26004},
+      p_ais        = { path = "/dev/ttyusb/ftdi_sio-0403-6001/0", speed=38400 , port=25001},
+      p_pactor     = { path = "/dev/ttyusb/ftdi_sio-0403-d010/0", speed=9600  , port=25002},
+      p_garmin1    = { path = "/dev/ttyusb/mos7840-9710-7840/3",  speed=9600  , port=25003},
+      p_garmin2    = { path = "/dev/ttyS0",                       speed=9600  , port=25004},
+      p_bkhousemux = { path = "/dev/ttyusb/BROOKHOUSE10-7840/3",  speed=38400 , port=25005},
+      p_navtex     = { path = "/dev/ttyusb/NAVTEX-------7840/3",  speed=38400 , port=25006},
+   },
+   filter   = {
+      nogps_bkhousemux = { inputs = { "p_bkhousemux" } , port=28001,
+                           neg = { "^..RMB", "^..VDV" } },
+      gps_bkhousemux   = { inputs = { "p_bkhousemux" } , port=28002,
+                           pos = { "^..RMB", "^..VDV" } },
+      autopilot =        { inputs = { "p_hispeed" },     port=28003, 
+                           pos = { "^..XTE", "^..WPT" } },
+   },
 }
 
+local nodes = {}
 
-function NmeaNode:processInput(str)
-    -- Simple relay
-    for _,s in pairs(self.mSinks) do s:processInput(str) end
+function NmeaNode:processInput(str, toListeners)
+   -- Simple relay
+   for _,s in pairs(self.mSinks) do s:processInput(str) end
+   if toListeners or self.mRelayToListeners then
+      for _,l in pairs(self.mListeners) do l:write(str) end
+   end
+end
+
+function NmeaNode:addSink(new)
+   -- Simple relay
+   self.mSinks[new.mName] = new
 end
 
 function NmeaNode:start(str)
-    if not self.mPortNo then return end
-
-    :T Cal  
+   if not self.mPortNo then return end
 end
 
-
+-- vim: set sw=3 sts=3 et nu:

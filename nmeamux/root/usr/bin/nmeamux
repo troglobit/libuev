@@ -14,14 +14,14 @@ local NIL = Class.NIL
 
 local NmeaNode = Class("NmeaNode", nil, {
    mName = NIL,
+   mInputs = NIL,
    mSinks = NIL,
    mPortNo = NIL,
+   mPortSock = NIL,
    mListeners = NIL,
 })
 
 local NmeaFilter = Class("NmeaFilter", NmeaNode, {
-   mInputs = NIL,
-   mOutputs = NIL,
    mPosList = NIL,
    mNegList = NIL,
 })
@@ -31,8 +31,19 @@ local NmeaPort = Class("NmeaPort", NmeaNode, {
    mSpeed = NIL,
    mDutyIn = NIL,
    mDutyOut = NIL,
+   mSerialPort = NIL,
+   mLineBuffer = NIL,
 })
 
+local RawPort = Class("RawPort", NmeaPort, {})
+
+local NmeaOutput = Class("NmeaOutput", NmeaNode, {
+   mOutput = NIL,
+})
+
+local NilFilter = Class("NilFilter", nil, {})
+local AisFilter = Class("AisFilter", NilFilter, {mDb = NIL})
+local GpsComp = Class("GpsComp", NilFilter, {mDb = NIL})
 
 local sampleConf = {
    outputs = {
@@ -49,39 +60,224 @@ local sampleConf = {
       p_hispeed    = { path = "/dev/ttyusb/mos7840-9710-7840/2",  speed=38400 , port=26003},
       p_gps        = { path = "/dev/ttyusb/pl2303-067b-2303/0",   speed=38400 , port=26004},
       p_ais        = { path = "/dev/ttyusb/ftdi_sio-0403-6001/0", speed=38400 , port=25001},
+      p_bkhousemux = { path = "/dev/ttyusb/BROOKHOUSE10-7840/3",  speed=38400 , port=25005},
+   },
+   rawports = {
       p_pactor     = { path = "/dev/ttyusb/ftdi_sio-0403-d010/0", speed=9600  , port=25002},
       p_garmin1    = { path = "/dev/ttyusb/mos7840-9710-7840/3",  speed=9600  , port=25003},
       p_garmin2    = { path = "/dev/ttyS0",                       speed=9600  , port=25004},
-      p_bkhousemux = { path = "/dev/ttyusb/BROOKHOUSE10-7840/3",  speed=38400 , port=25005},
       p_navtex     = { path = "/dev/ttyusb/NAVTEX-------7840/3",  speed=38400 , port=25006},
    },
    filter   = {
       nogps_bkhousemux = { inputs = { "p_bkhousemux" } , port=28001,
                            neg = { "^..RMB", "^..VDV" } },
-      gps_bkhousemux   = { inputs = { "p_bkhousemux" } , port=28002,
-                           pos = { "^..RMB", "^..VDV" } },
+      gps_bkhousemux   = { inputs = { "p_gps", "p_bkhousemux", "aisfilter"} , port=28002,
+                           pos = { "^..RMB", "^..VDV" }, aux={GpsComp}, prio_delay=2500 },
       autopilot =        { inputs = { "p_hispeed" },     port=28003, 
                            pos = { "^..XTE", "^..WPT" } },
+      aisfilter =        { inputs = { "p_ais" },         port=28004, 
+                           aux = {AisFilter} }
    },
 }
 
 local nodes = {}
+local sysmon
+local sysstat= {} -- pos, sog, cog, stw, hdg, dpt, wrv, wrb, 
 
-function NmeaNode:processInput(str, toListeners)
+--------------------------------------------------------------------
+-- NmeaNode
+--------------------------------------------------------------------
+
+---
+-- Create a generic node
+function NmeaNode.new(_class, name, cfg)
+   return _class:_new():_merge {
+      mName = name,
+      mInputs = cfg.inputs,
+      mSinks = {}, 
+      mPortNo = cfg.port,
+      mListeners = {}
+   }
+end
+
+---
+-- Data forwarding
+function NmeaNode:processInput(str)
    -- Simple relay
-   for _,s in pairs(self.mSinks) do s:processInput(str) end
-   if toListeners or self.mRelayToListeners then
-      for _,l in pairs(self.mListeners) do l:write(str) end
+   for _,s in pairs(self.mSinks) do
+      s:processInput(str)
+   end
+   for _,l in pairs(self.mListeners) do
+      l:write(str)
    end
 end
 
+---
+-- Register a data sink
 function NmeaNode:addSink(new)
    -- Simple relay
    self.mSinks[new.mName] = new
 end
 
+---
+-- Startup system interaction
 function NmeaNode:start(str)
+   for _,s in ipairs(self.mSinks or {}) do
+      nodes[s]:addSink(n)
+   end
    if not self.mPortNo then return end
+end
+
+--------------------------------------------------------------------
+-- NmeaOutput 
+--------------------------------------------------------------------
+
+---
+-- Create an output node
+function NmeaOutput.new(_class, name, cfg)
+   return NmeaOutput:getSuper().new(_class, name, cfg):_merge {
+      mOutput = assert(cfg.output)
+   }
+end
+
+---
+-- Startup system interaction
+function NmeaOutput:start(str)
+   NmeaOutput:getSuper().start(self, str)
+   self:addSink(nodes[self.mOutput])
+end
+
+--------------------------------------------------------------------
+-- NmeaPort 
+--------------------------------------------------------------------
+
+---
+-- Create an output node
+function NmeaPort.new(_class, name, cfg)
+   return NmeaPort:getSuper().new(_class, name, cfg):_merge {
+      mPath = assert(cfg.path),
+      mSpeed = assert(cfg.speed),
+      mDutyOut = DutyCycle(cfg.speed),
+      mDutyIn = DutyCycle(cfg.speed),
+      mLineBuffer = tnew {},
+   }
+end
+function RawPort.new(_class, name, cfg)
+   return NmeaPort.new(_class, name, cfg):_merge { mLineBuffer = nil }
+end
+
+---
+-- Startup system interaction
+function NmeaOutput:start(str)
+   NmeaPort:getSuper().start(self, str)
+   -- TODO: Open serial port
+   self.mSerialPort = XX
+end
+
+---
+-- Data forwarding
+function NmeaNode:processInput(str)
+   self.mDutyOut:addLen(#str)
+   self.mSerialPort:write(str)
+   sysmon:addOut(self, str:sub(1,5))
+end
+
+--------------------------------------------------------------------
+-- FILTERS
+--------------------------------------------------------------------
+
+function NilFilter:process(port, str, out)
+   out(str)
+end
+
+--------------------------------------------------------------------
+-- MONITOR
+--------------------------------------------------------------------
+
+local SysMon= Class("SysMon", nil, {
+   mPort = NIL
+   mQueue = NIL,
+   mTimer = NIL,
+   mIndex = NIL,
+}
+
+function  SysMon:runTimer()
+end
+
+local SysMonTon = Class("SysMonTon", nil, {
+   mSysMons = NIL,
+   mNames = NIL,
+   mListeners = NIL,
+   mSocket = NIL,
+})
+
+function SysMonTon:openPort(port)
+end
+
+function SysMonTon:addIn(port, snt, out)
+   local q = self.mSysMons[port].mQueue[out and 2 or 1]
+   q:insert(snt)
+   sysmon:LineStat(self.mSysMons[port], out)
+   self.mSysMons[port]:runTimer()
+end
+
+function SysMonTon:addOut(port, snt)
+   return self:addIn(port, snt, true)
+end
+
+function SysMonTon:addPort(port)
+   if self.mSysMons[port] then return end
+
+   self.mNames:insert(port.mName)
+   self.mNames:sort()
+   for ix,nm in ipairs(self.mNames) do
+      if nm == port.mName then 
+         self.mSysMons[port] = SysMon { mIndex = ix, mQueue = {{}, {}}, mPort = port }
+      end
+   end
+end
+
+local function startMonitor(port)
+   sysmon = SysMonTon { mSysMons = {}, mListeners = {}, mNames = tnew {} }
+   sysmon:openPort(port)
+end
+
+--------------------------------------------------------------------
+-- SYSTEM
+--------------------------------------------------------------------
+
+---
+-- Startup system after all nodes are brought into existence
+local function startSystem()
+   for name,n in pairs(nodes) do
+      n:start(name)
+   end
+end
+
+local function getConf()
+   -- TODO: Find a configuration
+end
+
+local function configure(config)
+   for cfgNode, classFactory in pairs {
+      ports = NmeaPort,
+      rawports = RawPort,
+      outputs = NmeaOutput,
+      filter = NmeaFilter,
+   }
+   do
+      for name, cfg in pairs(config[cfgNode] or {}) do
+         assert(nodes[name] == nil)
+         nodes[name] = classFactory(name, cfg)
+      end
+   end
+end
+
+local function main()
+   local conf = getConf() or sampleConf
+   configure(conf)
+   startMonitor(117)
+   startSystem()
 end
 
 -- vim: set sw=3 sts=3 et nu:

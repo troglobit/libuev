@@ -58,7 +58,8 @@ local sampleConf = {
       p_lospeed_1  = { path = "/dev/ttyusb/mos7840-9710-7840/0",  speed=4800  , port=26001},
       p_lospeed_2  = { path = "/dev/ttyusb/mos7840-9710-7840/1",  speed=4800  , port=26002},
       p_hispeed    = { path = "/dev/ttyusb/mos7840-9710-7840/2",  speed=38400 , port=26003},
-      p_gps        = { path = "/dev/ttyusb/pl2303-067b-2303/0",   speed=38400 , port=26004},
+      p_gps        = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_004",
+                                                                  speed=4800  , port=26004},
       p_ais        = { path = "/dev/ttyusb/ftdi_sio-0403-6001/0", speed=38400 , port=25001},
       p_bkhousemux = { path = "/dev/ttyusb/BROOKHOUSE10-7840/3",  speed=38400 , port=25005},
    },
@@ -66,16 +67,18 @@ local sampleConf = {
       p_pactor     = { path = "/dev/ttyusb/ftdi_sio-0403-d010/0", speed=9600  , port=25002},
       p_garmin1    = { path = "/dev/ttyusb/mos7840-9710-7840/3",  speed=9600  , port=25003},
       p_garmin2    = { path = "/dev/ttyS0",                       speed=9600  , port=25004},
-      p_navtex     = { path = "/dev/ttyusb/NAVTEX-------7840/3",  speed=38400 , port=25006},
+      p_navtex     = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_011",
+                                                                  speed=38400 , port=25006},
    },
    filter   = {
-      nogps_bkhousemux = { inputs = { "p_bkhousemux" } , port=28001,
-                           neg = { "^..RMB", "^..VDV" } },
-      gps_bkhousemux   = { inputs = { "p_gps", "p_bkhousemux", "aisfilter"} , port=28002,
-                           pos = { "^..RMB", "^..VDV" }, aux={GpsComp}, prio_delay=2500 },
-      autopilot =        { inputs = { "p_hispeed" },     port=28003, 
+      nogps_bkhousemux = { inputs = { "p_bkhousemux" }                        , port=28001,
+                           neg = { "^...GGA", "^...GSA", "^...GSV", } },
+      gps_bkhousemux   = { inputs = { "p_gps", "p_bkhousemux", "aisfilter"}   , port=28002,
+                           pos = { "^...GGA", "^...GSA", "^...RMC", "^...GSV", },
+                           aux={GpsComp}, prio_delay=2500 },
+      autopilot =        { inputs = { "p_hispeed" }                           , port=28003, 
                            pos = { "^..XTE", "^..WPT" } },
-      aisfilter =        { inputs = { "p_ais" },         port=28004, 
+      aisfilter =        { inputs = { "p_ais" }                               , port=28004, 
                            aux = {AisFilter} }
    },
 }
@@ -199,7 +202,7 @@ local SysMon= Class("SysMon", nil, {
    mQueue = NIL,
    mTimer = NIL,
    mIndex = NIL,
-}
+})
 
 function  SysMon:runTimer()
 end
@@ -280,4 +283,5 @@ local function main()
    startSystem()
 end
 
+return ac.ADDR_TRANSIENT, main
 -- vim: set sw=3 sts=3 et nu:

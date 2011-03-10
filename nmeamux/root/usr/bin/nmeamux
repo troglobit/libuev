@@ -8,9 +8,13 @@
  - (C) Copyright 2011 Amplex, fm@amplex.dk
 --]]
 
-require "stdlib"
+require "stdlib" .include { "seq" }
+require "posix"
+require "socket"
 require "Class"
 local NIL = Class.NIL
+
+local L_OPEN_RETRY = 5 * 1000
 
 local NmeaNode = Class("NmeaNode", nil, {
    mName = NIL,
@@ -19,11 +23,15 @@ local NmeaNode = Class("NmeaNode", nil, {
    mPortNo = NIL,
    mPortSock = NIL,
    mListeners = NIL,
+   mSubscriptions = NIL,
 })
 
 local NmeaFilter = Class("NmeaFilter", NmeaNode, {
    mPosList = NIL,
    mNegList = NIL,
+   mAuxList = NIL,
+   mPrioTout = NIL,
+   mPrioList = NIL,
 })
 
 local NmeaPort = Class("NmeaPort", NmeaNode, {
@@ -45,6 +53,36 @@ local NilFilter = Class("NilFilter", nil, {})
 local AisFilter = Class("AisFilter", NilFilter, {mDb = NIL})
 local GpsComp = Class("GpsComp", NilFilter, {mDb = NIL})
 
+local DutyCycle = Class("DutyCycle", nil, {
+   mSpeed = NIL,
+   mTail = NIL,
+})
+
+function DutyCycle.new(class, speed)
+   return class:_new { mSpeed = speed }
+end
+function DutyCycle.addLen() end
+
+local testConf
+-- [[
+= {
+   outputs = {
+      testout      = { inputs = { "testfilter" },  output = "rawport",    port=27002 }, 
+   },
+   nmeaports = {
+      testgps      = { path = "/dev/ttyUSB0",                     speed=4800  , port=26001},
+      testport     = { path = "/dev/ttyUSB1",                     speed=4800  , port=26001},
+   },
+   rawports = {
+      rawport      = { path = "/dev/ttyUSB2",                     speed=38400 , port=25006},
+   },
+   filter   = {
+      testfilter       = { inputs = { "testport", "testgps" }                 , port=28001,
+                           neg = { "^%$..GGA", }, prio_delay=2500, aux = {AisFilter} },
+   },
+}
+--]]
+
 local sampleConf = {
    outputs = {
       instruments = { inputs = {"p_lospeed_1", "nogps_bkhousemux", "autopilot"}, port=27001,
@@ -54,7 +92,7 @@ local sampleConf = {
       garmin_nmea = { inputs = { "p_lospeed_1", "p_lospeed_2", "p_ais", "p_bkhousemux" },
                       output = "p_hispeed",                                      port=27003 },
    },
-   ports = {
+   nmeaports = {
       p_lospeed_1  = { path = "/dev/ttyusb/mos7840-9710-7840/0",  speed=4800  , port=26001},
       p_lospeed_2  = { path = "/dev/ttyusb/mos7840-9710-7840/1",  speed=4800  , port=26002},
       p_hispeed    = { path = "/dev/ttyusb/mos7840-9710-7840/2",  speed=38400 , port=26003},
@@ -72,12 +110,12 @@ local sampleConf = {
    },
    filter   = {
       nogps_bkhousemux = { inputs = { "p_bkhousemux" }                        , port=28001,
-                           neg = { "^...GGA", "^...GSA", "^...GSV", } },
+                           neg = { "^%$..GGA", "^%$..GSA", "^%$..GSV", } },
       gps_bkhousemux   = { inputs = { "p_gps", "p_bkhousemux", "aisfilter"}   , port=28002,
-                           pos = { "^...GGA", "^...GSA", "^...RMC", "^...GSV", },
+                           pos = { "^%$..GGA", "^%$..GSA", "^%$..RMC", "^%$..GSV", },
                            aux={GpsComp}, prio_delay=2500 },
       autopilot =        { inputs = { "p_hispeed" }                           , port=28003, 
-                           pos = { "^..XTE", "^..WPT" } },
+                           pos = { "%$..XTE", "%$..WPT" } },
       aisfilter =        { inputs = { "p_ais" }                               , port=28004, 
                            aux = {AisFilter} }
    },
@@ -89,6 +127,7 @@ local sysstat= {} -- pos, sog, cog, stw, hdg, dpt, wrv, wrb,
 
 --------------------------------------------------------------------
 -- NmeaNode
+-- Handle node graph and telnet connections
 --------------------------------------------------------------------
 
 ---
@@ -99,7 +138,8 @@ function NmeaNode.new(_class, name, cfg)
       mInputs = cfg.inputs,
       mSinks = {}, 
       mPortNo = cfg.port,
-      mListeners = {}
+      mListeners = {},
+      mSubscriptions = {},
    }
 end
 
@@ -107,11 +147,11 @@ end
 -- Data forwarding
 function NmeaNode:processInput(str)
    -- Simple relay
-   for _,s in pairs(self.mSinks) do
-      s:processInput(str)
+   for ix,s in pairs(self.mSinks) do
+      s:processInput(str, ix)
    end
-   for _,l in pairs(self.mListeners) do
-      l:write(str)
+   for l,_ in pairs(self.mListeners) do
+      l:send(str)
    end
 end
 
@@ -123,13 +163,51 @@ function NmeaNode:addSink(new)
 end
 
 ---
+-- Read input from a connected peer.
+-- Override and embed in derived classes to read input
+function NmeaNode:readClient(subscr, inp)
+   local res, err = posix.read(inp:getfd())
+   if not res then
+      log.notice(("PORT:%-15s Connection %d closed"):_(self.mName, inp:getfd()))
+      self.mListeners[inp] = nil
+      self.mSubscriptions[subscr] = nil
+      subscr:clear()
+      return nil
+   end
+   return res
+end
+
+---
 -- Startup system interaction
 function NmeaNode:start(str)
    for _,s in ipairs(self.mSinks or {}) do
-      nodes[s]:addSink(n)
+      nodes[s]:addSink(s)
    end
    if not self.mPortNo then return end
+
+   self.mPortSock = socket.bind("0.0.0.0", self.mPortNo)
+   local subscr = appc.addFileIO(self.mPortSock:getfd(), function(subscr)
+      local inp = self.mPortSock:accept()
+      log.notice(("PORT:%-15s Connection %d opened from %s"):
+                _(self.mName, inp:getfd(), inp:getpeername()))
+      local subscr = appc.addFileIO(inp:getfd(), function(subscr) self:readClient(subscr, inp) end)
+      self.mSubscriptions[subscr] = true
+      self.mListeners[inp] = true
+   end)
+   self.mSubscriptions[subscr] = true
 end
+
+---
+-- Cleanup subscriptions & listeners
+function NmeaNode:clear()
+   for l,_ in pairs(self.mSubscriptions) do l:clear() end
+   for l,_ in pairs(self.mListeners) do l:close() end
+   self.mSubscriptions = NIL
+   self.mListeners = NIL
+   if self.mPortSock then self.mPortSock:close() end
+   self.mPortSock = nil
+end
+function NmeaNode:__gc() return self:clear() end
 
 --------------------------------------------------------------------
 -- NmeaOutput 
@@ -171,18 +249,142 @@ end
 
 ---
 -- Startup system interaction
-function NmeaOutput:start(str)
+function NmeaPort:start(str)
    NmeaPort:getSuper().start(self, str)
-   -- TODO: Open serial port
-   self.mSerialPort = XX
+   return self:reOpen()
+end
+
+---
+-- Startup system interaction
+function NmeaPort:reOpen()
+   local port, err = io.open(self.mPath, "rw")
+   if not port then
+      log.error(("PORT:%-15s Failed to open %s: %s"):_(self.mName, self.mPath, err))
+      appc.addTimer(L_OPEN_RETRY, function() self:reOpen() end)
+      return
+   end
+   self.mSerialPort = port
+   os.execute(("stty %d raw -parenb cs8 < %s"):_(self.mSpeed, self.mPath))
+   local subscr = appc.addFileIO(self.mSerialPort:getfd(), function(subscr) 
+      local str, err = posix.read(port:getfd())
+      if not str then
+         log.error(("PORT:%-15s REOPEN: Failed to read %s: %s"):_(self.mName, self.mPath, err))
+         self.mSerialPort:close()
+         self.mSerialPort = nil
+         subscr:clear()
+         self.mSubscriptions[subscr] = nil
+         appc.addTimer(L_OPEN_RETRY, function() self:reOpen() end)
+         return
+      end
+      -- TODO: Reopen on error
+      if self.mLineBuffer then
+         local where = str:find("\r\n")
+         if where then
+            self.mLineBuffer:append(str:sub(1, where - 1))
+            NmeaPort:getSuper().processInput(self, self.mLineBuffer:concat())
+            self.mLineBuffer = tnew { str:sub(where + 2) }
+         else
+            self.mLineBuffer:append(str)
+         end
+      else
+         NmeaPort:getSuper().processInput(self, str)
+      end
+   end)
+   self.mSubscriptions[subscr] = true
+end
+
+---
+-- Cleanup subscriptions & listeners
+function NmeaPort:clear()
+   NmeaPort:getSuper().clear(self)
+   if self.mSerialPort then self.mSerialPort:close() end
+   self.mSerialPort = nil
+end
+
+
+---
+-- Data forwarding
+function NmeaPort:processInput(str)
+   self.mDutyOut:addLen(#str)
+   self.mSerialPort:write(str)
+   if self.mLineBuffer then sysmon:addOut(self, str:sub(1,6)) end
+end
+
+---
+-- Read input from a connected peer.
+function NmeaPort:readClient(subscr, inp)
+   local str = NmeaPort:getSuper().readClient(self, subscr, inp)
+   self:processInput(str)
+end
+
+--------------------------------------------------------------------
+-- NmeaFilter 
+--------------------------------------------------------------------
+
+---
+-- Create an output node
+function NmeaFilter.new(_class, name, cfg)
+   return NmeaFilter:getSuper().new(_class, name, cfg):_merge {
+      mPosList = cfg.pos,
+      mNegList = cfg.neg,
+      mAuxList = cfg.aux,
+      mPrioTout = cfg.prio_delay,
+      mPrioList = {},
+   }
+end
+
+---
+-- Startup system interaction
+function NmeaFilter:start(str)
+   NmeaFilter:getSuper().start(self, str)
+   self.mAuxList = List(seq.map(function(cls) return cls() end, self.mAuxList or {}))
 end
 
 ---
 -- Data forwarding
-function NmeaNode:processInput(str)
-   self.mDutyOut:addLen(#str)
-   self.mSerialPort:write(str)
-   sysmon:addOut(self, str:sub(1,5))
+function NmeaFilter:processInput(str, ix)
+   if self.mNegList then
+      for _,p in ipairs(self.mNegList) do
+         if p:find(str) then
+            return
+         end
+      end
+   end
+   if self.mPosList then
+      local pass
+      for _,p in ipairs(self.mNegList) do
+         if p:find(str) then
+            pass = true
+            break
+         end
+      end
+      if not pass then
+         return
+      end
+   end
+   if self.mAuxList then
+      for _,aux in ipairs(self.mAuxList) do
+         aux:process(str, function(str) self:passItOn(str, ix) end)
+      end
+   else
+      self:passItOn(str, ix)
+   end
+end
+
+---
+-- Implement priority shadowing
+function NmeaFilter:passItOn(str, ix)
+   if self.mPrioTout then
+      local now, mSec = appc.systemTime()
+      now = now * 1000 + mSec
+      local stmt = str:sub(1,5)
+      local old = self.mPrioList[stmt]
+      if old and (now - old.timeStamp) < self.mPrioTout and old.prio < ix then
+         return -- He wins
+      end
+      self.mPrioList[stmt] = { timeStamp = now, prio = ix }
+   end
+   return NmeaFilter:getSuper().processInput(self, str, ix)
 end
 
 --------------------------------------------------------------------
@@ -198,7 +400,7 @@ end
 --------------------------------------------------------------------
 
 local SysMon= Class("SysMon", nil, {
-   mPort = NIL
+   mPort = NIL,
    mQueue = NIL,
    mTimer = NIL,
    mIndex = NIL,
@@ -263,7 +465,7 @@ end
 
 local function configure(config)
    for cfgNode, classFactory in pairs {
-      ports = NmeaPort,
+      nmeaports = NmeaPort,
       rawports = RawPort,
       outputs = NmeaOutput,
       filter = NmeaFilter,
@@ -277,7 +479,7 @@ local function configure(config)
 end
 
 local function main()
-   local conf = getConf() or sampleConf
+   local conf = getConf() or testConf or sampleConf
    configure(conf)
    startMonitor(117)
    startSystem()

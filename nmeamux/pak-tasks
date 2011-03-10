@@ -1,0 +1,35 @@
+#!/bin/ash
+##
+# $Id: pak-tasks 21627 2010-01-18 13:00:38Z fm $
+# (C) Copyright 2009 Amplex, fm@amplex.dk
+#
+# ABSTRACT: Solo kick-off & cleanup on unit
+##
+
+export AGENTNAME="nmeamux"
+export AGENTBIN="/usr/bin/nmeamux"
+
+start ()
+{
+    start-stop --start --respawn $AGENTBIN
+    return 0
+}
+
+stop ()
+{
+    start-stop --stop --respawn $AGENTBIN
+    return 0
+}
+
+
+cleanup ()
+{
+    rm -f /var/log/$AGENTNAME.log*
+    return 0
+}
+
+remove ()
+{
+    cleanup()
+    return 0
+}

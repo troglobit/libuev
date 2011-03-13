@@ -3,8 +3,8 @@
 exec 1>/dev/console 2>&1
 
 P=/sys$DEVPATH
-[ -r $P/uevent ] && . $P/uevent
 [ -r $P/../../uevent ] && . $P/../../uevent
+[ -r $P/uevent ] && . $P/uevent
 
 # Exit unless proper type
 [ $SUBSYSTEM = "usb-serial"  -a -n "$DRIVER" ] || exit 0
@@ -28,16 +28,18 @@ DEVP=/dev/ttyusb/$DEV_NM
 if [ $ACTION = "add" ] ;then
     mkdir -p $DEVP
     ln -sf /dev/$MDEV $DEVP/$PORT
-    say "Add $DEVP/$PORT -> /dev/$MDEV MANU $MANU"
+    say "ADD $DEVPATH MANU $MANU"
+    say "Add $DEVP/$PORT -> /dev/$MDEV"
     if [ -n $DEVNAME ] ;then
         DEVADDR=$(echo $DEVNAME | tr / _)
-        ln -sf /dev/$MDEV $DEVP/$DEVADDR
-        say "Add $DEVP/$DEVADDR -> /dev/$MDEV MANU $MANU"
+        ln -sf /dev/$MDEV $DEVP/$DEVADDR:$(cat $P/../bInterfaceNumber)
+        say "Add $DEVP/$DEVADDR -> /dev/$MDEV"
     fi
 elif [ $ACTION = "remove" ] ;then
     rm -f /dev/ttyusb/$MANU/$DEV_NM/$PORT
-    say "Rem $DEVP/$PORT -> /dev/$MDEV MANU $MANU"
+    say "REM $DEVPATH MANU $MANU"
+    say "Rem $DEVP/$PORT -> /dev/$MDEV"
 else
-    say "Unknown action $ACTION for $MDEV $MANU $DEV_NM"
+    say "Unknown action $ACTION for $MDEV $MANU $DEV_NM PATH $DEVPATH"
 fi
 

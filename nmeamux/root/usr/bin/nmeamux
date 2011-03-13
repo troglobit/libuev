@@ -1,4 +1,4 @@
-#!/usr/bin/env amplua
+#!/usr/bin/env lua-agent
 --[[
  - @file nmeamux
  - ABSTRACT HERE << 
@@ -14,46 +14,12 @@ require "socket"
 require "Class"
 local NIL = Class.NIL
 
+local iometa = getmetatable(io.stdin)
+if iometa.fileno and not iometa.getfd then iometa.getfd = iometa.fileno end
+
 local L_OPEN_RETRY = 5 * 1000
 
-local NmeaNode = Class("NmeaNode", nil, {
-   mName = NIL,
-   mInputs = NIL,
-   mSinks = NIL,
-   mPortNo = NIL,
-   mPortSock = NIL,
-   mListeners = NIL,
-   mSubscriptions = NIL,
-})
-
-local NmeaFilter = Class("NmeaFilter", NmeaNode, {
-   mPosList = NIL,
-   mNegList = NIL,
-   mAuxList = NIL,
-   mPrioTout = NIL,
-   mPrioList = NIL,
-})
-
-local NmeaPort = Class("NmeaPort", NmeaNode, {
-   mPath = NIL,
-   mSpeed = NIL,
-   mDutyIn = NIL,
-   mDutyOut = NIL,
-   mSerialPort = NIL,
-   mLineBuffer = NIL,
-})
-
-local RawPort = Class("RawPort", NmeaPort, {})
-
-local NmeaOutput = Class("NmeaOutput", NmeaNode, {
-   mOutput = NIL,
-})
-
-local NilFilter = Class("NilFilter", nil, {})
-local AisFilter = Class("AisFilter", NilFilter, {mDb = NIL})
-local GpsComp = Class("GpsComp", NilFilter, {mDb = NIL})
-
-local DutyCycle = Class("DutyCycle", nil, {
+local DutyCycle = Class(nil, "DutyCycle", {
    mSpeed = NIL,
    mTail = NIL,
 })
@@ -63,64 +29,6 @@ function DutyCycle.new(class, speed)
 end
 function DutyCycle.addLen() end
 
-local testConf
--- [[
-= {
-   outputs = {
-      testout      = { inputs = { "testfilter" },  output = "rawport",    port=27002 }, 
-   },
-   nmeaports = {
-      testgps      = { path = "/dev/ttyUSB0",                     speed=4800  , port=26001},
-      testport     = { path = "/dev/ttyUSB1",                     speed=4800  , port=26001},
-   },
-   rawports = {
-      rawport      = { path = "/dev/ttyUSB2",                     speed=38400 , port=25006},
-   },
-   filter   = {
-      testfilter       = { inputs = { "testport", "testgps" }                 , port=28001,
-                           neg = { "^%$..GGA", }, prio_delay=2500, aux = {AisFilter} },
-   },
-}
---]]
-
-local sampleConf = {
-   outputs = {
-      instruments = { inputs = {"p_lospeed_1", "nogps_bkhousemux", "autopilot"}, port=27001,
-                      output = "p_lospeed_1" },
-      --sfeed     = { inputs = { "gps_bkhousemux" },  output = "p_lospeed_2",    port=27002 }, 
-      gpsfeed     = { inputs = { "gps" },             output = "p_lospeed_2",    port=27002 }, 
-      garmin_nmea = { inputs = { "p_lospeed_1", "p_lospeed_2", "p_ais", "p_bkhousemux" },
-                      output = "p_hispeed",                                      port=27003 },
-   },
-   nmeaports = {
-      p_lospeed_1  = { path = "/dev/ttyusb/mos7840-9710-7840/0",  speed=4800  , port=26001},
-      p_lospeed_2  = { path = "/dev/ttyusb/mos7840-9710-7840/1",  speed=4800  , port=26002},
-      p_hispeed    = { path = "/dev/ttyusb/mos7840-9710-7840/2",  speed=38400 , port=26003},
-      p_gps        = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_004",
-                                                                  speed=4800  , port=26004},
-      p_ais        = { path = "/dev/ttyusb/ftdi_sio-0403-6001/0", speed=38400 , port=25001},
-      p_bkhousemux = { path = "/dev/ttyusb/BROOKHOUSE10-7840/3",  speed=38400 , port=25005},
-   },
-   rawports = {
-      p_pactor     = { path = "/dev/ttyusb/ftdi_sio-0403-d010/0", speed=9600  , port=25002},
-      p_garmin1    = { path = "/dev/ttyusb/mos7840-9710-7840/3",  speed=9600  , port=25003},
-      p_garmin2    = { path = "/dev/ttyS0",                       speed=9600  , port=25004},
-      p_navtex     = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_011",
-                                                                  speed=38400 , port=25006},
-   },
-   filter   = {
-      nogps_bkhousemux = { inputs = { "p_bkhousemux" }                        , port=28001,
-                           neg = { "^%$..GGA", "^%$..GSA", "^%$..GSV", } },
-      gps_bkhousemux   = { inputs = { "p_gps", "p_bkhousemux", "aisfilter"}   , port=28002,
-                           pos = { "^%$..GGA", "^%$..GSA", "^%$..RMC", "^%$..GSV", },
-                           aux={GpsComp}, prio_delay=2500 },
-      autopilot =        { inputs = { "p_hispeed" }                           , port=28003, 
-                           pos = { "%$..XTE", "%$..WPT" } },
-      aisfilter =        { inputs = { "p_ais" }                               , port=28004, 
-                           aux = {AisFilter} }
-   },
-}
-
 local nodes = {}
 local sysmon
 local sysstat= {} -- pos, sog, cog, stw, hdg, dpt, wrv, wrb, 
@@ -129,6 +37,16 @@ local sysstat= {} -- pos, sog, cog, stw, hdg, dpt, wrv, wrb,
 -- NmeaNode
 -- Handle node graph and telnet connections
 --------------------------------------------------------------------
+
+local NmeaNode = Class(nil, "NmeaNode", {
+   mName = NIL,
+   mInputs = NIL,
+   mSinks = NIL,
+   mPortNo = NIL,
+   mPortSock = NIL,
+   mListeners = NIL,
+   mSubscriptions = NIL,
+})
 
 ---
 -- Create a generic node
@@ -147,11 +65,12 @@ end
 -- Data forwarding
 function NmeaNode:processInput(str)
    -- Simple relay
+   log.debug(||("NODE:%-15s READ: %t"):_(self.mName, str))
    for ix,s in pairs(self.mSinks) do
       s:processInput(str, ix)
    end
    for l,_ in pairs(self.mListeners) do
-      l:send(str)
+      l:send(str.."\r\n")
    end
 end
 
@@ -180,12 +99,13 @@ end
 ---
 -- Startup system interaction
 function NmeaNode:start(str)
-   for _,s in ipairs(self.mSinks or {}) do
-      nodes[s]:addSink(s)
+   for _,s in ipairs(self.mInputs or {}) do
+      assert(nodes[s], ("No input: %s"):_(s)):addSink(self)
    end
    if not self.mPortNo then return end
 
-   self.mPortSock = socket.bind("0.0.0.0", self.mPortNo)
+   local sock, err = socket.bind("0.0.0.0", self.mPortNo)
+   self.mPortSock = assert(sock, ("Can not open listen on %d: %t"):_(self.mPortNo, err))
    local subscr = appc.addFileIO(self.mPortSock:getfd(), function(subscr)
       local inp = self.mPortSock:accept()
       log.notice(("PORT:%-15s Connection %d opened from %s"):
@@ -213,6 +133,10 @@ function NmeaNode:__gc() return self:clear() end
 -- NmeaOutput 
 --------------------------------------------------------------------
 
+local NmeaOutput = Class(NmeaNode, "NmeaOutput", {
+   mOutput = NIL,
+})
+
 ---
 -- Create an output node
 function NmeaOutput.new(_class, name, cfg)
@@ -231,6 +155,16 @@ end
 --------------------------------------------------------------------
 -- NmeaPort 
 --------------------------------------------------------------------
+
+local NmeaPort = Class(NmeaNode, "NmeaPort", {
+   mPath = NIL,
+   mSpeed = NIL,
+   mDutyIn = NIL,
+   mDutyOut = NIL,
+   mSerialPort = NIL,
+   mLineBuffer = NIL,
+})
+local RawPort = Class(NmeaPort, "RawPort", {})
 
 ---
 -- Create an output node
@@ -254,41 +188,55 @@ function NmeaPort:start(str)
    return self:reOpen()
 end
 
+local function nmeaReadPort(self, subscr) 
+   local port = self.mSerialPort
+   local str, err = posix.read(port:getfd())
+   if not str then
+      log.error(("PORT:%-15s REOPEN: Failed to read %s: %s"):_(self.mName, self.mPath, err))
+      self.mSerialPort:close()
+      self.mSerialPort = nil
+      subscr:clear()
+      self.mSubscriptions[subscr] = nil
+      appc.addTimer(L_OPEN_RETRY, function() self:reOpen() end)
+      return
+   end
+   -- TODO: Reopen on error
+   if self.mLineBuffer then
+      local where,whend = str:find("[\r\n]+")
+      if where then
+         while where do
+            self.mLineBuffer:append(str:sub(1, where - 1))
+            local line = self.mLineBuffer:concat()
+            if #line > 0 then
+               --NmeaPort:getSuper().processInput(self, ("%d%s"):_(#self.mLineBuffer,line))
+               NmeaPort:getSuper().processInput(self, line)
+            end
+            str = str:sub(whend + 1, -1)
+            where,whend = str:find("[\r\n]+")
+            self.mLineBuffer = tnew {}
+         end
+         self.mLineBuffer = tnew { str }
+      else
+         self.mLineBuffer:append(str)
+      end
+   else
+      NmeaPort:getSuper().processInput(self, str)
+   end
+end
+
 ---
 -- Startup system interaction
 function NmeaPort:reOpen()
-   local port, err = io.open(self.mPath, "rw")
+   local port, err = io.open(self.mPath, "r+")
    if not port then
       log.error(("PORT:%-15s Failed to open %s: %s"):_(self.mName, self.mPath, err))
       appc.addTimer(L_OPEN_RETRY, function() self:reOpen() end)
       return
    end
    self.mSerialPort = port
-   os.execute(("stty %d raw -parenb cs8 < %s"):_(self.mSpeed, self.mPath))
+   os.execute(("stty %d raw -parenb cs8 min 50 time 1 < %s"):_(self.mSpeed, self.mPath))
    local subscr = appc.addFileIO(self.mSerialPort:getfd(), function(subscr) 
-      local str, err = posix.read(port:getfd())
-      if not str then
-         log.error(("PORT:%-15s REOPEN: Failed to read %s: %s"):_(self.mName, self.mPath, err))
-         self.mSerialPort:close()
-         self.mSerialPort = nil
-         subscr:clear()
-         self.mSubscriptions[subscr] = nil
-         appc.addTimer(L_OPEN_RETRY, function() self:reOpen() end)
-         return
-      end
-      -- TODO: Reopen on error
-      if self.mLineBuffer then
-         local where = str:find("\r\n")
-         if where then
-            self.mLineBuffer:append(str:sub(1, where - 1))
-            NmeaPort:getSuper().processInput(self, self.mLineBuffer:concat())
-            self.mLineBuffer = tnew { str:sub(where + 2) }
-         else
-            self.mLineBuffer:append(str)
-         end
-      else
-         NmeaPort:getSuper().processInput(self, str)
-      end
+      return nmeaReadPort(self, subscr)
    end)
    self.mSubscriptions[subscr] = true
 end
@@ -306,20 +254,31 @@ end
 -- Data forwarding
 function NmeaPort:processInput(str)
    self.mDutyOut:addLen(#str)
-   self.mSerialPort:write(str)
-   if self.mLineBuffer then sysmon:addOut(self, str:sub(1,6)) end
+   log.notice(||("OUTP:%-15s W: %t"):_(self.mName, str))
+   posix.write(self.mSerialPort:getfd(), str.."\r\n")
+   -- if self.mLineBuffer then sysmon:addOut(self, str:sub(1,6)) end
 end
 
 ---
 -- Read input from a connected peer.
 function NmeaPort:readClient(subscr, inp)
    local str = NmeaPort:getSuper().readClient(self, subscr, inp)
-   self:processInput(str)
+   if str then
+      self:processInput(str)
+   end
 end
 
 --------------------------------------------------------------------
 -- NmeaFilter 
 --------------------------------------------------------------------
+
+local NmeaFilter = Class(NmeaNode, "NmeaFilter", {
+   mPosList = NIL,
+   mNegList = NIL,
+   mAuxList = NIL,
+   mPrioTout = NIL,
+   mPrioList = NIL,
+})
 
 ---
 -- Create an output node
@@ -345,26 +304,28 @@ end
 function NmeaFilter:processInput(str, ix)
    if self.mNegList then
       for _,p in ipairs(self.mNegList) do
-         if p:find(str) then
+         if str:find(p) then
+            log.debug(||("NREJ:%-15s READ: %t"):_(self.mName, str))
             return
          end
       end
    end
    if self.mPosList then
       local pass
-      for _,p in ipairs(self.mNegList) do
-         if p:find(str) then
+      for _,p in ipairs(self.mPosList) do
+         if str:find(p) then
             pass = true
             break
          end
       end
       if not pass then
+         log.debug(||("PREJ:%-15s READ: %t"):_(self.mName, str))
          return
       end
    end
    if self.mAuxList then
       for _,aux in ipairs(self.mAuxList) do
-         aux:process(str, function(str) self:passItOn(str, ix) end)
+         aux:process(self, str, function(str) self:passItOn(str, ix) end)
       end
    else
       self:passItOn(str, ix)
@@ -380,6 +341,7 @@ function NmeaFilter:passItOn(str, ix)
       local stmt = str:sub(1,5)
       local old = self.mPrioList[stmt]
       if old and (now - old.timeStamp) < self.mPrioTout and old.prio < ix then
+         log.debug(||("TREJ:%-15s READ: %t"):_(self.mName, str))
          return -- He wins
       end
       self.mPrioList[stmt] = { timeStamp = now, prio = ix }
@@ -388,18 +350,32 @@ function NmeaFilter:passItOn(str, ix)
 end
 
 --------------------------------------------------------------------
--- FILTERS
+-- NilFilter
 --------------------------------------------------------------------
+
+local NilFilter = Class(nil, "NilFilter", {})
 
 function NilFilter:process(port, str, out)
    out(str)
 end
 
 --------------------------------------------------------------------
+-- AisFilter
+--------------------------------------------------------------------
+
+local AisFilter = Class(NilFilter, "AisFilter", {mDb = NIL})
+
+--------------------------------------------------------------------
+-- GpsComp
+--------------------------------------------------------------------
+--
+local GpsComp = Class(NilFilter, "GpsComp", {mDb = NIL})
+
+--------------------------------------------------------------------
 -- MONITOR
 --------------------------------------------------------------------
 
-local SysMon= Class("SysMon", nil, {
+local SysMon= Class(nil, "SysMon", {
    mPort = NIL,
    mQueue = NIL,
    mTimer = NIL,
@@ -409,7 +385,7 @@ local SysMon= Class("SysMon", nil, {
 function  SysMon:runTimer()
 end
 
-local SysMonTon = Class("SysMonTon", nil, {
+local SysMonTon = Class(nil, "SysMonTon", {
    mSysMons = NIL,
    mNames = NIL,
    mListeners = NIL,
@@ -451,6 +427,64 @@ end
 -- SYSTEM
 --------------------------------------------------------------------
 
+local testConf
+--[[
+= {
+   outputs = {
+      testout      = { inputs = { "testfilter" },  output = "rawport",    port=27002 }, 
+   },
+   nmeaports = {
+      testgps      = { path = "/dev/ttyUSB0",                     speed=4800  , port=26001},
+      testport     = { path = "/dev/ttyUSB1",                     speed=4800  , port=26002},
+   },
+   rawports = {
+      rawport      = { path = "/dev/ttyUSB2",                     speed=38400 , port=25006},
+   },
+   filter   = {
+      testfilter       = { inputs = { "testport", "testgps" }                 , port=28001,
+                           neg = { "^%$..GGA", }, prio_delay=2500, aux = {AisFilter} },
+   },
+}
+--]]
+
+local sampleConf = {
+   outputs = {
+      instruments = { inputs = {"p_lospeed_1", "nogps", "autopilot"}          , port=27001,
+                      output = "p_lospeed_1" },
+      --sfeed     = { inputs = { "gps_bkhousemux" },  output = "p_lospeed_2",   port=27002 }, 
+      gpsfeed     = { inputs = { "gps" },             output = "p_lospeed_2",   port=27002 }, 
+      garmin_nmea = { inputs = { "p_lospeed_1", "p_lospeed_2", "aisfilter", "p_bkhousemux" },
+                      output = "p_hispeed",                                     port=27003 },
+   },
+   nmeaports = {
+      p_lospeed_1  = { path = "/dev/ttyusb/mos7840-9710-7840/0",  speed=4800  , port=26001},
+      p_lospeed_2  = { path = "/dev/ttyusb/mos7840-9710-7840/1",  speed=4800  , port=26002},
+      p_hispeed    = { path = "/dev/ttyusb/mos7840-9710-7840/2",  speed=38400 , port=26003},
+      p_gps        = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_004:00",
+                                                                  speed=4800  , port=26004},
+      p_ais        = { path = "/dev/ttyusb/ftdi_sio-0403-6001/0", speed=38400 , port=25001},
+      p_bkhousemux = { path = "/dev/ttyusb/ftdi_sio-0403-6010/0", speed=38400 , port=25005},
+   },
+   rawports = {
+      p_pactor     = { path = "/dev/ttyusb/ftdi_sio-0403-d010/0", speed=9600  , port=25002},
+      p_garmin1    = { path = "/dev/ttyusb/mos7840-9710-7840/3",  speed=9600  , port=25003},
+      p_garmin2    = { path = "/dev/ttyS0",                       speed=9600  , port=25004},
+      p_navtex     = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_011:00",
+                                                                  speed=38400 , port=25006},
+   },
+   filter   = {
+      nogps     =  { inputs = { "p_bkhousemux" }                        , port=28001,
+                     neg = { "^%$..GGA", "^%$..GSA", "^%$..GSV", } },
+      gps       =  { inputs = { "p_gps", "p_bkhousemux", "aisfilter"}   , port=28002,
+                     pos = { "^%$..GGA", "^%$..GSA", "^%$..RMC", "^%$..GSV", },
+                     aux={GpsComp}, prio_delay=2500 },
+      autopilot =  { inputs = { "p_hispeed" }                           , port=28003, 
+                     pos = { "%$..XTE", "%$..WPT" } },
+      aisfilter =  { inputs = { "p_ais" }                               , port=28004, 
+                           aux = {AisFilter} }
+   },
+}
+
 ---
 -- Startup system after all nodes are brought into existence
 local function startSystem()
@@ -478,11 +512,18 @@ local function configure(config)
    end
 end
 
+local function runGC()
+   collectgarbage("collect")
+   log.notice(("! MEM: %.2f"):_(collectgarbage("count")))
+   appc.addTimer(10 * 1000, runGC)
+end
+
 local function main()
    local conf = getConf() or testConf or sampleConf
    configure(conf)
    startMonitor(117)
    startSystem()
+   runGC()
 end
 
 return ac.ADDR_TRANSIENT, main

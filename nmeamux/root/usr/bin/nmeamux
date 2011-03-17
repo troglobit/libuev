@@ -86,11 +86,12 @@ end
 -- Override and embed in derived classes to read input
 function NmeaNode:readClient(subscr, inp)
    local res, err = posix.read(inp:getfd())
-   if not res then
+   if not res  or res == "" then
       log.notice(("PORT:%-15s Connection %d closed"):_(self.mName, inp:getfd()))
       self.mListeners[inp] = nil
       self.mSubscriptions[subscr] = nil
       subscr:clear()
+      inp:close()
       return nil
    end
    return res
@@ -188,12 +189,11 @@ function NmeaPort:start(str)
    return self:reOpen()
 end
 
-local function nmeaReadPort(self, subscr) 
-   local port = self.mSerialPort
+local function nmeaReadPort(self, port, subscr) 
    local str, err = posix.read(port:getfd())
-   if not str then
+   if not str or str == "" then
       log.error(("PORT:%-15s REOPEN: Failed to read %s: %s"):_(self.mName, self.mPath, err))
-      self.mSerialPort:close()
+      port:close()
       self.mSerialPort = nil
       subscr:clear()
       self.mSubscriptions[subscr] = nil
@@ -236,7 +236,7 @@ function NmeaPort:reOpen()
    self.mSerialPort = port
    os.execute(("stty %d raw -parenb cs8 min 50 time 1 < %s"):_(self.mSpeed, self.mPath))
    local subscr = appc.addFileIO(self.mSerialPort:getfd(), function(subscr) 
-      return nmeaReadPort(self, subscr)
+      return nmeaReadPort(self, port, subscr)
    end)
    self.mSubscriptions[subscr] = true
 end
@@ -305,7 +305,7 @@ function NmeaFilter:processInput(str, ix)
    if self.mNegList then
       for _,p in ipairs(self.mNegList) do
          if str:find(p) then
-            log.debug(||("NREJ:%-15s READ: %t"):_(self.mName, str))
+            log.debug(||("NREJ:%-15s NEG:%s: %t"):_(self.mName, p, str))
             return
          end
       end
@@ -463,13 +463,14 @@ local sampleConf = {
       p_gps        = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_004:00",
                                                                   speed=4800  , port=26004},
       p_ais        = { path = "/dev/ttyusb/ftdi_sio-0403-6001/0", speed=38400 , port=25001},
-      p_bkhousemux = { path = "/dev/ttyusb/ftdi_sio-0403-6010/0", speed=38400 , port=25005},
+      p_bkhousemux = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_011:00",
+                                                                  speed=38400 , port=25005},
    },
    rawports = {
       p_pactor     = { path = "/dev/ttyusb/ftdi_sio-0403-d010/0", speed=9600  , port=25002},
       p_garmin1    = { path = "/dev/ttyusb/mos7840-9710-7840/3",  speed=9600  , port=25003},
       p_garmin2    = { path = "/dev/ttyS0",                       speed=9600  , port=25004},
-      p_navtex     = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_011:00",
+      p_navtex     = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_012:00",
                                                                   speed=38400 , port=25006},
    },
    filter   = {

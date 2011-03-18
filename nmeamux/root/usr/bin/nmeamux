@@ -139,17 +139,21 @@ function NmeaNode:start(str)
    end
    if not self.mPortNo then return end
 
-   local sock, err = socket.bind("0.0.0.0", self.mPortNo)
-   self.mPortSock = assert(sock, ("Can not open listen on %d: %t"):_(self.mPortNo, err))
-   local subscr = appc.addFileIO(self.mPortSock:getfd(), function(subscr)
-      local inp = self.mPortSock:accept()
-      log.notice(("PORT:%-12s Connection %d opened from %s"):
-                _(self.mName, inp:getfd(), inp:getpeername()))
-      local subscr = appc.addFileIO(inp:getfd(), function(subscr) self:readClient(subscr, inp) end)
+   if self.mPortNo then
+      local sock, err = socket.bind("0.0.0.0", self.mPortNo)
+      self.mPortSock = assert(sock, ("Can not open listen on %d: %t"):_(self.mPortNo, err))
+      local subscr = appc.addFileIO(self.mPortSock:getfd(), function(subscr)
+         local inp = self.mPortSock:accept()
+         log.notice(("PORT:%-12s Connection %d opened from %s"):
+                   _(self.mName, inp:getfd(), inp:getpeername()))
+         local subscr = appc.addFileIO(inp:getfd(), function(subscr)
+            self:readClient(subscr, inp)
+         end)
+         self.mSubscriptions[subscr] = true
+         self.mListeners[inp] = true
+      end)
       self.mSubscriptions[subscr] = true
-      self.mListeners[inp] = true
-   end)
-   self.mSubscriptions[subscr] = true
+   end
 end
 
 ---

@@ -145,7 +145,7 @@ function NmeaNode:start(str)
       self.mPortSock = assert(sock, ("Can not open listen on %d: %t"):_(self.mPortNo, err))
       local subscr = appc.addFileIO(self.mPortSock:getfd(), function(subscr)
          local inp = self.mPortSock:accept()
-         log.notice(("PORT:%-12s Connection %d opened from %s"):
+         log.notice(("PORT:%-12s Connection %d opened from %t"):
                    _(self.mName, inp:getfd(), inp:getpeername()))
          local subscr = appc.addFileIO(inp:getfd(), function(subscr)
             self:readClient(subscr, inp)
@@ -209,7 +209,7 @@ local RawPort = Class(NmeaPort, "RawPort", {})
 ---
 -- Create an output node
 function RawPort.new(_class, name, cfg)
-   return NmeaPort:getSuper().new(_class, name, cfg):_merge {
+   return NmeaNode.new(_class, name, cfg):_merge {
       mPath = assert(cfg.path),
       mSpeed = assert(cfg.speed),
    }
@@ -233,7 +233,7 @@ end
 local function nmeaReadPort(self, port, subscr) 
    local str, err = posix.read(port:getfd())
    if not str or str == "" then
-      log.error(("PORT:%-12s REOPEN: Failed to read %s: %s"):_(self.mName, self.mPath, err))
+      log.error(("PORT:%-12s REOPEN: Failed to read %t: %t"):_(self.mName, self.mPath, err))
       port:close()
       self.mSerialPort = nil
       subscr:clear()
@@ -280,7 +280,9 @@ function NmeaPort:reOpen()
       return
    end
    self.mSerialPort = port
-   os.execute(("stty %d raw -parenb cs8 min 50 time 1 < %s"):_(self.mSpeed, self.mPath))
+   if self.mSpeed and self.mSpeed > 0 then
+      os.execute(("stty %d raw -parenb cs8 min 50 time 1 < %s"):_(self.mSpeed, self.mPath))
+   end
    local subscr = appc.addFileIO(self.mSerialPort:getfd(), function(subscr) 
       return nmeaReadPort(self, port, subscr)
    end)
@@ -310,6 +312,8 @@ end
 function NmeaPort:readClient(subscr, inp)
    local str = NmeaPort:getSuper().readClient(self, subscr, inp)
    if str and not self.mLineBuffer then
+      log.debugonly(||("PORT:%-12s OUT:%d:%s: %s"):
+                     _(self.mName, port:getfd(), err or "OK", (str or ""):quotebin())) 
       posix.write(self.mSerialPort:getfd(), str)
    end
 end
@@ -507,16 +511,17 @@ local sampleConf = {
       p_lospeed_1  = { path = "/dev/ttyusb/mos7840-9710-7840/0",  speed=4800  , port=26001},
       p_lospeed_2  = { path = "/dev/ttyusb/mos7840-9710-7840/1",  speed=4800  , port=26002},
       p_hispeed    = { path = "/dev/ttyusb/mos7840-9710-7840/2",  speed=38400 , port=26003},
-      p_gps        = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_004:00",
-                                                                  speed=4800  , port=26004},
+      p_gps        = { path = "/dev/rfcomm0",                     speed=38400 , port=26004},
       p_ais        = { path = "/dev/ttyusb/ftdi_sio-0403-6001/0", speed=38400 , port=25001},
-      p_bkhousemux = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_011:00",
+  --  p_ais        = { path = "/dev/ttyS1",                       speed=38400 , port=25001},
+  --  p_gps        = { path = "/dev/ttyS1",                       speed=38400 , port=26004},
+      p_bkhousemux = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_010:00",
                                                                   speed=38400 , port=25005},
    },
    rawports = {
       p_pactor     = { path = "/dev/ttyusb/ftdi_sio-0403-d010/0", speed=9600  , port=25002},
       p_garmin1    = { path = "/dev/ttyusb/mos7840-9710-7840/3",  speed=9600  , port=25003},
-      p_garmin2    = { path = "/dev/ttyS0",                       speed=9600  , port=25004},
+      p_garmin2    = { path = "/dev/ttyS4",                       speed=0     , port=25004},
       p_navtex     = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_012:00",
                                                                   speed=38400 , port=25006},
    },

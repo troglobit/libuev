@@ -1,0 +1,3 @@
+#!/bin/sh
+
+ps | grep 'lua.agent.*nmeamux' | grep -v grep | awk '{print $1}' | xargs kill

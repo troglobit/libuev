@@ -204,16 +204,8 @@ local NmeaPort = Class(NmeaNode, "NmeaPort", {
    mSerialPort = NIL,
    mLineBuffer = NIL,
 })
-local RawPort = Class(NmeaPort, "RawPort", {})
+local RawPort
 
----
--- Create an output node
-function RawPort.new(_class, name, cfg)
-   return NmeaNode.new(_class, name, cfg):_merge {
-      mPath = assert(cfg.path),
-      mSpeed = assert(cfg.speed),
-   }
-end
 function NmeaPort.new(_class, name, cfg)
    local new = RawPort.new(_class, name, cfg)
    return new:_merge {
@@ -242,6 +234,8 @@ local function nmeaReadPort(self, port, subscr)
       return
    end
    -- TODO: Reopen on error
+   log.debugonly(||("PPPPORT:%-12s INP:%d:%s: %s"):
+                  _(self.mName, port:getfd(), err or "OK", (str or ""):quotebin())) 
    if self.mLineBuffer then
       local where,whend = str:find("[\r\n]+")
       if where then
@@ -274,6 +268,7 @@ end
 -- Startup system interaction
 function NmeaPort:reOpen()
    local port, err = io.open(self.mPath, "r+")
+   log.debugonly(||("REOPEN:%s %s -> %t, %t"):_(self.mName, self.mPath, port, err))
    if not port then
       log.error(("PORT:%-12s Failed to open %s: %s"):_(self.mName, self.mPath, err))
       appc.addTimer(L_OPEN_RETRY, function() self:reOpen() end)
@@ -281,7 +276,7 @@ function NmeaPort:reOpen()
    end
    self.mSerialPort = port
    if self.mSpeed and self.mSpeed > 0 then
-      os.execute(("stty %d raw -parenb cs8 min 50 time 1 < %s"):_(self.mSpeed, self.mPath))
+      os.execute(("stty %d raw -echo -parenb cs8 min 50 time 1 < %s"):_(self.mSpeed, self.mPath))
    end
    local subscr = appc.addFileIO(self.mSerialPort:getfd(), function(subscr) 
       return nmeaReadPort(self, port, subscr)
@@ -301,7 +296,7 @@ end
 ---
 -- Data forwarding
 function NmeaPort:processInput(str)
-   self.mDutyOut:add(str)
+   if self.mDutyOut then self.mDutyOut:add(str) end
    log.debug(||("OUTP:%-12s W: %t"):_(self.mName, str))
    posix.write(self.mSerialPort:getfd(), str.."\r\n")
    -- if self.mLineBuffer then sysmon:addOut(self, str:sub(1,6)) end
@@ -311,11 +306,29 @@ end
 -- Read input from a connected peer.
 function NmeaPort:readClient(subscr, inp)
    local str = NmeaPort:getSuper().readClient(self, subscr, inp)
+   local fd = self.mSerialPort:getfd()
    if str and not self.mLineBuffer then
       log.debugonly(||("PORT:%-12s OUT:%d:%s: %s"):
-                     _(self.mName, port:getfd(), err or "OK", (str or ""):quotebin())) 
-      posix.write(self.mSerialPort:getfd(), str)
+                     _(self.mName, fd, err or "OK", (str or ""):quotebin())) 
+      posix.write(fd, str)
    end
+end
+
+-- Must delay 'til after NmeaPort methods dur to Class.lua idiosyncasies
+-- Create a NmeaNode sans the mLineBufer etc
+RawPort = Class(NmeaPort, "RawPort", {})
+---
+-- Create an output node
+function RawPort.new(_class, name, cfg)
+   return NmeaNode.new(_class, name, cfg):_merge {
+      mPath = assert(cfg.path),
+      mSpeed = assert(cfg.speed),
+   }
+end
+
+function RawPort:processInput(str)
+   log.debug(||("OUTRAW:%-12s W: %t"):_(self.mName, str))
+   posix.write(self.mSerialPort:getfd(), str)
 end
 
 --------------------------------------------------------------------
@@ -515,14 +528,14 @@ local sampleConf = {
       p_ais        = { path = "/dev/ttyusb/ftdi_sio-0403-6001/0", speed=38400 , port=25001},
   --  p_ais        = { path = "/dev/ttyS1",                       speed=38400 , port=25001},
   --  p_gps        = { path = "/dev/ttyS1",                       speed=38400 , port=26004},
-      p_bkhousemux = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_010:00",
+      p_bkhousemux = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_009:00",
                                                                   speed=38400 , port=25005},
    },
    rawports = {
       p_pactor     = { path = "/dev/ttyusb/ftdi_sio-0403-d010/0", speed=9600  , port=25002},
       p_garmin1    = { path = "/dev/ttyusb/mos7840-9710-7840/3",  speed=9600  , port=25003},
-      p_garmin2    = { path = "/dev/ttyS4",                       speed=0     , port=25004},
-      p_navtex     = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_012:00",
+      p_garmin2    = { path = "/dev/ttyS1",                       speed=9600  , port=25004},
+      p_navtex     = { path = "/dev/ttyusb/pl2303-067b-2303/bus_usb_001_010:00",
                                                                   speed=38400 , port=25006},
    },
    filter   = {
@@ -573,10 +586,6 @@ end
 local function main(args)
    --trace.on()
    local conf = getConf() or testConf or sampleConf
-   configure(conf)
-   startMonitor(117)
-   startSystem()
-   runGC()
    if not log.debug() and args[1] and args[1] == "trace" then
       local traceLog = log.create("nmeamux-trace.log", 0, false, 8000)
       log.debugonly = function() end
@@ -588,6 +597,10 @@ local function main(args)
    else
       log.debugonly = log.debug
    end
+   configure(conf)
+   startMonitor(117)
+   startSystem()
+   runGC()
 end
 
 return ac.ADDR_TRANSIENT, main

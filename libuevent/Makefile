@@ -22,6 +22,7 @@ lua: luauevent.so
 
 libuevent.a: libuevent.o
 	$(AR) r $@ $^
+	$(CROSS_COMPILE)strip --strip-unneeded $@
 
 libuevent.so.$(MAJOR): libuevent.o
 	$(CC) $(LDFLAGS) -shared -o $@ $^ -Wl,-soname=libuevent
@@ -30,7 +31,7 @@ luauevent.so: luauevent.o all
 	$(CC) $(LDFLAGS) -shared -o $@ $^ -L . -l uevent -Wl,-soname=uevent
 
 test: all
-	$(CC) -o test test.c && test
+	$(CC) -g -o test -D NO_DEBUG test.c libuevent.c && ./test
 
 luatest: lua
 	lua test.lua

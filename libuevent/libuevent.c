@@ -21,6 +21,12 @@
 #include "llist.h"
 #include "libuevent.h"
 
+#ifdef DEBUG
+#define Debug(f, args...) printf(f "\n", ##args)
+#else
+#define Debug(f, args...) 
+#endif
+
 static clock_t clock_tick = 0;
 
 /// Enumerate file handle direction
@@ -220,12 +226,16 @@ struct LUETimerH *lueAddTimer(struct LUECtxt * ctxt, int periodMs,
          ent->dueTime = 0;
       if (nent && ent->dueTime > periodMs)
       {
+         Debug("Insert %d before %d", periodMs, ent->dueTime);
          lListInsert(&ctxt->timeoutHandlers, nent, ent);
          nent = NULL;
       }
    }
-   if (nent)
+   if (nent) 
+   {
+      Debug("Append %d at end", periodMs);
       lListAppend(&ctxt->timeoutHandlers, nent);
+   }
    ctxt->baseTime = curTime;
 
    return ret;
@@ -317,18 +327,19 @@ void lueRun(struct LUECtxt *ctxt)
       {
          curTime = ctxt->timeSet ? ctxt->setTime : times(NULL);
          curPeriod = (curTime - ctxt->baseTime) / clock_tick * 1000
-                + ((curTime - ctxt->baseTime) % clock_tick) * 1000 / clock_tick;
+                  + ((curTime - ctxt->baseTime) % clock_tick) * 1000 / clock_tick;
+         Debug("Period for timer execution %d", curPeriod);
          while((timer = lListHead(&ctxt->timeoutHandlers)) &&
                timer->dueTime <= curPeriod)
          {
             timer->handler(ctxt, timer, timer->data);
             lueRemTimer(ctxt, timer);
 
-            // baseTime changes for every lueAddTime
+            // baseTime changes for every lueAddTimer
             curPeriod = (curTime - ctxt->baseTime) / clock_tick * 1000
                 + ((curTime - ctxt->baseTime) % clock_tick) * 1000 / clock_tick;
          }
-         lListPurge(&ctxt->timeRem);
+         lListPurge(&ctxt->timeRem); // Reap timer zombies
       }
 
       // Calculate waiting time
@@ -337,6 +348,8 @@ void lueRun(struct LUECtxt *ctxt)
       else if ((timer = lListHead(&ctxt->timeoutHandlers)) &&
                timer->dueTime > curPeriod)
       {
+         Debug("Period from timer head %d - %d -> %d",
+               timer->dueTime, curPeriod, timer->dueTime - curPeriod);
          curPeriod = timer->dueTime - curPeriod;
       }
       else if (NULL != timer)
@@ -346,7 +359,7 @@ void lueRun(struct LUECtxt *ctxt)
 
       // Do pipe handlers
       pollRet = 0;
-      if (lListHead(&ctxt->fileHandlers))
+      if (lListHead(&ctxt->fileHandlers) && !ctxt->exiting)
       {
          struct pollfd  polls[lListLength(&ctxt->fileHandlers)];
          struct LUEFileEventH *ent;
@@ -360,6 +373,7 @@ void lueRun(struct LUECtxt *ctxt)
             polls[ix].revents = 0;
             ix++;
          }
+         Debug("Polling %d fds in %d ms", ix, curPeriod);
          pollRet = poll(polls, ix, curPeriod);
          if (pollRet < 0)
          {
@@ -407,11 +421,11 @@ void lueRun(struct LUECtxt *ctxt)
          poll(NULL, 0, curPeriod);
       else
          break; // LUEarently were out of work!
-   } while (!ctxt->exiting ||
+   } while (!ctxt->exiting);
             // Wont exit while there is due timers or files
-            ((timer = lListHead(&ctxt->timeoutHandlers)) &&
-             timer->dueTime <= 0) || pollRet > 0);
-   //logdebug("LUE exiting - bye");
+            //((timer = lListHead(&ctxt->timeoutHandlers)) &&
+            //timer->dueTime <= 0) || pollRet > 0);
+   Debug("LUE exiting - bye");
 }
 
 /**

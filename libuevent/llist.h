@@ -54,7 +54,7 @@
    if (!(e) || (a)->head == (e)) { \
       n->_llNext = (a)->head; \
       n->_llPrev = NULL; \
-      (a)->head = (e); \
+      (a)->head = (n); \
    } else { \
       n->_llNext = (e); \
       n->_llPrev = (e)->_llPrev; \

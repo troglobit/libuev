@@ -442,13 +442,14 @@ void lueRun(struct LUECtxt *ctxt)
    do {
       ret = _lueProcessPending(ctxt, 0);
    } while (!ctxt->exiting && ret != -2);
+   ctxt->exiting = false;
    Debug("LUE exiting - bye");
 }
 
 /**
  * Terminate the application
  */
-void lueExit(struct LUECtxt *ctxt)
+void lueTerminate(struct LUECtxt *ctxt)
 {
    ctxt->exiting = true;
 }

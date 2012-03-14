@@ -1,16 +1,19 @@
-/mple**
+/**
  * @file
  * Lua binding to libuevent
  * $Id:$
  *
  * (C) Copyright 2012 flemming.madsen at madsensoft.dk. See libuevent.h
  */
+#include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <assert.h>
 #include <lua.h>
+#include <lauxlib.h>
 #include "libuevent.h"
 
 static char * LUA_LTIMER_MT  = "libuevent-timer";
@@ -35,22 +38,29 @@ static struct LUECtxt *getCtxt(lua_State *L)
    return ret;
 }
 
+static void l_newType(lua_State* L, const char *name)
+{
+   luaL_newmetatable(L, name);       // create metatable
+   lua_pushvalue(L, -1);             // dup
+   lua_setfield(L, -2, "__index");   // metatable.__index = metatable
+}
+
 static int l_traceback (lua_State *L)
 {
-  lua_getfield(L, LUA_GLOBALSINDEX, "debug");
-  if (!lua_istable(L, -1)) {
-    lua_pop(L, 1);
-    return 1;
-  }
-  lua_getfield(L, -1, "traceback");
-  if (!lua_isfunction(L, -1)) {
-    lua_pop(L, 2);
-    return 1;
-  }
-  lua_pushvalue(L, 1);  /* pass error message */
-  lua_pushinteger(L, 2);  /* skip this function and traceback */
-  lua_call(L, 2, 1);  /* call debug.traceback */
-  return 1;
+   lua_getfield(L, LUA_GLOBALSINDEX, "debug");
+   if (!lua_istable(L, -1)) {
+      lua_pop(L, 1);
+      return 1;
+   }
+   lua_getfield(L, -1, "traceback");
+   if (!lua_isfunction(L, -1)) {
+      lua_pop(L, 2);
+      return 1;
+   }
+   lua_pushvalue(L, 1);  /* pass error message */
+   lua_pushinteger(L, 2);  /* skip this function and traceback */
+   lua_call(L, 2, 1);  /* call debug.traceback */
+   return 1;
 }
 
 // Top half
@@ -81,7 +91,7 @@ static int _lueHandler(lua_State *L, void *data, bool remObj)
    {
       fprintf(stderr, "luevent: Error: %d:\n%s\n",
                       ret, lua_isnil(L, -1) ? "(nil)" : lua_tostring(L, -1));
-      exit(1);
+      //exit(1);
    }
    lua_pop(L, 1);                        // Error handler, metatable
 
@@ -320,9 +330,21 @@ static int l_systemTime (lua_State *L)
    struct timeval v;
 
    gettimeofday(&v, (struct timezone *) NULL);
-   lua_pushinteger(L, t.tv_sec);
+   lua_pushinteger(L, v.tv_sec);
    lua_pushinteger(L, v.tv_usec / 1000);
    return 2;  // num of results
+}
+
+static int l_run(lua_State * L)
+{
+   lueRun(getCtxt(L));
+   return 0;
+}
+
+static int l_terminate(lua_State * L)
+{
+   lueTerminate(getCtxt(L));
+   return 0;
 }
 
 static int l_cleanup(lua_State * L)
@@ -343,6 +365,8 @@ static const luaL_Reg lueventlib[] = {
    {"addTimer", ltimer_add},
    {"clearTimer", ltimer_clear},
    {"systemTime", l_systemTime},
+   {"run", l_run},
+   {"terminate", l_terminate},
    {"__gc", l_cleanup},
   { NULL, NULL}
 };
@@ -366,7 +390,7 @@ static const luaL_Reg lfilehmeta[] = {
 int luaopen_luevent(lua_State * L)
 {
    struct LUECtxt *lueContext = lueCtxtCreate();
-   assert(ctxt);
+   assert(lueContext);
 
    luaL_register(L, lua_tostring(L, 1), lueventlib); // calls
    lua_setmetatable(L, -1);            // Call GC at module cleanup. Pops it too

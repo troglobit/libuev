@@ -29,7 +29,7 @@ libuevent.so.$(MAJOR): libuevent.o
 	$(CC) $(LDFLAGS) -shared -o $@ $^ -Wl,-soname=libuevent
 
 luevent.so: luevent.o all
-	$(CC) $(LDFLAGS) -shared -o $@ $^ -L . -l uevent -Wl,-soname=luevent
+	$(CC) $(LDFLAGS) -shared -o $@ luevent.o -L . -l uevent -Wl,-soname=luevent
 
 test: all
 	$(CC) -g -o test -D NO_DEBUG test.c libuevent.c && ./test

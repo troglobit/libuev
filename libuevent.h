@@ -46,7 +46,7 @@ void lueCtxtDestroy(struct LUECtxt *lue);
 void lueTimeAdvance(struct LUECtxt *ctxt, int mSecs);
 void lueRun(struct LUECtxt *ctxt);
 int lueProcessPending(struct LUECtxt *ctxt);
-void lueExit(struct LUECtxt *ctxt);
+void lueTerminate(struct LUECtxt *ctxt);
 
 #endif
 

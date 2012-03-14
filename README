@@ -1,0 +1,39 @@
+LibUEvent - A Microscopic event library.
+========================================
+
+The libuevent library is a small event library in the style of the venerable
+Xt(3) event loop.
+
+Basically an event context is created,and handlers for timeounts and stream
+events can be registered with this context.
+
+After initial setup, the typical application will enter the event loop that
+will only return at program termination.
+
+The C API
+---------
+The typical application will do the following steps
+1. Create the event context with lueCtxtCreate()
+2. Register initial callbacks with lueAddInput, lueAddOutput and lueAddTimer
+3. Enter the event loop
+
+Lua binding
+-----------
+A lua binding is available that should mix well with luasocket and luaposix.
+
+Building
+--------
+Use make:
+
+* make all: The library
+* make test: Test and showcase
+* make lua: Build the lua binding
+
+Installation
+------------
+Is purely manual, but would be something along the lines of:
+ sudo install -m 444 libuevent.so.1 /usr/lib/libuevent.so.1
+ sudo install -m 444 lualue.so /usr/lib/lua/5.1/lue.so
+
+
+<!-- vim: set syntax=mkd textwidth=79: -->

@@ -1,6 +1,0 @@
-#!/bin/ash
-
-modprobe rfcomm
-rfcomm bind 0 00:0B:0D:6C:6B:EB 
-
-start-stop --start --respawn /usr/bin/nmeamux

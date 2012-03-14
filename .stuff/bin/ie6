@@ -1,3 +1,0 @@
-#!/bin/bash
-cd
-WINEPREFIX="/home/fm/.ies4linux/ie6" wine "/home/fm/.ies4linux/ie6/drive_c/Program Files/Internet Explorer/IEXPLORE.EXE" "$@"

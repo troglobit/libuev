@@ -1,9 +1,0 @@
-#!/bin/ash
-DDNS_USER=themadsens
-DDNS_PW=nad3080
-DDNS_DOMAIN=sysummertime.dyndns.org
-wget -q -O /var/run/new.ip http://checkip.dyndns.com/index.html 
-if [ "`cat /var/run/new.ip`" = "`cat /var/run/cur.ip`" ] ;then
-   wget -q -O /dev/null "http://$DDNS_USER:$DDNS_PW@members.dyndns.org/nic/update?hostname=$DDNS_DOMAIN"
-fi
-mv -f /var/run/new.ip /var/run/cur.ip

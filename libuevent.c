@@ -310,121 +310,138 @@ void lueTimeAdvance(struct LUECtxt *ctxt, int mSecs)
 }
 
 /**
- * Run the application
+ * Process pending events
  */
-void lueRun(struct LUECtxt *ctxt)
+static int _lueProcessPending(struct LUECtxt *ctxt, int immediate)
 {
    struct LUETimerH     *timer;
    int            pollRet;
+   clock_t        curTime;
+   int            curPeriod = 0;
 
-   do
+   // Do due timers
+   if (lListHead(&ctxt->timeoutHandlers))
    {
-      clock_t        curTime;
-      int            curPeriod = 0;
-
-      // Do due timers
-      if (lListHead(&ctxt->timeoutHandlers))
+      curTime = ctxt->timeSet ? ctxt->setTime : times(NULL);
+      curPeriod = (curTime - ctxt->baseTime) / clock_tick * 1000
+               + ((curTime - ctxt->baseTime) % clock_tick) * 1000 / clock_tick;
+      Debug("Period for timer execution %d", curPeriod);
+      while((timer = lListHead(&ctxt->timeoutHandlers)) &&
+            timer->dueTime <= curPeriod)
       {
-         curTime = ctxt->timeSet ? ctxt->setTime : times(NULL);
+         timer->handler(ctxt, timer, timer->data);
+         lueRemTimer(ctxt, timer);
+
+         // baseTime changes for every lueAddTimer
          curPeriod = (curTime - ctxt->baseTime) / clock_tick * 1000
-                  + ((curTime - ctxt->baseTime) % clock_tick) * 1000 / clock_tick;
-         Debug("Period for timer execution %d", curPeriod);
-         while((timer = lListHead(&ctxt->timeoutHandlers)) &&
-               timer->dueTime <= curPeriod)
-         {
-            timer->handler(ctxt, timer, timer->data);
-            lueRemTimer(ctxt, timer);
-
-            // baseTime changes for every lueAddTimer
-            curPeriod = (curTime - ctxt->baseTime) / clock_tick * 1000
-                + ((curTime - ctxt->baseTime) % clock_tick) * 1000 / clock_tick;
-         }
-         lListPurge(&ctxt->timeRem); // Reap timer zombies
+             + ((curTime - ctxt->baseTime) % clock_tick) * 1000 / clock_tick;
       }
+      lListPurge(&ctxt->timeRem); // Reap timer zombies
+   }
 
-      // Calculate waiting time
-      if (ctxt->exiting)
-         curPeriod = 0;
-      else if ((timer = lListHead(&ctxt->timeoutHandlers)) &&
-               timer->dueTime > curPeriod)
+   // Calculate waiting time
+   if (ctxt->exiting)
+      curPeriod = 0;
+   else if ((timer = lListHead(&ctxt->timeoutHandlers)) &&
+            timer->dueTime > curPeriod)
+   {
+      Debug("Period from timer head %d - %d -> %d",
+            timer->dueTime, curPeriod, timer->dueTime - curPeriod);
+      curPeriod = timer->dueTime - curPeriod;
+   }
+   else if (NULL != timer)
+      curPeriod = 0;
+   else
+      curPeriod = -1;
+
+   // Do pipe handlers
+   if (lListHead(&ctxt->fileHandlers) && !ctxt->exiting)
+   {
+      struct pollfd  polls[lListLength(&ctxt->fileHandlers)];
+      struct LUEFileEventH *ent;
+
+      int ix = 0;
+      lListForeachIn(ent, &ctxt->fileHandlers)
       {
-         Debug("Period from timer head %d - %d -> %d",
-               timer->dueTime, curPeriod, timer->dueTime - curPeriod);
-         curPeriod = timer->dueTime - curPeriod;
+         ent->pollIx = ix;
+         polls[ix].fd = ent->fd;
+         polls[ix].events = LUE_FHIN == ent->direction ? POLLIN : POLLOUT;
+         polls[ix].revents = 0;
+         ix++;
       }
-      else if (NULL != timer)
-         curPeriod = 0;
-      else
-         curPeriod = -1;
-
-      // Do pipe handlers
-      pollRet = 0;
-      if (lListHead(&ctxt->fileHandlers) && !ctxt->exiting)
+      Debug("Polling %d fds in %d ms", ix, curPeriod);
+      pollRet = poll(polls, ix, immediate ? 0 : curPeriod);
+      if (pollRet < 0)
       {
-         struct pollfd  polls[lListLength(&ctxt->fileHandlers)];
-         struct LUEFileEventH *ent;
-
-         int ix = 0;
-         lListForeachIn(ent, &ctxt->fileHandlers)
-         {
-            ent->pollIx = ix;
-            polls[ix].fd = ent->fd;
-            polls[ix].events = LUE_FHIN == ent->direction ? POLLIN : POLLOUT;
-            polls[ix].revents = 0;
-            ix++;
-         }
-         Debug("Polling %d fds in %d ms", ix, curPeriod);
-         pollRet = poll(polls, ix, curPeriod);
-         if (pollRet < 0)
-         {
-            if (EINTR == errno)
-               continue;
-            else if (EBADF == errno)
-            {
-               lListForeachIn(ent, &ctxt->fileHandlers)
-               {
-                  if (fcntl(ent->fd, F_GETFD) == -1 && EBADF == errno)
-                  {
-                     ent->handler(ctxt, ent, ent->fd, ent->data);
-                  }
-               }
-            }
-            else
-            {
-               // Error in poll. Cannot continue
-               assert(false);
-               return;
-            }
-         }
-         else if (pollRet > 0)
+         if (EINTR == errno)
+            return 0;
+         else if (EBADF == errno)
          {
             lListForeachIn(ent, &ctxt->fileHandlers)
             {
-               if (ent->handler && ent->pollIx >= 0 && polls[ent->pollIx].revents)
+               if (fcntl(ent->fd, F_GETFD) == -1 && EBADF == errno)
                {
                   ent->handler(ctxt, ent, ent->fd, ent->data);
                }
             }
          }
-         if (lListHead(&ctxt->fileRem))
+         else
          {
-            struct LUEFileEventH *ent;
-
-            while (NULL != (ent = lListHead(&ctxt->fileRem)))
+            // Error in poll. Cannot continue
+            assert(false);
+            return;
+         }
+      }
+      else if (pollRet > 0)
+      {
+         lListForeachIn(ent, &ctxt->fileHandlers)
+         {
+            if (ent->handler && ent->pollIx >= 0 && polls[ent->pollIx].revents)
             {
-               lListRemove(&ctxt->fileHandlers, ent);
-               free(ent);
+               ent->handler(ctxt, ent, ent->fd, ent->data);
             }
          }
       }
-      else if (curPeriod > 0)
+      if (lListHead(&ctxt->fileRem))
+      {
+         struct LUEFileEventH *ent;
+
+         while (NULL != (ent = lListHead(&ctxt->fileRem)))
+         {
+            lListRemove(&ctxt->fileHandlers, ent);
+            free(ent);
+         }
+      }
+   }
+   else if (curPeriod > 0)
+   {
+      if (!immediate)
          poll(NULL, 0, curPeriod);
-      else
-         break; // LUEarently were out of work!
-   } while (!ctxt->exiting);
-            // Wont exit while there is due timers or files
-            //((timer = lListHead(&ctxt->timeoutHandlers)) &&
-            //timer->dueTime <= 0) || pollRet > 0);
+   }
+   else if (curPeriod == -1)
+      curPeriod = -2; // Nothing more to do
+
+   return curPeriod;
+}
+
+/**
+ * Process pending events
+ */
+int lueProcessPending(struct LUECtxt *ctxt)
+{
+   return _lueProcessPending(ctxt, 1);
+}
+
+/**
+ * Run the application
+ */
+void lueRun(struct LUECtxt *ctxt)
+{
+   int ret;
+
+   do {
+      ret = _lueProcessPending(ctxt, 0);
+   } while (!ctxt->exiting && ret != -2);
    Debug("LUE exiting - bye");
 }
 

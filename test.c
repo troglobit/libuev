@@ -73,7 +73,7 @@ main()
    lueRun(ctxt);
    lueCtxtDestroy(ctxt);
 
-   printf("Period is %d must be 10\n", period);
+   printf("Period is %d must be 10: %s\n", period, 10 == period ? "OK" : "ERROR!");
    exit(10 == period ? 0 : 1);
 }
 

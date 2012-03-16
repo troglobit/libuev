@@ -22,7 +22,7 @@
 #include "libuevent.h"
 
 #ifdef DEBUG
-#define Debug(f, args...) printf(f "\n", ##args)
+#define Debug(f, args...) printf(":LUE: " f "\n", ##args)
 #else
 #define Debug(f, args...) 
 #endif
@@ -32,10 +32,18 @@ static clock_t clock_tick = 0;
 /// Enumerate file handle direction
 enum LUEFhDirectionT {LUE_FHIN = 0, LUE_FHOUT = 1};
 
+struct LUEFileEventH;
+struct LUEFileEventRem
+{
+   LListField(struct LUEFileEventRem);
+   struct LUEFileEventH *ent;
+};
+
 /// File event handle
 struct LUEFileEventH
 {
    LListField(struct LUEFileEventH); ///< Elements for linked list
+   struct LUEFileEventRem rem;       ///< For postponed removal
 
    int            fd;              ///< File descriptor
    enum LUEFhDirectionT direction; ///< Direction: in or out
@@ -59,6 +67,7 @@ struct LUETimerH
  */
 typedef LList(struct LUETimerH) LUETimerHandlerDL;
 typedef LList(struct LUEFileEventH) LUEFileEventDL;
+typedef LList(struct LUEFileEventRem) LUEFileEventRemL;
 /**
  * @endcond
  */
@@ -69,7 +78,7 @@ struct LUECtxt
    LUEFileEventDL fileHandlers;       ///< File handlers
    LUETimerHandlerDL timeoutHandlers; ///< Timer handlers
 
-   LUEFileEventDL fileRem;            ///< List of file handles to be garbage collected
+   LUEFileEventRemL fileRem;          ///< List of file handles to be garbage collected
    LUETimerHandlerDL timeRem;         ///< List of timer handles to be garbage collected
 
    clock_t        baseTime;           ///< Time at last timer tick
@@ -86,7 +95,9 @@ struct LUEFileEventH *lueAddIO(struct LUECtxt * ctxt,
    struct LUEFileEventH *ent;
 
    ent = (struct LUEFileEventH *) malloc(sizeof(*ent));
+   Debug("Add IO %d %p", fd, ent);
    assert(ent);
+   ent->rem.ent = ent;
    ent->fd = fd;
    ent->direction = direction;
    ent->handler = handler;
@@ -118,14 +129,16 @@ struct LUEFileEventH *lueAddOutput(struct LUECtxt *ctxt,
 static
 int lueRemIO(struct LUECtxt *ctxt, struct LUEFileEventH *hdl)
 {
-   struct LUEFileEventH *ent;
+   struct LUEFileEventRem *ent;
 
+   Debug("Rem IO %p", hdl);
    lListForeachIn (ent, &ctxt->fileRem)
-      if (ent == hdl)
+      if (ent->ent == hdl)
          return -1; // Already removed
 
+   Debug("Rem FD %d", hdl->fd);
    hdl->handler = NULL;
-   lListAppend(&ctxt->fileRem, hdl);
+   lListAppend(&ctxt->fileRem, &(hdl->rem));
    return 0;
 }
 
@@ -134,17 +147,20 @@ int lueRemIO(struct LUECtxt *ctxt, struct LUEFileEventH *hdl)
  */
 int lueRemFd(struct LUECtxt *ctxt, int fd)
 {
-   struct LUEFileEventH *ent, *rem;
+   struct LUEFileEventH *ent;
+   struct LUEFileEventRem *rem;
 
+   Debug("Remfd FD %d", ent->fd);
    lListForeachIn(ent, &ctxt->fileHandlers)
    {
       if (ent->fd != fd)
          continue;
-      lListForeachIn(rem, &ctxt->fileRem) if (rem == ent) break; // Already removed
-      if (rem) {
-         ent->handler = NULL;
-         lListAppend(&ctxt->fileRem, ent);
-      }
+      lListForeachIn(rem, &ctxt->fileRem)
+         if (rem->ent == ent)
+            return -1; // Already removed
+      Debug("Remfd ent %p", ent);
+      ent->handler = NULL;
+      lListAppend(&ctxt->fileRem, &(ent->rem));
    }
    return 0;
 }
@@ -179,6 +195,7 @@ int lueRemTimer(struct LUECtxt *ctxt, struct LUETimerH *hdl)
          if (ent == hdl)
             return -1; // Already removed
 
+      Debug("Remtimer %p", hdl);
       lListRemove(&ctxt->timeoutHandlers, hdl);
       lListAppend(&ctxt->timeRem, hdl); // Remember to free him (at a safe time)
    }
@@ -226,14 +243,14 @@ struct LUETimerH *lueAddTimer(struct LUECtxt * ctxt, int periodMs,
          ent->dueTime = 0;
       if (nent && ent->dueTime > periodMs)
       {
-         Debug("Insert %d before %d", periodMs, ent->dueTime);
+         Debug("Timer Insert %d before %d %p", periodMs, ent->dueTime, nent);
          lListInsert(&ctxt->timeoutHandlers, nent, ent);
          nent = NULL;
       }
    }
    if (nent) 
    {
-      Debug("Append %d at end", periodMs);
+      Debug("Timer Append %d at end %p", periodMs, nent);
       lListAppend(&ctxt->timeoutHandlers, nent);
    }
    ctxt->baseTime = curTime;
@@ -329,6 +346,7 @@ static int _lueProcessPending(struct LUECtxt *ctxt, int immediate)
       while((timer = lListHead(&ctxt->timeoutHandlers)) &&
             timer->dueTime <= curPeriod)
       {
+         Debug("Timer execution %d", timer->dueTime);
          timer->handler(ctxt, timer, timer->data);
          lueRemTimer(ctxt, timer);
 
@@ -404,12 +422,13 @@ static int _lueProcessPending(struct LUECtxt *ctxt, int immediate)
       }
       if (lListHead(&ctxt->fileRem))
       {
-         struct LUEFileEventH *ent;
+         struct LUEFileEventRem *ent;
 
          while (NULL != (ent = lListHead(&ctxt->fileRem)))
          {
-            lListRemove(&ctxt->fileHandlers, ent);
-            free(ent);
+            lListRemove(&ctxt->fileRem, ent);
+            lListRemove(&ctxt->fileHandlers, ent->ent);
+            free(ent->ent);
          }
       }
    }

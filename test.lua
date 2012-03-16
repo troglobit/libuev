@@ -14,20 +14,24 @@ local ADDR = "127.0.0.1"
 local PORT = 42555
 local timer
 local period
+local appTimer, readHdl, writeTimer
 
 local function timeOut()
    print("Timeout is exceeded")
+   appTimer:clear()
+   readHdl:clear()
+   writeTimer:clear()
    luevent.terminate()
 end
 
 local function writeThread(sck, cnt)
-   sck:send(("TESTING"):sub(cnt))
+   sck:send(("TESTING"):sub(1, cnt))
    period = cnt + 5
-   luevent.addTimer(100 * period, function() writeThread(sck, cnt + 1) end)
+   writeTimer = luevent.addTimer(100 * period, function() writeThread(sck, cnt + 1) end)
 end
 
 local function main()
-   luevent.addTimer(5000, function()
+   appTimer = luevent.addTimer(5000, function()
       print("Lifetime is exceeded")
       os.exit(1);
    end)
@@ -35,14 +39,16 @@ local function main()
    local isrv = assert(socket.bind(ADDR, PORT))
    luevent.addFileIO(isrv:getfd(), function(self)
       local isock = isrv:accept()
-      luevent.addFileIO(isock:getfd(), function(self)
+      isock:settimeout(0)
+      readHdl = luevent.addFileIO(isock:getfd(), function(self)
          -- Pipe readable
          if timer then
             timer:clear()
             timer = luevent.addTimer(950, timeOut)
          end
-         local str = isock:receive(50)
-         io.write(str.."."..#str) io.flush()
+         local str, err, prt = isock:receive(50)
+         if not str and err == "timeout" then str = prt end
+         io.write(str.."."..#str.." ") io.flush()
       end)
 
       self:clear() -- This is a oneshot
@@ -57,6 +63,7 @@ local function main()
 
    luevent.run()
    print "DONE"
+   -- Only index '1' should be there now
    for k,v in pairs(luevent._lue_objects) do print(k,v) end
 
    package.loaded.luevent = nil

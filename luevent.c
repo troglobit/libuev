@@ -393,23 +393,25 @@ int luaopen_luevent(lua_State * L)
    assert(lueContext);
 
    luaL_register(L, lua_tostring(L, 1), lueventlib); // calls
-   lua_setmetatable(L, -1);            // Call GC at module cleanup. Pops it too
+   lua_pushvalue(L, -1);               // Dup
+   lua_setmetatable(L, -2);            // Call GC at module cleanup.
 
    l_newType(L, LUA_LTIMER_MT);        // create metatable for timers
    luaL_register(L, NULL, ltimermeta); // methods
-   lua_pop(L, 1);
+   lua_setfield(L, -2, "_meta_timer"); // easy access from test code
 
    l_newType(L, LUA_LFILEH_MT);        // create metatable for file handlers
    luaL_register(L, NULL, lfilehmeta); // methods
-   lua_pop(L, 1);
+   lua_setfield(L, -2, "_meta_fileh"); // easy access from test code
 
    lua_newtable(L);                    // Table[obj] -> Callback-closure
    lua_pushvalue(L, -1); 
    lua_setfield(L, LUA_REGISTRYINDEX, LUA_LUEOBJ);
    lua_pushlightuserdata(L, lueContext);// Table[1] = lueContext
    lua_rawseti(L, -2, 1);
-   lua_pop(L, 1);
+   lua_setfield(L, -2, "_lue_objects");// easy access from test code
 
+   lua_pop(L, 1);                      // pop module
    return 0;
 }
 

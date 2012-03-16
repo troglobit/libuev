@@ -19,7 +19,7 @@ static timeOutHdl(struct LUECtxt *ctxt, struct LUETimerH *handle, void *data)
    timeOut = NULL;
    printf("Timeout is exceeded %p\n", data);
    lueRemFd(ctxt, readFd);
-   lueExit(ctxt);
+   lueTerminate(ctxt);
 }
 
 static appTimeout(struct LUECtxt *ctxt, struct LUETimerH *handle, void *data)

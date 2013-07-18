@@ -1,25 +1,41 @@
-/**
- * @file
- * Micro event library libuevent.
- * Asynchronous event / mainloop library.
- * Not thread safe!
- * The ctxt structure needs mutex protection in case of multithreaded access
- * $Id:$
+/* libuev - Asynchronous event loop library
  *
- * (C) Copyright 2012 flemming.madsen at madsensoft.dk. See libuevent.h
+ * Copyright (c) 2012  Flemming Madsen <flemming!madsen()madsensoft!dk>
+ * Copyright (c) 2013  Joachim Nilsson <troglobit()gmail!com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <poll.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <stdbool.h>
 #include <sys/times.h>
-#include <fcntl.h>
 #include <time.h>
-#include <poll.h>
-#include <errno.h>
-#include <assert.h>
+#include <unistd.h>
+
 #include "llist.h"
-#include "libuevent.h"
+#include "libuev.h"
 
 #ifdef DEBUG
 #define Debug(f, args...) printf(":LUE: " f "\n", ##args)

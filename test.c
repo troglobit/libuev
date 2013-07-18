@@ -1,13 +1,33 @@
-/**
- * @file
- * Micro event library libuevent.
- * Test & showcase of libuevent
+/* Test libuev event library
  *
- * (C) Copyright 2012 flemming.madsen at madsensoft.dk. See libuevent.h
+ * Copyright (c) 2012  Flemming Madsen <flemming!madsen()madsensoft!dk>
+ * Copyright (c) 2013  Joachim Nilsson <troglobit()gmail!com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 #include <stdlib.h>
 #include <stdio.h>
-#include "libuevent.h"
+#include <unistd.h>             /* intptr_t */
+
+#include "libuev.h"
 
 static period;
 static client_fd, server_fd, service_fd;
@@ -17,14 +37,14 @@ int readFd, writeFd;
 static timeOutHdl(struct LUECtxt *ctxt, struct LUETimerH *handle, void *data)
 {
    timeOut = NULL;
-   printf("Timeout is exceeded %p\n", data);
+   printf("Timeout exceeded %p\n", data);
    lueRemFd(ctxt, readFd);
    lueTerminate(ctxt);
 }
 
 static appTimeout(struct LUECtxt *ctxt, struct LUETimerH *handle, void *data)
 {
-   printf("Lifetime is exceeded %p\n", data);
+   printf("Lifetime exceeded %p\n", data);
    exit(1);
 }
 
@@ -45,14 +65,14 @@ static int readCb(struct LUECtxt *ctxt, struct LUEFileEventH *handle, int fd, vo
 
 static writeThread(struct LUECtxt *ctxt, struct LUETimerH *handle, void *data)
 {
-   int cnt = (int) data;
+   int cnt = (int)(intptr_t)data;
    char *msg = "TESTING";
 
    write(writeFd, msg, cnt);
    //printf("WRITE %.*s %d\n", cnt, msg, cnt);
    printf("%d ", cnt); fflush(stdout);
    period = cnt + 5;
-   lueAddTimer(ctxt, period * 100,  writeThread, (void *) (cnt + 1));
+   lueAddTimer(ctxt, period * 100,  writeThread, (void *)(intptr_t)(cnt + 1));
 }
 
 main()

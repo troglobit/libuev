@@ -1,47 +1,64 @@
-##
-# @file Makefile
-# Make the micro eventlib, lua bindings and tests
+# -*-Makefile-*- for libuev
 #
-# $Id$
+# Copyright (c) 2012  Flemming Madsen <flemming!madsen()madsensoft!dk>
+# Copyright (c) 2013  Joachim Nilsson <troglobit()gmail!com>
 #
-# (C) Copyright 2012 flemming.madsen at madsensoft.dk. See libuevent.h
-##
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+.PHONY: all test clean
 
-CROSS_COMPILE=
-#CROSS_COMPILE=arm-linux-uclibc-
-CC=$(CROSS_COMPILE)gcc
-AR=$(CROSS_COMPILE)ar
+CC          = $(CROSS_COMPILE)gcc
+AR          = $(CROSS_COMPILE)ar
+STRIP       = $(CROSS_COMPILE)strip
+CFLAGS      = -fPIC -g -Os
+ARFLAGS     = crus
+JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.*
 
-INCLUDE += -I /usr/include/lua5.1/	
-LDFLAGS=-g
-CFLAGS=-fPIC -g -Os $(INCLUDE)
+OBJS       := libuev.o
+SRCS       := $(OBJS:.o=.c)
+DEPS       := $(addprefix .,$(SRCS:.c=.d))
+VER         = 1
+LIBNAME     = libuev
+MYLIB       = $(LIBNAME).so
+TARGET      = $(MYLIB).$(VER)
+STATICLIB   = $(LIBNAME).a
 
-MAJOR = 1
+all: $(TARGET)
 
-all: libuevent.a libuevent.so.$(MAJOR)
-lua: luevent.so
+.c.o:
+	@printf "  CC      $@\n"
+	@$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-libuevent.a: libuevent.o
-	$(AR) r $@ $^
+$(TARGET): $(OBJS)
+	@printf "  LINK    $@\n"
+	@$(CC) $(LDFLAGS) -shared -Wl,-soname=$@ -o $@ $^
+	@$(AR) $(ARFLAGS) $(STATICLIB) $^
 
-libuevent.so.$(MAJOR): libuevent.o
-	$(CC) $(LDFLAGS) -shared -o $@ $^ -Wl,-soname=libuevent
-
-luevent.so: luevent.o all
-	$(CC) $(LDFLAGS) -shared -o $@ luevent.o -L . -l uevent -Wl,-soname=luevent
-
-stripped: all lua
-	$(CROSS_COMPILE)strip --strip-unneeded libuevent.a libuevent.so.$(MAJOR) luevent.so
-
+strip: all
+	@printf "  STRIP   %s\n" $(TARGET)
+	@$(STRIP) --strip-unneeded $(TARGET) $(STATICLIB)
 
 test: all
-	$(CC) -g -o test -D NO_DEBUG test.c libuevent.c && ./test
-
-luatest: lua
-	lua test.lua
+	@printf "  TEST    %s\n" $(STATICLIB)
+	@$(CC) -g -DNO_DEBUG -o test test.c $(STATICLIB) && ./test
 
 clean:
-	rm -f libuevent.o luevent.o libuevent.so.$(MAJOR) luevent.so test
+	-@$(RM) $(JUNK) $(STATICLIB) $(TARGET) *.o test
 
-
-.PHONY: all test clean luatest lua

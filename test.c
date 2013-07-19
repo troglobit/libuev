@@ -25,76 +25,105 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>             /* intptr_t */
+#include <unistd.h>		/* intptr_t */
 
 #include "libuev.h"
 
-static period;
-static client_fd, server_fd, service_fd;
-static struct LUETimerH *timeOut;
-int readFd, writeFd;
+static int in, out;
+static int period = 0;
+static uev_timer_t *timer = NULL;
 
-static timeOutHdl(struct LUECtxt *ctxt, struct LUETimerH *handle, void *data)
+static int lifetime_cb(uev_t *ctx, uev_timer_t *w, void *data)
 {
-   timeOut = NULL;
-   printf("Timeout exceeded %p\n", data);
-   lueRemFd(ctxt, readFd);
-   lueTerminate(ctxt);
+	fprintf(stderr, "\nLifetime exceeded %p\n", data);
+	uev_exit(ctx);
+
+        return 0;
 }
 
-static appTimeout(struct LUECtxt *ctxt, struct LUETimerH *handle, void *data)
+/* The pipe watchdog, if it triggers we haven't received data in time. */
+static int timeout_cb(uev_t *ctx, uev_timer_t *w, void *data)
 {
-   printf("Lifetime exceeded %p\n", data);
-   exit(1);
+	timer = NULL;
+	fprintf(stderr, "\nTimeout exceeded %p\n", data);
+
+	uev_timer_delete(ctx, w);
+	uev_exit(ctx);
+
+        return 0;
 }
 
-static int readCb(struct LUECtxt *ctxt, struct LUEFileEventH *handle, int fd, void *data)
+static int pipe_read_cb(uev_t *ctx, uev_io_t *w, int fd, void *data)
 {
-   if (timeOut) {
-      lueRemTimer(ctxt, timeOut);
-      timeOut = lueAddTimer(ctxt, 950, timeOutHdl, NULL);
-   }
+	int cnt;
+	char msg[50];
 
-   char msg[50];
-   int cnt = read(readFd, msg, sizeof(msg));
-   //printf("READ %.*s %d\n", cnt, msg, cnt);
-   printf("%.*s.%d ", cnt, msg, cnt); fflush(stdout);
+        /* Kick watchdog */
+	if (timer) {
+		uev_timer_delete(ctx, timer);
+		timer = uev_timer_create(ctx, 1000, timeout_cb, NULL);
+	}
 
-   return 0;
+	cnt = read(in, msg, sizeof(msg));
+//	fprintf(stderr, "READ %.*s %d\n", cnt, msg, cnt);
+	fprintf(stderr, "%.*s.%d ", cnt, msg, cnt);
+
+	return 0;
 }
 
-static writeThread(struct LUECtxt *ctxt, struct LUETimerH *handle, void *data)
+static int pipe_write_cb(uev_t *ctx, uev_timer_t *handle, void *data)
 {
-   int cnt = (int)(intptr_t)data;
-   char *msg = "TESTING";
+	int cnt = (int)(intptr_t)data;
+	char *msg = "TESTING";
 
-   write(writeFd, msg, cnt);
-   //printf("WRITE %.*s %d\n", cnt, msg, cnt);
-   printf("%d ", cnt); fflush(stdout);
-   period = cnt + 5;
-   lueAddTimer(ctxt, period * 100,  writeThread, (void *)(intptr_t)(cnt + 1));
+	write(out, msg, cnt);
+//	fprintf(stderr, "WRITE %.*s %d\n", cnt, msg, cnt);
+	fprintf(stderr, "%d ", cnt);
+	period = cnt + 5;
+
+	uev_timer_create(ctx, period * 100, pipe_write_cb, (void *)(intptr_t)(cnt + 1));
+
+        return 0;
 }
 
-main()
+int main(void)
 {
-   struct LUECtxt *ctxt = lueCtxtCreate();
+	int fd[2];
+	uev_t *ctx = uev_create();
 
-   timeOut = lueAddTimer(ctxt, 950, timeOutHdl, (void *)1);
-   lueAddTimer(ctxt, 5000, appTimeout, (void *)2);
+        /* Total program execution time */
+	uev_timer_create(ctx, 4000, lifetime_cb, (void *)(intptr_t)2);
 
-   lueAddTimer(ctxt, 500,  writeThread, (void *) 1);
+        /* Work load, one timer callback writes to a pipe periodically,
+         * and one I/O watcher that is called every time the pipe has
+         * some data. */
+	pipe(fd);
+	in  = fd[0];
+	out = fd[1];
+	uev_timer_create(ctx, 400,  pipe_write_cb, (void *)(intptr_t)1);
+	uev_io_create(ctx, in, UEV_FHIN, pipe_read_cb, NULL);
 
-   int fd[2];
-   pipe(fd);
-   readFd = fd[0];
-   writeFd = fd[1];
-   lueAddInput(ctxt, readFd, readCb, NULL);
+        /* Watchdog for the above timer callback, if it doesn't wake up
+         * and write to the pipe within a given deadline it will bark. */
+	timer = uev_timer_create(ctx, 950, timeout_cb, (void *)(intptr_t)1);
 
-   lueRun(ctxt);
-   lueCtxtDestroy(ctxt);
+        /* Start event loop */
+	uev_run(ctx);
 
-   printf("Period is %d must be 10: %s\n", period, 10 == period ? "OK" : "ERROR!");
-   exit(10 == period ? 0 : 1);
+        /* Tear down event context */
+	uev_delete(ctx);
+
+	fprintf(stderr, "Period is %d must be 10: %s\n", period, 10 == period ? "OK" : "ERROR!");
+        if (10 != period)
+                return 1;
+                
+	return 0;
 }
 
-// vim: set sw=3 sts=3 et:
+/**
+ * Local Variables:
+ *  version-control: t
+ *  indent-tabs-mode: t
+ *  c-file-style: "linux"
+ * End:
+ */

@@ -34,459 +34,327 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "llist.h"
 #include "libuev.h"
-
-#ifdef DEBUG
-#define Debug(f, args...) printf(":LUE: " f "\n", ##args)
-#else
-#define Debug(f, args...) 
-#endif
 
 static clock_t clock_tick = 0;
 
-/// Enumerate file handle direction
-enum LUEFhDirectionT {LUE_FHIN = 0, LUE_FHOUT = 1};
-
-struct LUEFileEventH;
-struct LUEFileEventRem
+uev_io_t *uev_io_create(uev_t *ctx, int fd, uev_dir_t dir, uev_io_cb_t handler, void *data)
 {
-   LListField(struct LUEFileEventRem);
-   struct LUEFileEventH *ent;
-};
+	uev_io_t *w;
 
-/// File event handle
-struct LUEFileEventH
-{
-   LListField(struct LUEFileEventH); ///< Elements for linked list
-   struct LUEFileEventRem rem;       ///< For postponed removal
+	w = (uev_io_t *)malloc(sizeof(*w));
+	if (!w)
+		return NULL;
 
-   int            fd;              ///< File descriptor
-   enum LUEFhDirectionT direction; ///< Direction: in or out
-   int            pollIx;          ///< This file handle index into list of file handles to poll
-   LUEFileHandler handler;         ///< File handler callback
-   void          *data;            ///< File handler callback parameter
-};
+	w->rem.ent = w;
+	w->fd      = fd;
+	w->dir     = dir;
+	w->handler = (void *)handler;
+	w->data    = data;
+	w->index   = -1;
 
-/// Timer context object
-struct LUETimerH
-{
-   LListField(struct LUETimerH);   ///< Linked list elements
+	lListAppend(&ctx->io_list, w);
 
-   int            dueTime;  ///< Epoch timestamp
-   LUETimerHandler handler; ///< Timer callback
-   void          *data;     ///< Timer callback parameter
-};
-
-/**
- * @cond doxygen does not like this construction
- */
-typedef LList(struct LUETimerH) LUETimerHandlerDL;
-typedef LList(struct LUEFileEventH) LUEFileEventDL;
-typedef LList(struct LUEFileEventRem) LUEFileEventRemL;
-/**
- * @endcond
- */
-
-/// Main lue context object
-struct LUECtxt
-{
-   LUEFileEventDL fileHandlers;       ///< File handlers
-   LUETimerHandlerDL timeoutHandlers; ///< Timer handlers
-
-   LUEFileEventRemL fileRem;          ///< List of file handles to be garbage collected
-   LUETimerHandlerDL timeRem;         ///< List of timer handles to be garbage collected
-
-   clock_t        baseTime;           ///< Time at last timer tick
-   clock_t        setTime;            ///< Next timer tick epoch
-   int            timeSet;            ///< True if next timer epoch is set
-   int            exiting;            ///< True if the application is terminating
-};
-
-static
-struct LUEFileEventH *lueAddIO(struct LUECtxt * ctxt,
-                                  int fd, LUEFileHandler handler, void *data,
-                                  enum LUEFhDirectionT direction)
-{
-   struct LUEFileEventH *ent;
-
-   ent = (struct LUEFileEventH *) malloc(sizeof(*ent));
-   Debug("Add IO %d %p", fd, ent);
-   assert(ent);
-   ent->rem.ent = ent;
-   ent->fd = fd;
-   ent->direction = direction;
-   ent->handler = handler;
-   ent->data = data;
-   ent->pollIx = -1;
-   lListAppend(&ctxt->fileHandlers, ent);
-
-   return ent;
+	return w;
 }
 
-/**
- * Add an input file handler
- */
-struct LUEFileEventH *lueAddInput(struct LUECtxt *ctxt,
-                                  int fd, LUEFileHandler handler, void *data)
+int uev_io_delete(uev_t *ctx, uev_io_t *w)
 {
-    return lueAddIO(ctxt, fd, handler, data, LUE_FHIN);
-}
+	uev_io_rem_t *ent;
 
-/**
- * Add an output file handler
- */
-struct LUEFileEventH *lueAddOutput(struct LUECtxt *ctxt,
-                                  int fd, LUEFileHandler handler, void *data)
-{
-    return lueAddIO(ctxt, fd, handler, data, LUE_FHOUT);
-}
+	if (!ctx || !w) {
+		errno = EINVAL;
+		return -1;
+	}
 
-static
-int lueRemIO(struct LUECtxt *ctxt, struct LUEFileEventH *hdl)
-{
-   struct LUEFileEventRem *ent;
+	lListForeachIn(ent, &ctx->io_delist) {
+		if (ent->ent == w) {
+			errno = EALREADY;
+			return -1;	/* Already removed */
+		}
+	}
 
-   Debug("Rem IO %p", hdl);
-   lListForeachIn (ent, &ctxt->fileRem)
-      if (ent->ent == hdl)
-         return -1; // Already removed
+	w->handler = NULL;
+	lListAppend(&ctx->io_delist, &w->rem);
 
-   Debug("Rem FD %d", hdl->fd);
-   hdl->handler = NULL;
-   lListAppend(&ctxt->fileRem, &(hdl->rem));
-   return 0;
-}
-
-/**
- * Remove all handlers for an fd
- */
-int lueRemFd(struct LUECtxt *ctxt, int fd)
-{
-   struct LUEFileEventH *ent;
-   struct LUEFileEventRem *rem;
-
-   Debug("Remfd FD %d", ent->fd);
-   lListForeachIn(ent, &ctxt->fileHandlers)
-   {
-      if (ent->fd != fd)
-         continue;
-      lListForeachIn(rem, &ctxt->fileRem)
-         if (rem->ent == ent)
-            return -1; // Already removed
-      Debug("Remfd ent %p", ent);
-      ent->handler = NULL;
-      lListAppend(&ctxt->fileRem, &(ent->rem));
-   }
-   return 0;
-}
-
-/**
- * Remove an input file handler
- */
-int lueRemInput(struct LUECtxt *ctxt, struct LUEFileEventH *hdl)
-{
-   return lueRemIO(ctxt, hdl);
-}
-
-/**
- * Remove an output file handler
- */
-int lueRemOutput(struct LUECtxt *ctxt, struct LUEFileEventH *hdl)
-{
-   return lueRemIO(ctxt, hdl);
-}
-
-
-/**
- * Remove a timer event
- */
-int lueRemTimer(struct LUECtxt *ctxt, struct LUETimerH *hdl)
-{
-   if (hdl)
-   {
-      struct LUETimerH *ent;
-
-      lListForeachIn (ent, &ctxt->timeRem)
-         if (ent == hdl)
-            return -1; // Already removed
-
-      Debug("Remtimer %p", hdl);
-      lListRemove(&ctxt->timeoutHandlers, hdl);
-      lListAppend(&ctxt->timeRem, hdl); // Remember to free him (at a safe time)
-   }
-   return 0;
+	return 0;
 }
 
 /**
  * Add a timer event
  */
-struct LUETimerH *lueAddTimer(struct LUECtxt * ctxt, int periodMs,
-                                  LUETimerHandler handler, void *data)
+uev_timer_t *uev_timer_create(uev_t *ctx, int msec, uev_timer_cb_t handler, void *data)
 {
-   int            timeDiff;
-   clock_t        curTime;
-   struct LUETimerH *nent,
-                 *ret,
-                 *ent;
+	int diff;
+	clock_t now;
+	uev_timer_t *w, *ret, *ent;
 
-   nent = (struct LUETimerH *) malloc(sizeof(*ent));
-   assert(nent);
-   nent->dueTime = periodMs;
-   nent->handler = handler;
-   nent->data = data;
+	if (!ctx) {
+		errno = EINVAL;
+		return NULL;
+	}
 
-   if (0 == periodMs)
-   {
-      // Zero delay is a special case: A oneshot workproc: Must go first
-      lListInsertFirst(&ctxt->timeoutHandlers, nent);
-      return nent;
+	w = (uev_timer_t *)malloc(sizeof(*ent));
+	if (!w)
+		return NULL;
 
-   }
+	w->due     = msec;
+	w->handler = (void *)handler;
+	w->data    = data;
 
-   // Adjust timers.
-   // Jiffie wraparound is OK since we only care about diff time
-   curTime = ctxt->timeSet ? ctxt->setTime : times(NULL);
-   timeDiff = (curTime - ctxt->baseTime) / clock_tick * 1000
-             + ((curTime - ctxt->baseTime) % clock_tick) * 1000 / clock_tick;
+	if (0 == msec) {
+		/* Zero delay is a special case: A oneshot workproc: Must go first */
+		lListInsertFirst(&ctx->timer_list, w);
 
-   ret = nent;
-   lListForeachIn(ent, &ctxt->timeoutHandlers)
-   {
-      if (ent->dueTime > timeDiff)
-         ent->dueTime -= timeDiff;
-      else
-         ent->dueTime = 0;
-      if (nent && ent->dueTime > periodMs)
-      {
-         Debug("Timer Insert %d before %d %p", periodMs, ent->dueTime, nent);
-         lListInsert(&ctxt->timeoutHandlers, nent, ent);
-         nent = NULL;
-      }
-   }
-   if (nent) 
-   {
-      Debug("Timer Append %d at end %p", periodMs, nent);
-      lListAppend(&ctxt->timeoutHandlers, nent);
-   }
-   ctxt->baseTime = curTime;
+		return w;
+	}
 
-   return ret;
+	/* Adjust timers.
+	 * Jiffie wraparound is OK since we only care about diff time */
+	now = ctx->use_next ? ctx->next_time : times(NULL);
+	diff =   (now - ctx->base_time) / clock_tick  * 1000 +
+                ((now - ctx->base_time) % clock_tick) * 1000 / clock_tick;
+
+	ret = w;
+	lListForeachIn(ent, &ctx->timer_list) {
+		if (ent->due > diff)
+			ent->due -= diff;
+		else
+			ent->due = 0;
+
+		if (w && ent->due > msec) {
+			lListInsert(&ctx->timer_list, w, ent);
+			w = NULL;
+		}
+	}
+
+	if (w)
+		lListAppend(&ctx->timer_list, w);
+
+	ctx->base_time = now;
+
+	return ret;
+}
+
+/**
+ * Remove a timer event
+ */
+int uev_timer_delete(uev_t *ctx, uev_timer_t *w)
+{
+	uev_timer_t *ent;
+
+	if (!ctx || !w) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	lListForeachIn(ent, &ctx->timer_delist) {
+		if (ent == w) {
+			errno = EALREADY;
+			return -1;	/* Already removed */
+		}
+	}
+
+        lListRemove(&ctx->timer_list, w);
+        lListAppend(&ctx->timer_delist, w);	/* Remember to free it (at a safe time) */
+
+	return 0;
 }
 
 /**
  * Create an application context
  */
-struct LUECtxt *lueCtxtCreate()
+uev_t *uev_create(void)
 {
-   struct LUECtxt *lue;
+	uev_t *ctx;
 
-   lue = (struct LUECtxt *) malloc(sizeof(*lue));
-   assert(lue);
-   lListInit(&lue->fileHandlers);
-   lListInit(&lue->timeoutHandlers);
-   lListInit(&lue->fileRem);
-   lListInit(&lue->timeRem);
+	ctx = (uev_t *)malloc(sizeof(*ctx));
+	if (!ctx)
+		return NULL;
 
-   lue->baseTime = times(NULL);
-   lue->setTime = 0;
-   lue->timeSet = false;
-   lue->exiting = false;
-   
-   if (0 == clock_tick)
-      clock_tick = sysconf(_SC_CLK_TCK);
-   
-   return lue;
+	lListInit(&ctx->io_list);
+	lListInit(&ctx->timer_list);
+	lListInit(&ctx->io_delist);
+	lListInit(&ctx->timer_delist);
+
+	ctx->base_time = times(NULL);
+	ctx->next_time = 0;
+	ctx->use_next  = false;
+
+	ctx->exiting   = false;
+
+	if (0 == clock_tick)
+		clock_tick = sysconf(_SC_CLK_TCK);
+
+	return ctx;
 }
 
 /**
  * Destroy an application context
  */
-void lueCtxtDestroy(struct LUECtxt *lue)
+void uev_delete(uev_t *ctx)
 {
-   lListPurge(&lue->fileHandlers);
-   lListPurge(&lue->timeoutHandlers);
-   free(lue);
+	lListPurge(&ctx->io_list);
+	lListPurge(&ctx->timer_list);
+	free(ctx);
 }
 
 /**
  * Drive the timeouts ourself (from now on until an increment of -1)
  * This is intended for use in testing frameworks
  * Caveat emptor: Currently, interactions with the scheduler (agent) API is undefined.
- *                Not for use in lues that use the agent scheduler
- * @param ctxt LUElication context object
- * @param mSecs Ms to advance. Use -1 to return to realtime
+ *                Not for use in uevs that use the agent scheduler
+ * @param ctx UEVlication context object
+ * @param msec Ms to advance. Use -1 to return to realtime
  */
-void lueTimeAdvance(struct LUECtxt *ctxt, int mSecs)
+void uev_run_tick(uev_t *ctx, int msec)
 {
-   // Obviously we are executing a callback right now (arent we always)
-   // The time leap is taken into account before falling back into poll() below
-   if (mSecs >= 0)
-   {
-      if (!ctxt->timeSet)
-      {
-         ctxt->timeSet = true;
-         ctxt->setTime = times(NULL) + mSecs;
-      }
-      else
-      {
-         ctxt->setTime += mSecs;
-      }
-   }
-   else if (mSecs == -1)
-   {
-      // Go back to realtime
-      ctxt->timeSet = false;
-      ctxt->baseTime += times(NULL) - ctxt->setTime;
-      ctxt->setTime = 0;
-   }
+	// Obviously we are executing a callback right now (arent we always)
+	// The time leap is taken into account before falling back into poll() below
+	if (msec >= 0) {
+		if (!ctx->use_next) {
+			ctx->use_next  = true;
+			ctx->next_time = times(NULL) + msec;
+		} else {
+			ctx->next_time += msec;
+		}
+	} else if (msec == -1) {
+		/* Go back to realtime */
+		ctx->use_next   = false;
+		ctx->base_time += times(NULL) - ctx->next_time;
+		ctx->next_time  = 0;
+	}
 }
 
 /**
  * Process pending events
  */
-static int _lueProcessPending(struct LUECtxt *ctxt, int immediate)
+static int do_run_pending(uev_t *ctx, int immediate)
 {
-   struct LUETimerH     *timer;
-   int            pollRet;
-   clock_t        curTime;
-   int            curPeriod = 0;
+	int          result, timeout = 0;
+	clock_t      now;
+	uev_timer_t *timer;
 
-   // Do due timers
-   if (lListHead(&ctxt->timeoutHandlers))
-   {
-      curTime = ctxt->timeSet ? ctxt->setTime : times(NULL);
-      curPeriod = (curTime - ctxt->baseTime) / clock_tick * 1000
-               + ((curTime - ctxt->baseTime) % clock_tick) * 1000 / clock_tick;
-      Debug("Period for timer execution %d", curPeriod);
-      while((timer = lListHead(&ctxt->timeoutHandlers)) &&
-            timer->dueTime <= curPeriod)
-      {
-         Debug("Timer execution %d", timer->dueTime);
-         timer->handler(ctxt, timer, timer->data);
-         lueRemTimer(ctxt, timer);
+	/* Do due timers */
+	if (lListHead(&ctx->timer_list)) {
+		now     = ctx->use_next ? ctx->next_time : times(NULL);
+		timeout =  (now - ctx->base_time) / clock_tick  * 1000
+                        + ((now - ctx->base_time) % clock_tick) * 1000 / clock_tick;
+		while ((timer = lListHead(&ctx->timer_list)) && timer->due <= timeout) {
+			timer->handler((struct uev *)ctx, timer, timer->data);
+			uev_timer_delete(ctx, timer);
 
-         // baseTime changes for every lueAddTimer
-         curPeriod = (curTime - ctxt->baseTime) / clock_tick * 1000
-             + ((curTime - ctxt->baseTime) % clock_tick) * 1000 / clock_tick;
-      }
-      lListPurge(&ctxt->timeRem); // Reap timer zombies
-   }
+			/* base_time changes for every uev_timer_create */
+			timeout =  (now - ctx->base_time) / clock_tick  * 1000
+                                + ((now - ctx->base_time) % clock_tick) * 1000 / clock_tick;
+		}
 
-   // Calculate waiting time
-   if (ctxt->exiting)
-      curPeriod = 0;
-   else if ((timer = lListHead(&ctxt->timeoutHandlers)) &&
-            timer->dueTime > curPeriod)
-   {
-      Debug("Period from timer head %d - %d -> %d",
-            timer->dueTime, curPeriod, timer->dueTime - curPeriod);
-      curPeriod = timer->dueTime - curPeriod;
-   }
-   else if (NULL != timer)
-      curPeriod = 0;
-   else
-      curPeriod = -1;
+		lListPurge(&ctx->timer_delist);	/* Reap timer zombies */
+	}
 
-   // Do pipe handlers
-   if (lListHead(&ctxt->fileHandlers) && !ctxt->exiting)
-   {
-      struct pollfd  polls[lListLength(&ctxt->fileHandlers)];
-      struct LUEFileEventH *ent;
+	/* Calculate waiting time */
+	if (ctx->exiting)
+		timeout = 0;
+	else if ((timer = lListHead(&ctx->timer_list)) && timer->due > timeout)
+		timeout = timer->due - timeout;
+	else if (NULL != timer)
+		timeout = 0;
+	else
+		timeout = -1;
 
-      int ix = 0;
-      lListForeachIn(ent, &ctxt->fileHandlers)
-      {
-         ent->pollIx = ix;
-         polls[ix].fd = ent->fd;
-         polls[ix].events = LUE_FHIN == ent->direction ? POLLIN : POLLOUT;
-         polls[ix].revents = 0;
-         ix++;
-      }
-      Debug("Polling %d fds in %d ms", ix, curPeriod);
-      pollRet = poll(polls, ix, immediate ? 0 : curPeriod);
-      if (pollRet < 0)
-      {
-         if (EINTR == errno)
-            return 0;
-         else if (EBADF == errno)
-         {
-            lListForeachIn(ent, &ctxt->fileHandlers)
-            {
-               if (fcntl(ent->fd, F_GETFD) == -1 && EBADF == errno)
-               {
-                  ent->handler(ctxt, ent, ent->fd, ent->data);
-               }
-            }
-         }
-         else
-         {
-            // Error in poll. Cannot continue
-            assert(false);
-            return;
-         }
-      }
-      else if (pollRet > 0)
-      {
-         lListForeachIn(ent, &ctxt->fileHandlers)
-         {
-            if (ent->handler && ent->pollIx >= 0 && polls[ent->pollIx].revents)
-            {
-               ent->handler(ctxt, ent, ent->fd, ent->data);
-            }
-         }
-      }
-      if (lListHead(&ctxt->fileRem))
-      {
-         struct LUEFileEventRem *ent;
+	/* Do pipe handlers */
+	if (lListHead(&ctx->io_list) && !ctx->exiting) {
+		int i = 0;
+		struct pollfd polls[lListLength(&ctx->io_list)];
+		uev_io_t *w;
 
-         while (NULL != (ent = lListHead(&ctxt->fileRem)))
-         {
-            lListRemove(&ctxt->fileRem, ent);
-            lListRemove(&ctxt->fileHandlers, ent->ent);
-            free(ent->ent);
-         }
-      }
-   }
-   else if (curPeriod > 0)
-   {
-      if (!immediate)
-         poll(NULL, 0, curPeriod);
-   }
-   else if (curPeriod == -1)
-      curPeriod = -2; // Nothing more to do
+		lListForeachIn(w, &ctx->io_list) {
+			w->index = i;
+			polls[i].fd = w->fd;
+			polls[i].events = UEV_FHIN == w->dir ? POLLIN : POLLOUT;
+			polls[i].revents = 0;
+			i++;
+		}
 
-   return curPeriod;
+//                fprintf(stderr, "Polling %d sec\n", timeout);
+		result = poll(polls, i, immediate ? 0 : timeout);
+		if (result < 0) {
+			if (EINTR == errno)
+				return 0;
+
+			if (EBADF == errno) {
+				lListForeachIn(w, &ctx->io_list) {
+					if (fcntl(w->fd, F_GETFD) == -1 && EBADF == errno)
+						w->handler((struct uev *)ctx, w, w->fd, w->data);
+				}
+			} else {
+				/* Error in poll. Cannot continue */
+				assert(false);
+				return;
+			}
+		} else if (result > 0) {
+			lListForeachIn(w, &ctx->io_list) {
+//                                fprintf(stderr, "I/O event!\n");
+				if (w->handler && w->index >= 0 && polls[w->index].revents) {
+					w->handler((struct uev *)ctx, w, w->fd, w->data);
+				}
+			}
+		}
+
+		if (lListHead(&ctx->io_delist)) {
+			uev_io_rem_t *w;
+
+			while ((w = lListHead(&ctx->io_delist))) {
+				lListRemove(&ctx->io_delist, w);
+				lListRemove(&ctx->io_list, w->ent);
+				free(w->ent);
+			}
+		}
+	} else if (timeout > 0) {
+		if (!immediate)
+			poll(NULL, 0, timeout);
+	} else if (timeout == -1)
+		timeout = -2;	/* Nothing more to do */
+
+	return timeout;
 }
 
 /**
  * Process pending events
  */
-int lueProcessPending(struct LUECtxt *ctxt)
+int uev_run_pending(uev_t *ctx)
 {
-   return _lueProcessPending(ctxt, 1);
+	return do_run_pending(ctx, 1);
 }
 
 /**
  * Run the application
  */
-void lueRun(struct LUECtxt *ctxt)
+void uev_run(uev_t *ctx)
 {
-   int ret;
+	int ret = 0;
 
-   do {
-      ret = _lueProcessPending(ctxt, 0);
-   } while (!ctxt->exiting && ret != -2);
-   ctxt->exiting = false;
-   Debug("LUE exiting - bye");
+        if (!ctx)
+                return;
+
+	while (!ctx->exiting && ret != -2)
+		ret = do_run_pending(ctx, 0);
+
+	ctx->exiting = false;
 }
 
 /**
  * Terminate the application
  */
-void lueTerminate(struct LUECtxt *ctxt)
+void uev_exit(uev_t *ctx)
 {
-   ctxt->exiting = true;
+	ctx->exiting = true;
 }
 
-// vim: set ts=8 sw=3 sts=3 et:
+/**
+ * Local Variables:
+ *  version-control: t
+ *  indent-tabs-mode: t
+ *  c-file-style: "linux"
+ * End:
+ */

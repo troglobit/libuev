@@ -23,46 +23,100 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBUEV_H
-#define LIBUEV_H
+#ifndef LIBUEV_H_
+#define LIBUEV_H_
 
-struct LUETimerH;
-struct LUEFileEventH;
-struct LUECtxt;
+#include "llist.h"
+
+struct uev;
+struct uev_io;
+struct uev_timer;
+
+/* I/O direction */
+typedef enum {
+	UEV_FHIN = 0,
+	UEV_FHOUT = 1
+} uev_dir_t;
+
+/* I/O event type */
+typedef struct uev_io_rem {
+	LListField(struct uev_io_rem);
+	struct uev_io *ent;
+} uev_io_rem_t;
+
+typedef struct uev_io {
+	LListField(struct uev_io);      ///< Elements for linked list
+	uev_io_rem_t   rem;             ///< For postponed removal
+
+	int            fd;              ///< File descriptor
+	uev_dir_t      dir;             ///< Direction: in or out
+	int            index;           ///< Index in poll array
+
+	int          (*handler)(struct uev *, struct uev_io *, int, void *);
+	void          *data;            ///< Callback optional parameter
+} uev_io_t;
+
+/* Timer event type */
+typedef struct uev_timer {
+	LListField(struct uev_timer);   ///< Linked list elements
+
+	int            due;             ///< Epoch timestamp
+
+	int          (*handler)(struct uev *, struct uev_timer *, void *);
+	void          *data;            ///< Timer callback parameter
+} uev_timer_t;
 
 /**
- * Typedef file handler callbacks
+ * @cond doxygen does not like this construction
  */
-typedef int (*LUEFileHandler)(struct LUECtxt *ctxt,
-                              struct LUEFileEventH *handle,
-                              int fd,
-                              void *data);
+typedef LList(uev_timer_t)  uev_timer_list_t;
+typedef LList(uev_io_t)     uev_io_list_t;
+typedef LList(uev_io_rem_t) uev_io_rem_list_t;
 /**
- * Typedef timer handler callbacks
+ * @endcond
  */
-typedef int (*LUETimerHandler)(struct LUECtxt *ctxt,
-                              struct LUETimerH *handle,
-                              void *data);
 
-struct LUEFileEventH *lueAddInput(struct LUECtxt *ctxt,
-                                  int fd, LUEFileHandler handler, void *data);
-int lueRemInput(struct LUECtxt *ctxt, struct LUEFileEventH *hdl);
-struct LUEFileEventH *lueAddOutput(struct LUECtxt *ctxt,
-                                  int fd, LUEFileHandler handler, void *data);
-int lueRemOutput(struct LUECtxt *ctxt, struct LUEFileEventH *hdl);
-int lueRemFd(struct LUECtxt *ctxt, int fd);
+/* Main libuev context type */
+typedef struct {
+	uev_io_list_t     io_list;      ///< File handlers
+	uev_timer_list_t  timer_list;   ///< Timer handlers
 
-struct LUETimerH *lueAddTimer(struct LUECtxt *ctxt, int periodMs,
-                              LUETimerHandler handler, void *data);
-int lueRemTimer(struct LUECtxt *ctxt, struct LUETimerH *hdl);
+	uev_io_rem_list_t io_delist;    ///< List of file handles to be garbage collected
+	uev_timer_list_t  timer_delist; ///< List of timer handles to be garbage collected
 
-struct LUECtxt *lueCtxtCreate();
-void lueCtxtDestroy(struct LUECtxt *lue);
-void lueTimeAdvance(struct LUECtxt *ctxt, int mSecs);
-void lueRun(struct LUECtxt *ctxt);
-int lueProcessPending(struct LUECtxt *ctxt);
-void lueTerminate(struct LUECtxt *ctxt);
+	clock_t           base_time;    ///< Time at last timer tick
+	clock_t           next_time;    ///< Next timer tick epoch
+	int               use_next;     ///< True if next timer epoch is set
 
-#endif /* LIBUEV_H */
+	int               exiting;      ///< True if the application is terminating
+} uev_t;
 
-// vim: set ts=8 sw=3 sts=3 et:
+/* Callbacks for different watchers */
+typedef int (*uev_io_cb_t)   (uev_t *ctx, uev_io_t    *w, int fd, void *data);
+typedef int (*uev_timer_cb_t)(uev_t *ctx, uev_timer_t *w,         void *data);
+
+/* Public interface */
+uev_io_t    *uev_io_create    (uev_t *ctx, int fd, uev_dir_t dir, uev_io_cb_t handler, void *data);
+int          uev_io_delete    (uev_t *ctx, uev_io_t *io);
+
+uev_timer_t *uev_timer_create (uev_t *ctx, int msec, uev_timer_cb_t handler, void *data);
+int          uev_timer_delete (uev_t *ctx, uev_timer_t *hdl);
+
+uev_t       *uev_create       (void);
+void         uev_delete       (uev_t *uev);
+
+void         uev_run_tick     (uev_t *ctx, int msec);
+int          uev_run_pending  (uev_t *ctx);
+
+void         uev_run          (uev_t *ctx);
+void         uev_exit         (uev_t *ctx);
+
+#endif /* LIBUEV_H_ */
+
+/**
+ * Local Variables:
+ *  version-control: t
+ *  indent-tabs-mode: t
+ *  c-file-style: "linux"
+ * End:
+ */

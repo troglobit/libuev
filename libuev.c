@@ -162,71 +162,6 @@ int uev_timer_delete(uev_t *ctx, uev_timer_t *w)
 }
 
 /**
- * Create an application context
- */
-uev_t *uev_create(void)
-{
-	uev_t *ctx;
-
-	ctx = (uev_t *)malloc(sizeof(*ctx));
-	if (!ctx)
-		return NULL;
-
-	lListInit(&ctx->io_list);
-	lListInit(&ctx->timer_list);
-	lListInit(&ctx->io_delist);
-	lListInit(&ctx->timer_delist);
-
-	ctx->base_time = times(NULL);
-	ctx->next_time = 0;
-	ctx->use_next  = false;
-
-	ctx->exiting   = false;
-
-	if (0 == clock_tick)
-		clock_tick = sysconf(_SC_CLK_TCK);
-
-	return ctx;
-}
-
-/**
- * Destroy an application context
- */
-void uev_delete(uev_t *ctx)
-{
-	lListPurge(&ctx->io_list);
-	lListPurge(&ctx->timer_list);
-	free(ctx);
-}
-
-/**
- * Drive the timeouts ourself (from now on until an increment of -1)
- * This is intended for use in testing frameworks
- * Caveat emptor: Currently, interactions with the scheduler (agent) API is undefined.
- *                Not for use in uevs that use the agent scheduler
- * @param ctx UEVlication context object
- * @param msec Ms to advance. Use -1 to return to realtime
- */
-void uev_run_tick(uev_t *ctx, int msec)
-{
-	// Obviously we are executing a callback right now (arent we always)
-	// The time leap is taken into account before falling back into poll() below
-	if (msec >= 0) {
-		if (!ctx->use_next) {
-			ctx->use_next  = true;
-			ctx->next_time = times(NULL) + msec;
-		} else {
-			ctx->next_time += msec;
-		}
-	} else if (msec == -1) {
-		/* Go back to realtime */
-		ctx->use_next   = false;
-		ctx->base_time += times(NULL) - ctx->next_time;
-		ctx->next_time  = 0;
-	}
-}
-
-/**
  * Process pending events
  */
 static int do_run_pending(uev_t *ctx, int immediate)
@@ -320,14 +255,6 @@ static int do_run_pending(uev_t *ctx, int immediate)
 }
 
 /**
- * Process pending events
- */
-int uev_run_pending(uev_t *ctx)
-{
-	return do_run_pending(ctx, 1);
-}
-
-/**
  * Run the application
  */
 void uev_run(uev_t *ctx)
@@ -344,11 +271,85 @@ void uev_run(uev_t *ctx)
 }
 
 /**
+ * Drive the timeouts ourself (from now on until an increment of -1)
+ * This is intended for use in testing frameworks
+ * Caveat emptor: Currently, interactions with the scheduler (agent) API is undefined.
+ *                Not for use in uevs that use the agent scheduler
+ * @param ctx UEVlication context object
+ * @param msec Ms to advance. Use -1 to return to realtime
+ */
+void uev_run_tick(uev_t *ctx, int msec)
+{
+	// Obviously we are executing a callback right now (arent we always)
+	// The time leap is taken into account before falling back into poll() below
+	if (msec >= 0) {
+		if (!ctx->use_next) {
+			ctx->use_next  = true;
+			ctx->next_time = times(NULL) + msec;
+		} else {
+			ctx->next_time += msec;
+		}
+	} else if (msec == -1) {
+		/* Go back to realtime */
+		ctx->use_next   = false;
+		ctx->base_time += times(NULL) - ctx->next_time;
+		ctx->next_time  = 0;
+	}
+}
+
+/**
+ * Process pending events
+ */
+int uev_run_pending(uev_t *ctx)
+{
+	return do_run_pending(ctx, 1);
+}
+
+/**
  * Terminate the application
  */
 void uev_exit(uev_t *ctx)
 {
 	ctx->exiting = true;
+}
+
+
+/**
+ * Create an application context
+ */
+uev_t *uev_ctx_create(void)
+{
+	uev_t *ctx;
+
+	ctx = (uev_t *)malloc(sizeof(*ctx));
+	if (!ctx)
+		return NULL;
+
+	lListInit(&ctx->io_list);
+	lListInit(&ctx->timer_list);
+	lListInit(&ctx->io_delist);
+	lListInit(&ctx->timer_delist);
+
+	ctx->base_time = times(NULL);
+	ctx->next_time = 0;
+	ctx->use_next  = false;
+
+	ctx->exiting   = false;
+
+	if (0 == clock_tick)
+		clock_tick = sysconf(_SC_CLK_TCK);
+
+	return ctx;
+}
+
+/**
+ * Destroy an application context
+ */
+void uev_ctx_delete(uev_t *ctx)
+{
+	lListPurge(&ctx->io_list);
+	lListPurge(&ctx->timer_list);
+	free(ctx);
 }
 
 /**

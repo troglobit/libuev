@@ -14,9 +14,9 @@ The C API
 ---------
 The typical application will do the following steps
 
-1. Create the event context with lueCtxtCreate()
-2. Register initial callbacks with lueAddInput, lueAddOutput and lueAddTimer
-3. Enter the event loop
+1. Create the event context with uev_ctx_create()
+2. Register callbacks with uev_io_create() and uev_timer_create()
+3. Enter the event loop with uev_run()
 
 Building
 --------

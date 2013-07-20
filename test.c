@@ -89,7 +89,7 @@ static int pipe_write_cb(uev_t *ctx, uev_timer_t *handle, void *data)
 int main(void)
 {
 	int fd[2];
-	uev_t *ctx = uev_create();
+	uev_t *ctx = uev_ctx_create();
 
         /* Total program execution time */
 	uev_timer_create(ctx, 4000, lifetime_cb, (void *)(intptr_t)2);
@@ -111,7 +111,7 @@ int main(void)
 	uev_run(ctx);
 
         /* Tear down event context */
-	uev_delete(ctx);
+	uev_ctx_delete(ctx);
 
 	fprintf(stderr, "Period is %d must be 10: %s\n", period, 10 == period ? "OK" : "ERROR!");
         if (10 != period)

@@ -28,6 +28,7 @@
 
 #include "llist.h"
 
+/* Forward declarations due to dependencys, don't try this at home. */
 struct uev;
 struct uev_io;
 struct uev_timer;
@@ -38,7 +39,7 @@ typedef enum {
 	UEV_FHOUT = 1
 } uev_dir_t;
 
-/* I/O event type */
+/* I/O event watcher */
 typedef struct uev_io_rem {
 	LListField(struct uev_io_rem);
 	struct uev_io *ent;
@@ -56,7 +57,7 @@ typedef struct uev_io {
 	void          *data;            ///< Callback optional parameter
 } uev_io_t;
 
-/* Timer event type */
+/* Timer event watcher */
 typedef struct uev_timer {
 	LListField(struct uev_timer);   ///< Linked list elements
 
@@ -102,14 +103,13 @@ int          uev_io_delete    (uev_t *ctx, uev_io_t *io);
 uev_timer_t *uev_timer_create (uev_t *ctx, int msec, uev_timer_cb_t handler, void *data);
 int          uev_timer_delete (uev_t *ctx, uev_timer_t *hdl);
 
-uev_t       *uev_create       (void);
-void         uev_delete       (uev_t *uev);
-
+void         uev_run          (uev_t *ctx);
 void         uev_run_tick     (uev_t *ctx, int msec);
 int          uev_run_pending  (uev_t *ctx);
-
-void         uev_run          (uev_t *ctx);
 void         uev_exit         (uev_t *ctx);
+
+uev_t       *uev_ctx_create   (void);
+void         uev_ctx_delete   (uev_t *uev);
 
 #endif /* LIBUEV_H_ */
 

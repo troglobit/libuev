@@ -23,8 +23,8 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LIBUEV_H_
-#define LIBUEV_H_
+#ifndef LIBUEV_UEV_H_
+#define LIBUEV_UEV_H_
 
 #include "queue.h"
 
@@ -101,7 +101,7 @@ void         uev_exit         (uev_t *ctx);
 uev_t       *uev_ctx_create   (void);
 void         uev_ctx_delete   (uev_t *uev);
 
-#endif /* LIBUEV_H_ */
+#endif /* LIBUEV_UEV_H_ */
 
 /**
  * Local Variables:

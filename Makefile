@@ -28,19 +28,22 @@ CC          = $(CROSS_COMPILE)gcc
 AR          = $(CROSS_COMPILE)ar
 STRIP       = $(CROSS_COMPILE)strip
 CFLAGS     += -fPIC -g -Os
-CPPFLAGS   += -W -Wall
+CPPFLAGS   += -W -Wall -Iinclude
 ARFLAGS     = crus
 JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.*
 
+LIBNAME     = libuev
 prefix     ?= /usr/local
-datadir     = $(prefix)/share/doc/libuev
+libdir     ?= $(prefix)/lib
+datadir    ?= $(prefix)/share/doc/$(LIBNAME)
+incdir     ?= $(prefix)/include/$(LIBNAME)
 DISTFILES   = README LICENSE test.c
+INCLUDES    = uev.h queue.h
 
 OBJS       := libuev.o
 SRCS       := $(OBJS:.o=.c)
 DEPS       := $(addprefix .,$(SRCS:.c=.d))
 VER         = 1
-LIBNAME     = libuev
 SOLIB       = $(LIBNAME).so.$(VER)
 SYMLIB      = $(LIBNAME).so
 STATICLIB   = $(LIBNAME).a
@@ -69,24 +72,31 @@ $(STATICLIB): Makefile $(OBJS)
 	@$(AR) $(ARFLAGS) $@ $(OBJS)
 
 install: strip
-	@install -d $(DESTDIR)$(prefix)/lib
-	@install -m 0644 $(SOLIB) $(DESTDIR)$(prefix)/lib/
-	@ln -s $(DESTDIR)$(prefix)/lib/$(SOLIB) $(DESTDIR)$(prefix)/lib/$(SYMLIB)
+	@install -d $(DESTDIR)$(libdir)
+	@install $(SOLIB) $(DESTDIR)$(prefix)/lib/$(SOLIB)
+	@install $(STATICLIB) $(DESTDIR)$(prefix)/lib/$(STATICLIB)
+	@ln -sf $(SOLIB) $(DESTDIR)$(prefix)/lib/$(SYMLIB)
+	@install -d $(DESTDIR)$(incdir)
+	@for file in $(INCLUDES); do \
+		install -m 0644 include/libuev/$$file $(DESTDIR)$(incdir)/$$file; \
+	done
+	@install -d $(DESTDIR)$(datadir)
 	@for file in $(DISTFILES); do \
 		install -m 0644 $$file $(DESTDIR)$(datadir)/$$file; \
 	done
 
 uninstall:
-	-@$(RM) $(DESTDIR)$(prefix)/lib/$(LIBNAME)*
 	-@$(RM) -r $(DESTDIR)$(datadir)
+	-@$(RM) -r $(DESTDIR)$(incdir)
+	-@$(RM) $(DESTDIR)$(prefix)/lib/$(LIBNAME)*
 
-strip: all
+strip: $(TARGET)
 	@printf "  STRIP   %s\n" $(TARGET)
 	@$(STRIP) --strip-unneeded $(TARGET)
 
 test: Makefile test.o $(STATICLIB)
 	@printf "  TEST    %s\n" $(STATICLIB)
-	@$(CC) -g -DNO_DEBUG -o test test.c $(STATICLIB) && ./test
+	@$(CC) $(CPPFLAGS) -g -o test test.c $(STATICLIB) && ./test
 
 clean:
 	-@$(RM) $(TARGET) *.o test

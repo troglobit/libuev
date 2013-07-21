@@ -34,7 +34,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "libuev.h"
+#include "libuev/uev.h"
 
 static clock_t clock_tick = 0;
 

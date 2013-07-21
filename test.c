@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <unistd.h>		/* intptr_t */
 
-#include "libuev.h"
+#include "libuev/uev.h"
 
 static int in, out;
 static int period = 0;

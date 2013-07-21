@@ -26,7 +26,12 @@
 #ifndef LIBUEV_H_
 #define LIBUEV_H_
 
-#include "llist.h"
+#include "queue.h"
+
+/* Elapsed time between two times() tick measurements in msec */
+#define TIME_DIFF_MSEC(now, then)				\
+	( (now - then) / clock_tick  * 1000 +			\
+	 ((now - then) % clock_tick) * 1000 / clock_tick )
 
 /* Forward declarations due to dependencys, don't try this at home. */
 struct uev;
@@ -41,12 +46,12 @@ typedef enum {
 
 /* I/O event watcher */
 typedef struct uev_io_rem {
-	LListField(struct uev_io_rem);
+	TAILQ_ENTRY(uev_io_rem) link;
 	struct uev_io *ent;
 } uev_io_rem_t;
 
 typedef struct uev_io {
-	LListField(struct uev_io);      ///< Elements for linked list
+	TAILQ_ENTRY(uev_io) link;
 	uev_io_rem_t   rem;             ///< For postponed removal
 
 	int            fd;              ///< File descriptor
@@ -54,36 +59,26 @@ typedef struct uev_io {
 	int            index;           ///< Index in poll array
 
 	int          (*handler)(struct uev *, struct uev_io *, int, void *);
-	void          *data;            ///< Callback optional parameter
+	void          *data;
 } uev_io_t;
 
 /* Timer event watcher */
 typedef struct uev_timer {
-	LListField(struct uev_timer);   ///< Linked list elements
+	TAILQ_ENTRY(uev_timer) link;
 
-	int            due;             ///< Epoch timestamp
+	int            due;
 
 	int          (*handler)(struct uev *, struct uev_timer *, void *);
-	void          *data;            ///< Timer callback parameter
+	void          *data;
 } uev_timer_t;
-
-/**
- * @cond doxygen does not like this construction
- */
-typedef LList(uev_timer_t)  uev_timer_list_t;
-typedef LList(uev_io_t)     uev_io_list_t;
-typedef LList(uev_io_rem_t) uev_io_rem_list_t;
-/**
- * @endcond
- */
 
 /* Main libuev context type */
 typedef struct {
-	uev_io_list_t     io_list;      ///< File handlers
-	uev_timer_list_t  timer_list;   ///< Timer handlers
+	TAILQ_HEAD(, uev_io)     io_list;      ///< File handlers
+	TAILQ_HEAD(, uev_timer)  timer_list;   ///< Timer handlers
 
-	uev_io_rem_list_t io_delist;    ///< List of file handles to be garbage collected
-	uev_timer_list_t  timer_delist; ///< List of timer handles to be garbage collected
+	TAILQ_HEAD(, uev_io_rem) io_delist;    ///< List of file handles to be garbage collected
+	TAILQ_HEAD(, uev_timer)  timer_delist; ///< List of timer handles to be garbage collected
 
 	clock_t           base_time;    ///< Time at last timer tick
 	clock_t           next_time;    ///< Next timer tick epoch

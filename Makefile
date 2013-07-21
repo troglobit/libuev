@@ -27,38 +27,77 @@
 CC          = $(CROSS_COMPILE)gcc
 AR          = $(CROSS_COMPILE)ar
 STRIP       = $(CROSS_COMPILE)strip
-CFLAGS      = -fPIC -g -Os
+CFLAGS     += -fPIC -g -Os
+CPPFLAGS   += -W -Wall
 ARFLAGS     = crus
 JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.*
+
+prefix     ?= /usr/local
+datadir     = $(prefix)/share/doc/libuev
+DISTFILES   = README LICENSE test.c
 
 OBJS       := libuev.o
 SRCS       := $(OBJS:.o=.c)
 DEPS       := $(addprefix .,$(SRCS:.c=.d))
 VER         = 1
 LIBNAME     = libuev
-MYLIB       = $(LIBNAME).so
-TARGET      = $(MYLIB).$(VER)
+SOLIB       = $(LIBNAME).so.$(VER)
+SYMLIB      = $(LIBNAME).so
 STATICLIB   = $(LIBNAME).a
+TARGET      = $(SOLIB) $(STATICLIB)
 
-all: $(TARGET)
-
+# Pattern rules
 .c.o:
 	@printf "  CC      $@\n"
 	@$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-$(TARGET): $(OBJS)
+# Smart autodependecy generation via GCC -M.
+.%.d: %.c
+	@$(SHELL) -ec "$(CC) -MM $(CFLAGS) $(CPPFLAGS) $< 2>/dev/null \
+		| sed 's,.*: ,$*.o $@ : ,g' > $@; \
+                [ -s $@ ] || rm -f $@"
+
+# Build rules
+all: $(TARGET)
+
+$(SOLIB): Makefile $(OBJS)
 	@printf "  LINK    $@\n"
-	@$(CC) $(LDFLAGS) -shared -Wl,-soname=$@ -o $@ $^
-	@$(AR) $(ARFLAGS) $(STATICLIB) $^
+	@$(CC) $(LDFLAGS) -shared -Wl,-soname=$@ -o $@ $(OBJS)
+
+$(STATICLIB): Makefile $(OBJS)
+	@printf "  ARCHIVE $@\n"
+	@$(AR) $(ARFLAGS) $@ $(OBJS)
+
+install: strip
+	@install -d $(DESTDIR)$(prefix)/lib
+	@install -m 0644 $(SOLIB) $(DESTDIR)$(prefix)/lib/
+	@ln -s $(DESTDIR)$(prefix)/lib/$(SOLIB) $(DESTDIR)$(prefix)/lib/$(SYMLIB)
+	@for file in $(DISTFILES); do \
+		install -m 0644 $$file $(DESTDIR)$(datadir)/$$file; \
+	done
+
+uninstall:
+	-@$(RM) $(DESTDIR)$(prefix)/lib/$(LIBNAME)*
+	-@$(RM) -r $(DESTDIR)$(datadir)
 
 strip: all
 	@printf "  STRIP   %s\n" $(TARGET)
-	@$(STRIP) --strip-unneeded $(TARGET) $(STATICLIB)
+	@$(STRIP) --strip-unneeded $(TARGET)
 
-test: all
+test: Makefile test.o $(STATICLIB)
 	@printf "  TEST    %s\n" $(STATICLIB)
 	@$(CC) -g -DNO_DEBUG -o test test.c $(STATICLIB) && ./test
 
 clean:
-	-@$(RM) $(JUNK) $(STATICLIB) $(TARGET) *.o test
+	-@$(RM) $(TARGET) *.o test
+
+distclean: clean
+	-@$(RM) $(DEPS) $(JUNK)
+
+# Include automatically generated rules
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),distclean)
+-include $(DEPS)
+endif
+endif
 

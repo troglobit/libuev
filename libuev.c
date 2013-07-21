@@ -46,7 +46,6 @@ uev_io_t *uev_io_create(uev_t *ctx, int fd, uev_dir_t dir, uev_io_cb_t handler, 
 	if (!w)
 		return NULL;
 
-	w->rem.ent = w;
 	w->fd      = fd;
 	w->dir     = dir;
 	w->handler = (void *)handler;
@@ -60,22 +59,23 @@ uev_io_t *uev_io_create(uev_t *ctx, int fd, uev_dir_t dir, uev_io_cb_t handler, 
 
 int uev_io_delete(uev_t *ctx, uev_io_t *w)
 {
-	uev_io_rem_t *ent;
+	uev_io_t *tmp;
 
 	if (!ctx || !w) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	TAILQ_FOREACH(ent, &ctx->io_delist, link) {
-		if (ent->ent == w) {
+	/* Check if already removed */
+	TAILQ_FOREACH(tmp, &ctx->io_delist, gc) {
+		if (tmp == w) {
 			errno = EALREADY;
-			return -1;	/* Already removed */
+			return -1;
 		}
 	}
 
 	w->handler = NULL;
-	TAILQ_INSERT_TAIL(&ctx->io_delist, &w->rem, link);
+	TAILQ_INSERT_TAIL(&ctx->io_delist, w, gc);
 
 	return 0;
 }
@@ -150,10 +150,11 @@ int uev_timer_delete(uev_t *ctx, uev_timer_t *w)
 		return -1;
 	}
 
+	/* Check if already removed */
 	TAILQ_FOREACH(tmp, &ctx->timer_delist, link) {
 		if (tmp == w) {
 			errno = EALREADY;
-			return -1;	/* Already removed */
+			return -1;
 		}
 	}
 
@@ -191,7 +192,7 @@ static int do_run_pending(uev_t *ctx, int immediate)
                         diff = TIME_DIFF_MSEC(now, ctx->base_time);
 		}
 
-                /* Reap timer zombies */
+                /* Garbage collect */
                 TAILQ_FOREACH_SAFE(timer, &ctx->timer_delist, link, tmp) {
                         TAILQ_REMOVE(&ctx->timer_delist, timer, link);
                         free(timer);
@@ -248,13 +249,12 @@ static int do_run_pending(uev_t *ctx, int immediate)
 			}
 		}
 
+                /* Garbage collect */
 		if (!TAILQ_EMPTY(&ctx->io_delist)) {
-			uev_io_rem_t *tmp;
-
-			TAILQ_FOREACH(tmp, &ctx->io_delist, link) {
-				TAILQ_REMOVE(&ctx->io_delist, tmp, link);
-				TAILQ_REMOVE(&ctx->io_list, tmp->ent, link);
-				free(tmp->ent);
+			TAILQ_FOREACH(w, &ctx->io_delist, gc) {
+				TAILQ_REMOVE(&ctx->io_delist, w, gc);
+				TAILQ_REMOVE(&ctx->io_list, w, link);
+				free(w);
 			}
 		}
 	} else if (diff > 0) {
@@ -286,10 +286,9 @@ void uev_run(uev_t *ctx)
 /**
  * Drive the timeouts ourself (from now on until an increment of -1)
  * This is intended for use in testing frameworks
- * Caveat emptor: Currently, interactions with the scheduler (agent) API is undefined.
- *                Not for use in uevs that use the agent scheduler
- * @param ctx UEVlication context object
- * @param msec Ms to advance. Use -1 to return to realtime
+ *
+ * @param ctx  libuev context object
+ * @param msec Milliseconds to advance the timer. Use -1 to return to realtime
  */
 void uev_run_tick(uev_t *ctx, int msec)
 {

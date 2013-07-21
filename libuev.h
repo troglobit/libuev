@@ -33,10 +33,8 @@
 	( (now - then) / clock_tick  * 1000 +			\
 	 ((now - then) % clock_tick) * 1000 / clock_tick )
 
-/* Forward declarations due to dependencys, don't try this at home. */
+/* Forward declare due to dependencys, don't try this at home. */
 struct uev;
-struct uev_io;
-struct uev_timer;
 
 /* I/O direction */
 typedef enum {
@@ -45,14 +43,9 @@ typedef enum {
 } uev_dir_t;
 
 /* I/O event watcher */
-typedef struct uev_io_rem {
-	TAILQ_ENTRY(uev_io_rem) link;
-	struct uev_io *ent;
-} uev_io_rem_t;
-
 typedef struct uev_io {
 	TAILQ_ENTRY(uev_io) link;
-	uev_io_rem_t   rem;             ///< For postponed removal
+	TAILQ_ENTRY(uev_io) gc;
 
 	int            fd;              ///< File descriptor
 	uev_dir_t      dir;             ///< Direction: in or out
@@ -77,7 +70,7 @@ typedef struct {
 	TAILQ_HEAD(, uev_io)     io_list;      ///< File handlers
 	TAILQ_HEAD(, uev_timer)  timer_list;   ///< Timer handlers
 
-	TAILQ_HEAD(, uev_io_rem) io_delist;    ///< List of file handles to be garbage collected
+	TAILQ_HEAD(, uev_io)     io_delist;    ///< List of file handles to be garbage collected
 	TAILQ_HEAD(, uev_timer)  timer_delist; ///< List of timer handles to be garbage collected
 
 	clock_t           base_time;    ///< Time at last timer tick

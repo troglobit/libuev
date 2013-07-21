@@ -38,8 +38,8 @@ struct uev;
 
 /* I/O direction */
 typedef enum {
-	UEV_FHIN = 0,
-	UEV_FHOUT = 1
+	UEV_DIR_INBOUND = 0,
+	UEV_DIR_OUTBOUND = 1
 } uev_dir_t;
 
 /* I/O event watcher */
@@ -51,7 +51,7 @@ typedef struct uev_io {
 	uev_dir_t      dir;             ///< Direction: in or out
 	int            index;           ///< Index in poll array
 
-	int          (*handler)(struct uev *, struct uev_io *, int, void *);
+	void         (*handler)(struct uev *, struct uev_io *, void *);
 	void          *data;
 } uev_io_t;
 
@@ -59,9 +59,10 @@ typedef struct uev_io {
 typedef struct uev_timer {
 	TAILQ_ENTRY(uev_timer) link;
 
-	int            due;
+	int            timeout;	        ///< Timeout in milliseconds
+	int            period;          ///< Period time, in milliseconds
 
-	int          (*handler)(struct uev *, struct uev_timer *, void *);
+	void         (*handler)(struct uev *, struct uev_timer *, void *);
 	void          *data;
 } uev_timer_t;
 
@@ -81,15 +82,16 @@ typedef struct {
 } uev_t;
 
 /* Callbacks for different watchers */
-typedef int (*uev_io_cb_t)   (uev_t *ctx, uev_io_t    *w, int fd, void *data);
-typedef int (*uev_timer_cb_t)(uev_t *ctx, uev_timer_t *w,         void *data);
+typedef void (*uev_io_cb_t)   (uev_t *ctx, uev_io_t    *w, int fd, void *data);
+typedef void (*uev_timer_cb_t)(uev_t *ctx, uev_timer_t *w,         void *data);
 
 /* Public interface */
-uev_io_t    *uev_io_create    (uev_t *ctx, int fd, uev_dir_t dir, uev_io_cb_t handler, void *data);
-int          uev_io_delete    (uev_t *ctx, uev_io_t *io);
+uev_io_t    *uev_io_create    (uev_t *ctx, uev_io_cb_t cb, void *data, int fd, uev_dir_t dir);
+int          uev_io_delete    (uev_t *ctx, uev_io_t *w);
 
-uev_timer_t *uev_timer_create (uev_t *ctx, int msec, uev_timer_cb_t handler, void *data);
-int          uev_timer_delete (uev_t *ctx, uev_timer_t *hdl);
+int          uev_timer_set    (uev_t *ctx, uev_timer_t *w, int timeout, int period);
+uev_timer_t *uev_timer_create (uev_t *ctx, uev_timer_cb_t cb, void *data, int timeout, int period);
+int          uev_timer_delete (uev_t *ctx, uev_timer_t *w);
 
 void         uev_run          (uev_t *ctx);
 void         uev_run_tick     (uev_t *ctx, int msec);

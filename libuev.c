@@ -38,11 +38,19 @@
 
 static clock_t clock_tick = 0;
 
-uev_io_t *uev_io_create(uev_t *ctx, int fd, uev_dir_t dir, uev_io_cb_t handler, void *data)
+static clock_t uev_time_now(uev_t *ctx)
+{
+	if (!ctx->use_next)
+		return times(NULL);
+
+	return ctx->next_time;
+}
+
+uev_io_t *uev_io_create(uev_t *ctx, uev_io_cb_t handler, void *data, int fd, uev_dir_t dir)
 {
 	uev_io_t *w;
 
-	w = (uev_io_t *)malloc(sizeof(*w));
+	w = (uev_io_t *)calloc(1, sizeof(*w));
 	if (!w)
 		return NULL;
 
@@ -80,50 +88,97 @@ int uev_io_delete(uev_t *ctx, uev_io_t *w)
 	return 0;
 }
 
+static int timer_active(uev_t *ctx, uev_timer_t *w)
+{
+	uev_timer_t *tmp;
+
+	TAILQ_FOREACH(tmp, &ctx->timer_list, link) {
+		if (tmp == w)
+			return 1;
+	}
+
+	return 0;
+}
+
 /**
  * Add a timer event
+ * @param ctx     A valid libuev context
+ * @param handler Timer callback
+ * @param data    Optional callback argument
+ * @param timeout Timeout in milliseconds before @param handler is called
+ * @param period  For periodic timers this is the period time that @param timeout is reset to
+ *
+ * One-shot timers you likely set @param period to zero and only use
+ * @param timeout.  For periodic timers you likely set @param timeout to
+ * either zero, to call it as soon as the event loop starts, or to the
+ * same value as @param period.  When the timer expires, the @param
+ * handler is called, with the optional @param data argument.  A
+ * non-periodic timer ends its life there, while a periodic task's
+ * @param timeout is reset to the @param period and restarted.
+ *
+ * @return The new timer, or %NULL if invalid pointers or out or memory.
  */
-uev_timer_t *uev_timer_create(uev_t *ctx, int msec, uev_timer_cb_t handler, void *data)
+uev_timer_t *uev_timer_create(uev_t *ctx, uev_timer_cb_t handler, void *data, int timeout, int period)
 {
-	int diff;
-	clock_t now;
-	uev_timer_t *w, *ret, *tmp;
+	uev_timer_t *w;
 
-	if (!ctx) {
+	if (!ctx || !handler) {
 		errno = EINVAL;
 		return NULL;
 	}
 
-	w = (uev_timer_t *)malloc(sizeof(*w));
+	w = (uev_timer_t *)calloc(1, sizeof(*w));
 	if (!w)
 		return NULL;
 
-	w->due     = msec;
 	w->handler = (void *)handler;
 	w->data    = data;
 
         /* Zero delay is a special case: A oneshot workproc: Must go first */
-	if (0 == msec) {
+	if (0 == timeout) {
 		TAILQ_INSERT_HEAD(&ctx->timer_list, w, link);
 		return w;
 	}
 
+	uev_timer_set(ctx, w, timeout, period);
+
+	return w;
+}
+
+/**
+ * Reset or reschedule a timer
+ */
+int uev_timer_set(uev_t *ctx, uev_timer_t *w, int timeout, int period)
+{
+	int diff;
+	clock_t now;
+	uev_timer_t *tmp;
+
+	if (!ctx || !w) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	w->timeout = timeout;
+	w->period  = period;
+
 	/* Adjust timers.
 	 * Jiffie wraparound is OK since we only care about diff time */
-	now  = ctx->use_next ? ctx->next_time : times(NULL);
+	now  = uev_time_now(ctx);
 	diff = TIME_DIFF_MSEC(now, ctx->base_time);
 
-        /* To be returned below */
-	ret = w;
+	/* When rescheduling we need to remove the entry first */
+	if (timer_active(ctx, w))
+		TAILQ_REMOVE(&ctx->timer_list, w, link);
 
         /* Update all timers and add this entry (ordered) to the list */
 	TAILQ_FOREACH(tmp, &ctx->timer_list, link) {
-		if (tmp->due > diff)
-			tmp->due -= diff;
+		if (tmp->timeout > diff)
+			tmp->timeout -= diff;
 		else
-			tmp->due = 0;
+			tmp->timeout = 0;
 
-		if (w && tmp->due > msec) {
+		if (w && tmp->timeout > timeout) {
 			TAILQ_INSERT_BEFORE(tmp, w, link);
 			w = NULL;
 		}
@@ -135,7 +190,7 @@ uev_timer_t *uev_timer_create(uev_t *ctx, int msec, uev_timer_cb_t handler, void
         /* Update time base */
 	ctx->base_time = now;
 
-	return ret;
+	return 0;
 }
 
 /**
@@ -177,15 +232,18 @@ static int do_run_pending(uev_t *ctx, int immediate)
 
 	/* Do due timers */
 	if (!TAILQ_EMPTY(&ctx->timer_list)) {
-		now  = ctx->use_next ? ctx->next_time : times(NULL);
+		now  = uev_time_now(ctx);
 		diff = TIME_DIFF_MSEC(now, ctx->base_time);
 
                 TAILQ_FOREACH(timer, &ctx->timer_list, link) {
-                        if (timer->due > diff)
+                        if (timer->timeout > diff)
                                 continue;
 
 			timer->handler((struct uev *)ctx, timer, timer->data);
-			uev_timer_delete(ctx, timer);
+			if (!timer->period)
+				uev_timer_delete(ctx, timer);
+			else
+				uev_timer_set(ctx, timer, timer->period, timer->period);
 
 			/* base_time changes for every uev_timer_create(), which
                          * can be called in every timer->handler() above. */
@@ -202,8 +260,8 @@ static int do_run_pending(uev_t *ctx, int immediate)
 	/* Calculate waiting time */
 	if (ctx->exiting)
 		diff = 0;
-	else if ((timer = TAILQ_FIRST(&ctx->timer_list)) && timer->due > diff)
-		diff = timer->due - diff;
+	else if ((timer = TAILQ_FIRST(&ctx->timer_list)) && timer->timeout > diff)
+		diff = timer->timeout - diff;
 	else if (NULL != timer)
 		diff = 0;
 	else
@@ -221,7 +279,7 @@ static int do_run_pending(uev_t *ctx, int immediate)
 		TAILQ_FOREACH(w, &ctx->io_list, link) {
 			w->index = i;
 			polls[i].fd = w->fd;
-			polls[i].events = UEV_FHIN == w->dir ? POLLIN : POLLOUT;
+			polls[i].events = UEV_DIR_INBOUND == w->dir ? POLLIN : POLLOUT;
 			polls[i].revents = 0;
 			i++;
 		}
@@ -233,19 +291,19 @@ static int do_run_pending(uev_t *ctx, int immediate)
 			if (EBADF == errno) {
 				TAILQ_FOREACH(w, &ctx->io_list, link) {
 					if (fcntl(w->fd, F_GETFD) == -1 && EBADF == errno)
-						w->handler((struct uev *)ctx, w, w->fd, w->data);
+						w->handler((struct uev *)ctx, w, w->data);
 				}
 			} else {
 				/* Error in poll. Cannot continue */
 				assert(false);
-				return;
+				return -2;
 			}
 		}
 
 		if (result > 0) {
 			TAILQ_FOREACH(w, &ctx->io_list, link) {
 				if (w->handler && w->index >= 0 && polls[w->index].revents)
-					w->handler((struct uev *)ctx, w, w->fd, w->data);
+					w->handler((struct uev *)ctx, w, w->data);
 			}
 		}
 
@@ -333,7 +391,7 @@ uev_t *uev_ctx_create(void)
 {
 	uev_t *ctx;
 
-	ctx = (uev_t *)malloc(sizeof(*ctx));
+	ctx = (uev_t *)calloc(1, sizeof(*ctx));
 	if (!ctx)
 		return NULL;
 
@@ -342,13 +400,8 @@ uev_t *uev_ctx_create(void)
 	TAILQ_INIT(&ctx->io_delist);
 	TAILQ_INIT(&ctx->timer_delist);
 
+        /* Get system time and clock resolution, in ticks/second */
 	ctx->base_time = times(NULL);
-	ctx->next_time = 0;
-	ctx->use_next  = false;
-
-	ctx->exiting   = false;
-
-        /* Get system clock resolution, in ticks/second */
 	if (0 == clock_tick)
 		clock_tick = sysconf(_SC_CLK_TCK);
 

@@ -1,4 +1,4 @@
-/* libuev - Asynchronous event loop library
+/* libuev - Micro event loop library
  *
  * Copyright (c) 2012  Flemming Madsen <flemming!madsen()madsensoft!dk>
  * Copyright (c) 2013  Joachim Nilsson <troglobit()gmail!com>
@@ -73,21 +73,25 @@ typedef struct {
 } uev_t;
 
 /* Generic callback for watchers */
-typedef void (uev_cb_t)      (uev_t *ctx, uev_io_t *w, void *data);
+typedef void (uev_cb_t)        (uev_t *ctx, uev_io_t *w, void *data);
+
+/* Private methods, do not use directly! */
+uev_io_t    *uev_watcher_create(uev_t *ctx, uev_type_t type, int fd, uev_dir_t dir, uev_cb_t *handler, void *data);
+int          uev_watcher_delete(uev_t *ctx, uev_io_t *w);
 
 /* Public interface */
-uev_io_t    *uev_io_create   (uev_t *ctx, uev_cb_t *cb, void *data, int fd, uev_dir_t dir);
-int          uev_io_delete   (uev_t *ctx, uev_io_t *w);
+uev_io_t    *uev_io_create     (uev_t *ctx, uev_cb_t *cb, void *data, int fd, uev_dir_t dir);
+int          uev_io_delete     (uev_t *ctx, uev_io_t *w);
 
-int          uev_timer_set   (uev_t *ctx, uev_io_t *w, int timeout, int period);
-uev_io_t    *uev_timer_create(uev_t *ctx, uev_cb_t *cb, void *data, int timeout, int period);
-int          uev_timer_delete(uev_t *ctx, uev_io_t *w);
+int          uev_timer_set     (uev_t *ctx, uev_io_t *w, int timeout, int period);
+uev_io_t    *uev_timer_create  (uev_t *ctx, uev_cb_t *cb, void *data, int timeout, int period);
+int          uev_timer_delete  (uev_t *ctx, uev_io_t *w);
 
-uev_t       *uev_ctx_create  (void);
-void         uev_ctx_delete  (uev_t *uev);
+uev_t       *uev_ctx_create    (void);
+void         uev_ctx_delete    (uev_t *uev);
 
-int          uev_run         (uev_t *ctx);
-void         uev_exit        (uev_t *ctx);
+int          uev_run           (uev_t *ctx);
+void         uev_exit          (uev_t *ctx);
 
 #endif /* LIBUEV_UEV_H_ */
 

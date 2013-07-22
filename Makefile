@@ -36,11 +36,11 @@ LIBNAME     = libuev
 prefix     ?= /usr/local
 libdir     ?= $(prefix)/lib
 datadir    ?= $(prefix)/share/doc/$(LIBNAME)
-incdir     ?= $(prefix)/include/$(LIBNAME)
+incdir     ?= $(prefix)/include
 DISTFILES   = README LICENSE test.c
-INCLUDES    = uev.h queue.h
+HEADER      = uev.h
 
-OBJS       := libuev.o
+OBJS       := main.o io.o timer.o
 SRCS       := $(OBJS:.o=.c)
 DEPS       := $(addprefix .,$(SRCS:.c=.d))
 VER         = 1
@@ -77,9 +77,7 @@ install: strip
 	@install $(STATICLIB) $(DESTDIR)$(prefix)/lib/$(STATICLIB)
 	@ln -sf $(SOLIB) $(DESTDIR)$(prefix)/lib/$(SYMLIB)
 	@install -d $(DESTDIR)$(incdir)
-	@for file in $(INCLUDES); do \
-		install -m 0644 include/libuev/$$file $(DESTDIR)$(incdir)/$$file; \
-	done
+	@install -m 0644 $(HEADER) $(DESTDIR)$(incdir)/$(HEADER)
 	@install -d $(DESTDIR)$(datadir)
 	@for file in $(DISTFILES); do \
 		install -m 0644 $$file $(DESTDIR)$(datadir)/$$file; \

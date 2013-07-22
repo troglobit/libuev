@@ -23,18 +23,11 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <assert.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>		/* calloc(), free() */
 #include <sys/epoll.h>
 #include <sys/timerfd.h>
-#include <sys/times.h>
-#include <time.h>
-#include <unistd.h>
+#include <unistd.h>		/* close(), read() */
 
 #include "libuev/uev.h"
 
@@ -65,34 +58,24 @@ static uev_io_t *new_watcher(uev_t *ctx, uev_type_t type, int fd, uev_dir_t dir,
 		return NULL;
 	}
 
-	TAILQ_INSERT_TAIL(&ctx->active_list, w, link);
+	LIST_INSERT_HEAD(&ctx->watchers, w, link);
 
 	return w;
 }
 
 static int delete_watcher(uev_t *ctx, uev_io_t *w)
 {
-	uev_io_t *tmp;
-
 	if (!ctx || !w) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	/* Check if already removed */
-	TAILQ_FOREACH(tmp, &ctx->inactive_list, gc) {
-		if (tmp == w) {
-			errno = EALREADY;
-			return -1;
-		}
-	}
-
 	/* Remove from kernel */
 	epoll_ctl(ctx->efd, EPOLL_CTL_DEL, w->fd, NULL);
 
-	/* Mark as inactive */
-	w->handler = NULL;
-	TAILQ_INSERT_TAIL(&ctx->inactive_list, w, gc);
+	/* Remove from internal list */
+	LIST_REMOVE(w, link);
+	free(w);
 
 	return 0;
 }
@@ -184,6 +167,11 @@ int uev_timer_set(uev_t *ctx, uev_io_t *w, int timeout, int period)
  */
 int uev_timer_delete(uev_t *ctx, uev_io_t *w)
 {
+	if (!ctx || !w) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	uev_timer_set(ctx, w, 0, 0);
 	return delete_watcher(ctx, w);
 }
@@ -214,9 +202,7 @@ uev_t *uev_ctx_create(void)
 	}
 
 	ctx->efd = fd;
-
-	TAILQ_INIT(&ctx->active_list);
-	TAILQ_INIT(&ctx->inactive_list);
+	LIST_INIT(&ctx->watchers);
 
 	return ctx;
 }
@@ -228,10 +214,8 @@ void uev_ctx_delete(uev_t *ctx)
 {
         uev_io_t *w, *tmp;
 
-        TAILQ_FOREACH_SAFE(w, &ctx->active_list, link, tmp) {
-                TAILQ_REMOVE(&ctx->active_list, w, link);
-                free(w);
-        }
+        LIST_FOREACH_SAFE(w, &ctx->watchers, link, tmp)
+		delete_watcher(ctx, w);
 
 	close(ctx->efd);
 	free(ctx->events);
@@ -244,7 +228,7 @@ void uev_ctx_delete(uev_t *ctx)
 int uev_run(uev_t *ctx)
 {
 	int result = 0;
-	uev_io_t *w, *tmp;
+	uev_io_t *w;
 
         if (!ctx) {
 		errno = EINVAL;
@@ -255,7 +239,7 @@ int uev_run(uev_t *ctx)
 	ctx->running = 1;
 
 	/* Start all dormant timers */
-	TAILQ_FOREACH(w, &ctx->active_list, link) {
+	LIST_FOREACH(w, &ctx->watchers, link) {
 		if (UEV_TIMER_TYPE == w->type)
 			uev_timer_set(ctx, w, w->timeout, w->period);
 	}
@@ -269,6 +253,7 @@ int uev_run(uev_t *ctx)
 
 			/* Error in poll. Cannot continue */
 			result = 2;
+			ctx->running = 0;
 			break;
 		}
 
@@ -291,15 +276,6 @@ int uev_run(uev_t *ctx)
 
 				if (!w->period)
 					uev_timer_delete(ctx, w);
-			}
-		}
-
-		/* Garbage collect */
-		if (!TAILQ_EMPTY(&ctx->inactive_list)) {
-			TAILQ_FOREACH_SAFE(w, &ctx->inactive_list, gc, tmp) {
-				TAILQ_REMOVE(&ctx->inactive_list, w, gc);
-				TAILQ_REMOVE(&ctx->active_list, w, link);
-				free(w);
 			}
 		}
 	}

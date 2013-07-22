@@ -53,8 +53,7 @@ typedef enum {
 
 /* I/O event watcher */
 typedef struct uev_io {
-	TAILQ_ENTRY(uev_io) link;
-	TAILQ_ENTRY(uev_io) gc;
+	LIST_ENTRY(uev_io) link;
 
 	uev_type_t     type;
 
@@ -75,8 +74,7 @@ typedef struct {
 	int                   efd;           /* For epoll() */
 	struct epoll_event   *events;
 
-	TAILQ_HEAD(, uev_io)  active_list;
-	TAILQ_HEAD(, uev_io)  inactive_list;
+	LIST_HEAD(, uev_io)  watchers;
 } uev_t;
 
 /* Generic callback for watchers */

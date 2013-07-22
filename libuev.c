@@ -31,6 +31,16 @@
 
 #include "libuev/uev.h"
 
+static struct timespec msec2tspec(int msec)
+{
+	struct timespec ts;
+
+	ts.tv_sec  =  msec / 1000;
+	ts.tv_nsec = (msec % 1000) * 1000000;
+
+	return ts;
+}
+
 static uev_io_t *new_watcher(uev_t *ctx, uev_type_t type, int fd, uev_dir_t dir, uev_cb_t *handler, void *data)
 {
 	uev_io_t *w;
@@ -98,13 +108,13 @@ int uev_io_delete(uev_t *ctx, uev_io_t *w)
  * @param timeout Timeout in milliseconds before @param handler is called
  * @param period  For periodic timers this is the period time that @param timeout is reset to
  *
- * One-shot timers you likely set @param period to zero and only use
- * @param timeout.  For periodic timers you likely set @param timeout to
- * either zero, to call it as soon as the event loop starts, or to the
- * same value as @param period.  When the timer expires, the @param
- * handler is called, with the optional @param data argument.  A
- * non-periodic timer ends its life there, while a periodic task's
- * @param timeout is reset to the @param period and restarted.
+ * For one-shot timers you set @param period to zero and only use @param
+ * timeout.  For periodic timers you likely set @param timeout to either
+ * zero, to call it as soon as the event loop starts, or to the same
+ * value as @param period.  When the timer expires, the @param handler
+ * is called, with the optional @param data argument.  A non-periodic
+ * timer ends its life there, while a periodic task's @param timeout is
+ * reset to the @param period and restarted.
  *
  * @return The new timer, or %NULL if invalid pointers or out or memory.
  */
@@ -118,13 +128,12 @@ uev_io_t *uev_timer_create(uev_t *ctx, uev_cb_t *handler, void *data, int timeou
 		return NULL;
 
 	w = new_watcher(ctx, UEV_TIMER_TYPE, fd, UEV_DIR_INBOUND, handler, data);
-	if (!w) {
-		close(fd);
-		return NULL;
-	}
+	if (!w)
+		goto exit;
 
 	if (uev_timer_set(ctx, w, timeout, period)) {
 		delete_watcher(ctx, w);
+	exit:
 		close(fd);
 		return NULL;
 	}
@@ -137,16 +146,7 @@ uev_io_t *uev_timer_create(uev_t *ctx, uev_cb_t *handler, void *data, int timeou
  */
 int uev_timer_set(uev_t *ctx, uev_io_t *w, int timeout, int period)
 {
-	struct itimerspec time = {
-		.it_value = {
-			.tv_sec  =  timeout / 1000,
-			.tv_nsec = (timeout % 1000) * 1000000
-		},
-		.it_interval = {
-			.tv_sec  =  period  / 1000,
-			.tv_nsec = (period  % 1000) * 1000000
-		}
-	};
+	struct itimerspec time;
 
 	if (!ctx || !w) {
 		errno = EINVAL;
@@ -158,6 +158,9 @@ int uev_timer_set(uev_t *ctx, uev_io_t *w, int timeout, int period)
 
 	if (!ctx->running)
 		return 0;
+
+	time.it_value    = msec2tspec(timeout);
+	time.it_interval = msec2tspec(period);
 
 	return timerfd_settime(w->fd, 0, &time, NULL);
 }
@@ -189,15 +192,14 @@ uev_t *uev_ctx_create(void)
 		return NULL;
 
 	ctx = (uev_t *)calloc(1, sizeof(*ctx));
-	if (!ctx) {
-		close(fd);
-		return NULL;
-	}
+	if (!ctx)
+		goto exit;
 
 	ctx->events = (struct epoll_event *)calloc(UEV_MAX_EVENTS, sizeof(struct epoll_event));
 	if (!ctx->events) {
-		close(fd);
 		free(ctx);
+	exit:
+		close(fd);
 		return NULL;
 	}
 
@@ -212,10 +214,14 @@ uev_t *uev_ctx_create(void)
  */
 void uev_ctx_delete(uev_t *ctx)
 {
-        uev_io_t *w, *tmp;
+	while (!LIST_EMPTY(&ctx->watchers)) {
+		uev_io_t *w = LIST_FIRST(&ctx->watchers);
 
-        LIST_FOREACH_SAFE(w, &ctx->watchers, link, tmp)
-		delete_watcher(ctx, w);
+		if (UEV_TIMER_TYPE == w->type)
+			uev_timer_delete(ctx, w);
+		else
+			uev_io_delete(ctx, w);
+	}
 
 	close(ctx->efd);
 	free(ctx->events);
@@ -232,7 +238,7 @@ int uev_run(uev_t *ctx)
 
         if (!ctx) {
 		errno = EINVAL;
-                return 1;
+                return -1;
 	}
 
 	/* Start the event loop */
@@ -251,26 +257,22 @@ int uev_run(uev_t *ctx)
 			if (EINTR == errno)
 				continue; /* Signalled, try again */
 
-			/* Error in poll. Cannot continue */
-			result = 2;
+			result = -1;
 			ctx->running = 0;
 			break;
 		}
 
 		for (i = 0; i < nfds; i++) {
-			uev_io_t *w = (uev_io_t *)ctx->events[i].data.ptr;
+			w = (uev_io_t *)ctx->events[i].data.ptr;
 
 			if (w->handler)
 				w->handler((struct uev *)ctx, w, w->data);
 
 			if (UEV_TIMER_TYPE == w->type) {
-				int result;
 				uint64_t exp;
 
-				result = read(w->fd, &exp, sizeof(exp));
-				if (result != sizeof(exp)) {
-					/* Error in timerfd. Cannot continue */
-					result = 3;
+				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
+					result = -1;
 					ctx->running = 0;
 				}
 
@@ -279,8 +281,6 @@ int uev_run(uev_t *ctx)
 			}
 		}
 	}
-
-	ctx->running = 0;
 
 	return result;
 }

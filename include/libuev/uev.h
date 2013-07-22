@@ -26,15 +26,10 @@
 #ifndef LIBUEV_UEV_H_
 #define LIBUEV_UEV_H_
 
-#include "queue.h"
+#include <sys/queue.h>
 
 /* Max. number of simulateneous events */
 #define UEV_MAX_EVENTS 10
-
-/* Elapsed time between two times() tick measurements in msec */
-#define TIME_DIFF_MSEC(now, then)				\
-	( (now - then) / clock_tick  * 1000 +			\
-	 ((now - then) % clock_tick) * 1000 / clock_tick )
 
 /* Forward declare due to dependencys, don't try this at home. */
 struct uev;

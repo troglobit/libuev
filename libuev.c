@@ -26,29 +26,27 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <poll.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/epoll.h>
+#include <sys/timerfd.h>
 #include <sys/times.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "libuev/uev.h"
 
-static clock_t clock_tick = 0;
-
-static clock_t uev_time_now(uev_t *ctx)
-{
-	if (!ctx->use_next)
-		return times(NULL);
-
-	return ctx->next_time;
-}
-
-uev_io_t *uev_io_create(uev_t *ctx, uev_io_cb_t handler, void *data, int fd, uev_dir_t dir)
+static uev_io_t *new_watcher(uev_t *ctx, uev_type_t type, int fd, uev_dir_t dir, uev_cb_t *handler, void *data)
 {
 	uev_io_t *w;
+	struct epoll_event ev;
+
+	if (!ctx || !handler) {
+		errno = EINVAL;
+		return NULL;
+	}
 
 	w = (uev_io_t *)calloc(1, sizeof(*w));
 	if (!w)
@@ -56,16 +54,23 @@ uev_io_t *uev_io_create(uev_t *ctx, uev_io_cb_t handler, void *data, int fd, uev
 
 	w->fd      = fd;
 	w->dir     = dir;
+	w->type    = type;
 	w->handler = (void *)handler;
 	w->data    = data;
-	w->index   = -1;
 
-	TAILQ_INSERT_TAIL(&ctx->io_list, w, link);
+	ev.events   = dir == UEV_DIR_OUTBOUND ? EPOLLOUT : EPOLLIN;
+	ev.data.ptr = w;
+	if (epoll_ctl(ctx->efd, EPOLL_CTL_ADD, fd, &ev) < 0) {
+		free(w);
+		return NULL;
+	}
+
+	TAILQ_INSERT_TAIL(&ctx->active_list, w, link);
 
 	return w;
 }
 
-int uev_io_delete(uev_t *ctx, uev_io_t *w)
+static int delete_watcher(uev_t *ctx, uev_io_t *w)
 {
 	uev_io_t *tmp;
 
@@ -75,29 +80,31 @@ int uev_io_delete(uev_t *ctx, uev_io_t *w)
 	}
 
 	/* Check if already removed */
-	TAILQ_FOREACH(tmp, &ctx->io_delist, gc) {
+	TAILQ_FOREACH(tmp, &ctx->inactive_list, gc) {
 		if (tmp == w) {
 			errno = EALREADY;
 			return -1;
 		}
 	}
 
+	/* Remove from kernel */
+	epoll_ctl(ctx->efd, EPOLL_CTL_DEL, w->fd, NULL);
+
+	/* Mark as inactive */
 	w->handler = NULL;
-	TAILQ_INSERT_TAIL(&ctx->io_delist, w, gc);
+	TAILQ_INSERT_TAIL(&ctx->inactive_list, w, gc);
 
 	return 0;
 }
 
-static int timer_active(uev_t *ctx, uev_timer_t *w)
+uev_io_t *uev_io_create(uev_t *ctx, uev_cb_t *handler, void *data, int fd, uev_dir_t dir)
 {
-	uev_timer_t *tmp;
+	return new_watcher(ctx, UEV_FILE_TYPE, fd, dir, handler, data);
+}
 
-	TAILQ_FOREACH(tmp, &ctx->timer_list, link) {
-		if (tmp == w)
-			return 1;
-	}
-
-	return 0;
+int uev_io_delete(uev_t *ctx, uev_io_t *w)
+{
+	return delete_watcher(ctx, w);
 }
 
 /**
@@ -118,29 +125,26 @@ static int timer_active(uev_t *ctx, uev_timer_t *w)
  *
  * @return The new timer, or %NULL if invalid pointers or out or memory.
  */
-uev_timer_t *uev_timer_create(uev_t *ctx, uev_timer_cb_t handler, void *data, int timeout, int period)
+uev_io_t *uev_timer_create(uev_t *ctx, uev_cb_t *handler, void *data, int timeout, int period)
 {
-	uev_timer_t *w;
+	int fd;
+	uev_io_t *w;
 
-	if (!ctx || !handler) {
-		errno = EINVAL;
+	fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+	if (fd < 0)
+		return NULL;
+
+	w = new_watcher(ctx, UEV_TIMER_TYPE, fd, UEV_DIR_INBOUND, handler, data);
+	if (!w) {
+		close(fd);
 		return NULL;
 	}
 
-	w = (uev_timer_t *)calloc(1, sizeof(*w));
-	if (!w)
+	if (uev_timer_set(ctx, w, timeout, period)) {
+		delete_watcher(ctx, w);
+		close(fd);
 		return NULL;
-
-	w->handler = (void *)handler;
-	w->data    = data;
-
-        /* Zero delay is a special case: A oneshot workproc: Must go first */
-	if (0 == timeout) {
-		TAILQ_INSERT_HEAD(&ctx->timer_list, w, link);
-		return w;
 	}
-
-	uev_timer_set(ctx, w, timeout, period);
 
 	return w;
 }
@@ -148,11 +152,18 @@ uev_timer_t *uev_timer_create(uev_t *ctx, uev_timer_cb_t handler, void *data, in
 /**
  * Reset or reschedule a timer
  */
-int uev_timer_set(uev_t *ctx, uev_timer_t *w, int timeout, int period)
+int uev_timer_set(uev_t *ctx, uev_io_t *w, int timeout, int period)
 {
-	int diff;
-	clock_t now;
-	uev_timer_t *tmp;
+	struct itimerspec time = {
+		.it_value = {
+			.tv_sec  =  timeout / 1000,
+			.tv_nsec = (timeout % 1000) * 1000000
+		},
+		.it_interval = {
+			.tv_sec  =  period  / 1000,
+			.tv_nsec = (period  % 1000) * 1000000
+		}
+	};
 
 	if (!ctx || !w) {
 		errno = EINVAL;
@@ -162,248 +173,50 @@ int uev_timer_set(uev_t *ctx, uev_timer_t *w, int timeout, int period)
 	w->timeout = timeout;
 	w->period  = period;
 
-	/* Adjust timers.
-	 * Jiffie wraparound is OK since we only care about diff time */
-	now  = uev_time_now(ctx);
-	diff = TIME_DIFF_MSEC(now, ctx->base_time);
+	if (!ctx->running)
+		return 0;
 
-	/* When rescheduling we need to remove the entry first */
-	if (timer_active(ctx, w))
-		TAILQ_REMOVE(&ctx->timer_list, w, link);
-
-        /* Update all timers and add this entry (ordered) to the list */
-	TAILQ_FOREACH(tmp, &ctx->timer_list, link) {
-		if (tmp->timeout > diff)
-			tmp->timeout -= diff;
-		else
-			tmp->timeout = 0;
-
-		if (w && tmp->timeout > timeout) {
-			TAILQ_INSERT_BEFORE(tmp, w, link);
-			w = NULL;
-		}
-	}
-
-	if (w)
-		TAILQ_INSERT_TAIL(&ctx->timer_list, w, link);
-
-        /* Update time base */
-	ctx->base_time = now;
-
-	return 0;
+	return timerfd_settime(w->fd, 0, &time, NULL);
 }
 
 /**
  * Remove a timer event
  */
-int uev_timer_delete(uev_t *ctx, uev_timer_t *w)
+int uev_timer_delete(uev_t *ctx, uev_io_t *w)
 {
-	uev_timer_t *tmp;
-
-	if (!ctx || !w) {
-		errno = EINVAL;
-		return -1;
-	}
-
-	/* Check if already removed */
-	TAILQ_FOREACH(tmp, &ctx->timer_delist, link) {
-		if (tmp == w) {
-			errno = EALREADY;
-			return -1;
-		}
-	}
-
-        TAILQ_REMOVE(&ctx->timer_list, w, link);
-        TAILQ_INSERT_TAIL(&ctx->timer_delist, w, link);
-
-	return 0;
+	uev_timer_set(ctx, w, 0, 0);
+	return delete_watcher(ctx, w);
 }
-
-/**
- * Process pending events
- */
-static int do_run_pending(uev_t *ctx, int immediate)
-{
-	int          i, result, diff = 0;
-        size_t       num = 0;
-	clock_t      now = 0;
-        uev_io_t    *w;
-	uev_timer_t *timer, *tmp;
-
-	/* Do due timers */
-	if (!TAILQ_EMPTY(&ctx->timer_list)) {
-		now  = uev_time_now(ctx);
-		diff = TIME_DIFF_MSEC(now, ctx->base_time);
-
-                TAILQ_FOREACH(timer, &ctx->timer_list, link) {
-                        if (timer->timeout > diff)
-                                continue;
-
-			timer->handler((struct uev *)ctx, timer, timer->data);
-			if (!timer->period)
-				uev_timer_delete(ctx, timer);
-			else
-				uev_timer_set(ctx, timer, timer->period, timer->period);
-
-			/* base_time changes for every uev_timer_create(), which
-                         * can be called in every timer->handler() above. */
-                        diff = TIME_DIFF_MSEC(now, ctx->base_time);
-		}
-
-                /* Garbage collect */
-                TAILQ_FOREACH_SAFE(timer, &ctx->timer_delist, link, tmp) {
-                        TAILQ_REMOVE(&ctx->timer_delist, timer, link);
-                        free(timer);
-                }
-	}
-
-	/* Calculate waiting time */
-	if (ctx->exiting)
-		diff = 0;
-	else if ((timer = TAILQ_FIRST(&ctx->timer_list)) && timer->timeout > diff)
-		diff = timer->timeout - diff;
-	else if (NULL != timer)
-		diff = 0;
-	else
-		diff = -1;
-
-	/* Do pipe handlers */
-        TAILQ_FOREACH(w, &ctx->io_list, link)
-                num++;
-
-	if (!TAILQ_EMPTY(&ctx->io_list) && !ctx->exiting) {
-		struct pollfd polls[num];
-
-		/* Prepare all I/O watchers for poll() */
-                i = 0;
-		TAILQ_FOREACH(w, &ctx->io_list, link) {
-			w->index = i;
-			polls[i].fd = w->fd;
-			polls[i].events = UEV_DIR_INBOUND == w->dir ? POLLIN : POLLOUT;
-			polls[i].revents = 0;
-			i++;
-		}
-
-		while ((result = poll(polls, i, immediate ? 0 : diff)) < 0) {
-			if (EINTR == errno)
-				continue; /* Signalled, try again */
-
-			if (EBADF == errno) {
-				TAILQ_FOREACH(w, &ctx->io_list, link) {
-					if (fcntl(w->fd, F_GETFD) == -1 && EBADF == errno)
-						w->handler((struct uev *)ctx, w, w->data);
-				}
-			} else {
-				/* Error in poll. Cannot continue */
-				assert(false);
-				return -2;
-			}
-		}
-
-		if (result > 0) {
-			TAILQ_FOREACH(w, &ctx->io_list, link) {
-				if (w->handler && w->index >= 0 && polls[w->index].revents)
-					w->handler((struct uev *)ctx, w, w->data);
-			}
-		}
-
-                /* Garbage collect */
-		if (!TAILQ_EMPTY(&ctx->io_delist)) {
-			TAILQ_FOREACH(w, &ctx->io_delist, gc) {
-				TAILQ_REMOVE(&ctx->io_delist, w, gc);
-				TAILQ_REMOVE(&ctx->io_list, w, link);
-				free(w);
-			}
-		}
-	} else if (diff > 0) {
-		if (!immediate)
-			poll(NULL, 0, diff);
-	} else if (diff == -1) {
-		diff = -2;	/* Nothing more to do */
-	}
-
-	return diff;
-}
-
-/**
- * Run the application
- */
-void uev_run(uev_t *ctx)
-{
-	int ret = 0;
-
-        if (!ctx)
-                return;
-
-	while (!ctx->exiting && ret != -2)
-		ret = do_run_pending(ctx, 0);
-
-	ctx->exiting = false;
-}
-
-/**
- * Drive the timeouts ourself (from now on until an increment of -1)
- * This is intended for use in testing frameworks
- *
- * @param ctx  libuev context object
- * @param msec Milliseconds to advance the timer. Use -1 to return to realtime
- */
-void uev_run_tick(uev_t *ctx, int msec)
-{
-	/* Obviously we are executing a callback right now (arent we always)
-	 * The time leap is taken into account before falling back into poll() below */
-	if (msec >= 0) {
-		if (!ctx->use_next) {
-			ctx->use_next  = true;
-			ctx->next_time = times(NULL) + msec;
-		} else {
-			ctx->next_time += msec;
-		}
-	} else if (msec == -1) {
-		/* Go back to realtime */
-		ctx->use_next   = false;
-		ctx->base_time += times(NULL) - ctx->next_time;
-		ctx->next_time  = 0;
-	}
-}
-
-/**
- * Process pending events
- */
-int uev_run_pending(uev_t *ctx)
-{
-	return do_run_pending(ctx, 1);
-}
-
-/**
- * Terminate the application
- */
-void uev_exit(uev_t *ctx)
-{
-	ctx->exiting = true;
-}
-
 
 /**
  * Create an application context
  */
 uev_t *uev_ctx_create(void)
 {
+	int fd;
 	uev_t *ctx;
 
-	ctx = (uev_t *)calloc(1, sizeof(*ctx));
-	if (!ctx)
+	fd = epoll_create(1);
+	if (fd < 0)
 		return NULL;
 
-	TAILQ_INIT(&ctx->io_list);
-	TAILQ_INIT(&ctx->timer_list);
-	TAILQ_INIT(&ctx->io_delist);
-	TAILQ_INIT(&ctx->timer_delist);
+	ctx = (uev_t *)calloc(1, sizeof(*ctx));
+	if (!ctx) {
+		close(fd);
+		return NULL;
+	}
 
-        /* Get system time and clock resolution, in ticks/second */
-	ctx->base_time = times(NULL);
-	if (0 == clock_tick)
-		clock_tick = sysconf(_SC_CLK_TCK);
+	ctx->events = (struct epoll_event *)calloc(UEV_MAX_EVENTS, sizeof(struct epoll_event));
+	if (!ctx->events) {
+		close(fd);
+		free(ctx);
+		return NULL;
+	}
+
+	ctx->efd = fd;
+
+	TAILQ_INIT(&ctx->active_list);
+	TAILQ_INIT(&ctx->inactive_list);
 
 	return ctx;
 }
@@ -413,21 +226,97 @@ uev_t *uev_ctx_create(void)
  */
 void uev_ctx_delete(uev_t *ctx)
 {
-        uev_io_t    *io, *tmp_io;
-        uev_timer_t *timer, *tmp_timer;
+        uev_io_t *w, *tmp;
 
-        TAILQ_FOREACH_SAFE(io, &ctx->io_list, link, tmp_io) {
-                TAILQ_REMOVE(&ctx->io_list, io, link);
-                free(io);
+        TAILQ_FOREACH_SAFE(w, &ctx->active_list, link, tmp) {
+                TAILQ_REMOVE(&ctx->active_list, w, link);
+                free(w);
         }
 
-        TAILQ_FOREACH_SAFE(timer, &ctx->timer_list, link, tmp_timer) {
-                TAILQ_REMOVE(&ctx->timer_list, timer, link);
-                free(timer);
-        }
-
+	close(ctx->efd);
+	free(ctx->events);
 	free(ctx);
 }
+
+/**
+ * Run the application
+ */
+int uev_run(uev_t *ctx)
+{
+	int result = 0;
+	uev_io_t *w, *tmp;
+
+        if (!ctx) {
+		errno = EINVAL;
+                return 1;
+	}
+
+	/* Start the event loop */
+	ctx->running = 1;
+
+	/* Start all dormant timers */
+	TAILQ_FOREACH(w, &ctx->active_list, link) {
+		if (UEV_TIMER_TYPE == w->type)
+			uev_timer_set(ctx, w, w->timeout, w->period);
+	}
+
+	while (ctx->running) {
+		int i, nfds;
+
+		while ((nfds = epoll_wait(ctx->efd, ctx->events, UEV_MAX_EVENTS, -1)) < 0) {
+			if (EINTR == errno)
+				continue; /* Signalled, try again */
+
+			/* Error in poll. Cannot continue */
+			result = 2;
+			break;
+		}
+
+		for (i = 0; i < nfds; i++) {
+			uev_io_t *w = (uev_io_t *)ctx->events[i].data.ptr;
+
+			if (w->handler)
+				w->handler((struct uev *)ctx, w, w->data);
+
+			if (UEV_TIMER_TYPE == w->type) {
+				int result;
+				uint64_t exp;
+
+				result = read(w->fd, &exp, sizeof(exp));
+				if (result != sizeof(exp)) {
+					/* Error in timerfd. Cannot continue */
+					result = 3;
+					ctx->running = 0;
+				}
+
+				if (!w->period)
+					uev_timer_delete(ctx, w);
+			}
+		}
+
+		/* Garbage collect */
+		if (!TAILQ_EMPTY(&ctx->inactive_list)) {
+			TAILQ_FOREACH_SAFE(w, &ctx->inactive_list, gc, tmp) {
+				TAILQ_REMOVE(&ctx->inactive_list, w, gc);
+				TAILQ_REMOVE(&ctx->active_list, w, link);
+				free(w);
+			}
+		}
+	}
+
+	ctx->running = 0;
+
+	return result;
+}
+
+/**
+ * Terminate the application
+ */
+void uev_exit(uev_t *ctx)
+{
+	ctx->running = 0;
+}
+
 
 /**
  * Local Variables:

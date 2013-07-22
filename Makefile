@@ -27,7 +27,7 @@
 CC          = $(CROSS_COMPILE)gcc
 AR          = $(CROSS_COMPILE)ar
 STRIP       = $(CROSS_COMPILE)strip
-CFLAGS     += -fPIC -g -Os
+CFLAGS     += -fPIC -Os
 CPPFLAGS   += -W -Wall -Iinclude
 ARFLAGS     = crus
 JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.*

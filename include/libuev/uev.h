@@ -28,6 +28,9 @@
 
 #include "queue.h"
 
+/* Max. number of simulateneous events */
+#define UEV_MAX_EVENTS 10
+
 /* Elapsed time between two times() tick measurements in msec */
 #define TIME_DIFF_MSEC(now, then)				\
 	( (now - then) / clock_tick  * 1000 +			\
@@ -42,64 +45,56 @@ typedef enum {
 	UEV_DIR_OUTBOUND = 1
 } uev_dir_t;
 
+/* File, Timer, ... */
+typedef enum {
+	UEV_FILE_TYPE = 1,
+	UEV_TIMER_TYPE,
+} uev_type_t;
+
 /* I/O event watcher */
 typedef struct uev_io {
 	TAILQ_ENTRY(uev_io) link;
 	TAILQ_ENTRY(uev_io) gc;
 
+	uev_type_t     type;
+
 	int            fd;              ///< File descriptor
 	uev_dir_t      dir;             ///< Direction: in or out
-	int            index;           ///< Index in poll array
+
+	int            timeout;	        ///< Timeout in milliseconds
+	int            period;          ///< Period time, in milliseconds
 
 	void         (*handler)(struct uev *, struct uev_io *, void *);
 	void          *data;
 } uev_io_t;
 
-/* Timer event watcher */
-typedef struct uev_timer {
-	TAILQ_ENTRY(uev_timer) link;
-
-	int            timeout;	        ///< Timeout in milliseconds
-	int            period;          ///< Period time, in milliseconds
-
-	void         (*handler)(struct uev *, struct uev_timer *, void *);
-	void          *data;
-} uev_timer_t;
-
 /* Main libuev context type */
 typedef struct {
-	TAILQ_HEAD(, uev_io)     io_list;      ///< File handlers
-	TAILQ_HEAD(, uev_timer)  timer_list;   ///< Timer handlers
+	int                   running;
 
-	TAILQ_HEAD(, uev_io)     io_delist;    ///< List of file handles to be garbage collected
-	TAILQ_HEAD(, uev_timer)  timer_delist; ///< List of timer handles to be garbage collected
+	int                   efd;           /* For epoll() */
+	struct epoll_event   *events;
 
-	clock_t           base_time;    ///< Time at last timer tick
-	clock_t           next_time;    ///< Next timer tick epoch
-	int               use_next;     ///< True if next timer epoch is set
-
-	int               exiting;      ///< True if the application is terminating
+	TAILQ_HEAD(, uev_io)  active_list;
+	TAILQ_HEAD(, uev_io)  inactive_list;
 } uev_t;
 
-/* Callbacks for different watchers */
-typedef void (*uev_io_cb_t)   (uev_t *ctx, uev_io_t    *w, int fd, void *data);
-typedef void (*uev_timer_cb_t)(uev_t *ctx, uev_timer_t *w,         void *data);
+/* Generic callback for watchers */
+typedef void (uev_cb_t)      (uev_t *ctx, uev_io_t *w, void *data);
 
 /* Public interface */
-uev_io_t    *uev_io_create    (uev_t *ctx, uev_io_cb_t cb, void *data, int fd, uev_dir_t dir);
-int          uev_io_delete    (uev_t *ctx, uev_io_t *w);
+uev_io_t    *uev_io_create   (uev_t *ctx, uev_cb_t *cb, void *data, int fd, uev_dir_t dir);
+int          uev_io_delete   (uev_t *ctx, uev_io_t *w);
 
-int          uev_timer_set    (uev_t *ctx, uev_timer_t *w, int timeout, int period);
-uev_timer_t *uev_timer_create (uev_t *ctx, uev_timer_cb_t cb, void *data, int timeout, int period);
-int          uev_timer_delete (uev_t *ctx, uev_timer_t *w);
+int          uev_timer_set   (uev_t *ctx, uev_io_t *w, int timeout, int period);
+uev_io_t    *uev_timer_create(uev_t *ctx, uev_cb_t *cb, void *data, int timeout, int period);
+int          uev_timer_delete(uev_t *ctx, uev_io_t *w);
 
-void         uev_run          (uev_t *ctx);
-void         uev_run_tick     (uev_t *ctx, int msec);
-int          uev_run_pending  (uev_t *ctx);
-void         uev_exit         (uev_t *ctx);
+uev_t       *uev_ctx_create  (void);
+void         uev_ctx_delete  (uev_t *uev);
 
-uev_t       *uev_ctx_create   (void);
-void         uev_ctx_delete   (uev_t *uev);
+int          uev_run         (uev_t *ctx);
+void         uev_exit        (uev_t *ctx);
 
 #endif /* LIBUEV_UEV_H_ */
 

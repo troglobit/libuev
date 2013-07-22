@@ -31,16 +31,16 @@
 
 static int in, out;
 static int period = 0;
-static uev_timer_t *timer = NULL;
+static uev_io_t *timer = NULL;
 
-static void lifetime_cb(uev_t *ctx, uev_timer_t *w __attribute__ ((unused)), void *data)
+static void lifetime_cb(uev_t *ctx, uev_io_t *w __attribute__ ((unused)), void *data)
 {
 	fprintf(stderr, "\nLifetime exceeded %p\n", data);
 	uev_exit(ctx);
 }
 
 /* The pipe watchdog, if it triggers we haven't received data in time. */
-static void timeout_cb(uev_t *ctx, uev_timer_t *w, void *data)
+static void timeout_cb(uev_t *ctx, uev_io_t *w, void *data)
 {
 	timer = NULL;
 	fprintf(stderr, "\nTimeout exceeded %p\n", data);
@@ -49,7 +49,7 @@ static void timeout_cb(uev_t *ctx, uev_timer_t *w, void *data)
 	uev_exit(ctx);
 }
 
-static void periodic_task(uev_t *ctx __attribute__ ((unused)), uev_timer_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
+static void periodic_task(uev_t *ctx __attribute__ ((unused)), uev_io_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
 {
 	fprintf(stderr, "|");
 }
@@ -68,7 +68,7 @@ static void pipe_read_cb(uev_t *ctx, uev_io_t *w __attribute__ ((unused)), void 
 	fprintf(stderr, "%.*s.%d ", cnt, msg, cnt);
 }
 
-static void pipe_write_cb(uev_t *ctx, uev_timer_t *w __attribute__ ((unused)), void *data)
+static void pipe_write_cb(uev_t *ctx, uev_io_t *w __attribute__ ((unused)), void *data)
 {
 	int cnt = (int)(intptr_t)data;
 	char *msg = "TESTING";
@@ -91,7 +91,7 @@ int main(void)
 	uev_t *ctx = uev_ctx_create();
 
 	/* Total program execution time */
-	uev_timer_create(ctx, (uev_timer_cb_t)lifetime_cb, (void *)(intptr_t)2, 4000, 0);
+	uev_timer_create(ctx, lifetime_cb, (void *)(intptr_t)2, 4000, 0);
 
 	/* Work load, one timer callback writes to a pipe periodically,
 	 * and one I/O watcher that is called every time the pipe has
@@ -104,15 +104,15 @@ int main(void)
 
 	in  = fd[0];
 	out = fd[1];
-	uev_timer_create(ctx, (uev_timer_cb_t)pipe_write_cb, (void *)(intptr_t)1, 400, 0);
-	uev_io_create(ctx, (uev_io_cb_t)pipe_read_cb, NULL, in, UEV_DIR_INBOUND);
+	uev_timer_create(ctx, pipe_write_cb, (void *)(intptr_t)1, 400, 0);
+	uev_io_create(ctx, pipe_read_cb, NULL, in, UEV_DIR_INBOUND);
 
 	/* Watchdog for the above timer callback, if it doesn't wake up
 	 * and write to the pipe within a given deadline it will bark. */
-	timer = uev_timer_create(ctx, (uev_timer_cb_t)timeout_cb, (void *)(intptr_t)1, 950, 0);
+	timer = uev_timer_create(ctx, timeout_cb, (void *)(intptr_t)1, 950, 0);
 
 	/* Periodic background task */
-	uev_timer_create(ctx, (uev_timer_cb_t)periodic_task, NULL, 200, 200);
+	uev_timer_create(ctx, periodic_task, NULL, 200, 200);
 
 	/* Start event loop */
 	uev_run(ctx);

@@ -1,14 +1,21 @@
 libuev - Micro event loop library
 =================================
 
-The libuev library is a small event library in the style of the
-venerable Xt(3) event loop.
+The libuev library is a small event library in the style of libevent,
+the excellent libev and the venerable Xt(3) event loop.
 
-Basically an event context is created and handlers for timers and I/O
-stream events can be registered with this context.
+It is heavily modelled after the libev API, but will never be as
+portable or friendly to older systems.  The focus of this project is
+modern embedded Linux systems, you will need kernel and C-library
+support for epoll(7) and timerfd.
 
-After initial setup, the typical application will enter the event loop
-that will only return at program termination.
+
+Usage
+-----
+
+Basically an event context is created to which timer and I/O stream
+watchers are registered.  After initial setup, the typical application
+enters the event loop that will only return at program termination.
 
 
 The C API
@@ -18,7 +25,7 @@ The typical application will do the following steps
 
    1. Create the event context with `uev_ctx_create()`
    2. Register callbacks with `uev_io_create()` and `uev_timer_create()`
-   3. Enter the event loop with uev_run()
+   3. Enter the event loop with `uev_run()`
 
 **Note:** Make sure to use non-blocking stream I/O!
 
@@ -40,7 +47,4 @@ Warning
 
 Please be advised, libuev is not thread safe!  It is primarily intended
 for use-cases where the engineed wants to avoid the use of threads.
-
-However, if you insist on trying to use libuev with threads, the `uev_t`
-structure needs mutex protection against simultaneous access.
 

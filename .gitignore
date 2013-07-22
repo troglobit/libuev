@@ -1,4 +1,6 @@
-libuev.a
-libuev.o
-libuev.so.1
 test
+test.o
+.libuev.d
+libuev.o
+libuev.a
+libuev.so.1

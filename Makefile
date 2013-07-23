@@ -24,15 +24,21 @@
 #
 .PHONY: all test clean
 
-CC          = $(CROSS_COMPILE)gcc
-AR          = $(CROSS_COMPILE)ar
-STRIP       = $(CROSS_COMPILE)strip
+#VERSION    = $(shell git tag -l | tail -1)
+VERSION    ?= 1.0.0
+NAME        = libuev
+PKG         = $(NAME)-$(VERSION)
+ARCHIVE     = $(PKG).tar.xz
+
+CC          = $(CROSS)gcc
+AR          = $(CROSS)ar
+STRIP       = $(CROSS)strip
 CFLAGS     += -fPIC -Os
 CPPFLAGS   += -W -Wall -Iinclude
 ARFLAGS     = crus
 JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.*
 
-LIBNAME     = libuev
+LIBNAME     = $(NAME)
 prefix     ?= /usr/local
 libdir     ?= $(prefix)/lib
 datadir    ?= $(prefix)/share/doc/$(LIBNAME)
@@ -102,6 +108,11 @@ clean:
 
 distclean: clean
 	-@$(RM) $(DEPS) $(JUNK)
+
+dist:
+	@echo "Building .xz tarball of $(PKG) in parent dir..."
+	git archive --format=tar --prefix=$(PKG)/ $(VERSION) | xz >../$(ARCHIVE)
+	@(cd ..; md5sum $(ARCHIVE) | tee $(ARCHIVE).md5)
 
 # Include automatically generated rules
 ifneq ($(MAKECMDGOALS),clean)

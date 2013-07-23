@@ -23,8 +23,9 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdlib.h>
+#include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>		/* intptr_t */
 
 #include "uev.h"
@@ -52,6 +53,11 @@ static void timeout_cb(uev_t *ctx, uev_watcher_t *w, void *data)
 static void periodic_task(uev_t *ctx __attribute__ ((unused)), uev_watcher_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
 {
 	fprintf(stderr, "|");
+}
+
+static void signal_cb(uev_t *ctx __attribute__ ((unused)), uev_watcher_t *w, void *data __attribute__ ((unused)))
+{
+	fprintf(stderr, w->signo == SIGINT ? "^Cv" : "^\v");
 }
 
 static void pipe_read_cb(uev_t *ctx, uev_watcher_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
@@ -113,6 +119,10 @@ int main(void)
 
 	/* Periodic background task */
 	uev_timer_create(ctx, periodic_task, NULL, 200, 200);
+
+	/* Signal watchers, Ctrl-C => SIGINT, Ctrl-\ => SIGQUIT */
+	uev_signal_create(ctx, signal_cb, NULL, SIGINT);
+	uev_signal_create(ctx, signal_cb, NULL, SIGQUIT);
 
 	/* Start event loop */
 	uev_run(ctx);

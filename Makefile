@@ -40,14 +40,14 @@ incdir     ?= $(prefix)/include
 DISTFILES   = README LICENSE test.c
 HEADER      = uev.h
 
-OBJS       := main.o io.o timer.o
+OBJS       := main.o io.o timer.o signal.o
 SRCS       := $(OBJS:.o=.c)
 DEPS       := $(addprefix .,$(SRCS:.c=.d))
 VER         = 1
 SOLIB       = $(LIBNAME).so.$(VER)
 SYMLIB      = $(LIBNAME).so
 STATICLIB   = $(LIBNAME).a
-TARGET      = $(SOLIB) $(STATICLIB)
+TARGET      = $(STATICLIB) $(SOLIB)
 
 # Pattern rules
 .c.o:
@@ -91,6 +91,7 @@ uninstall:
 strip: $(TARGET)
 	@printf "  STRIP   %s\n" $(TARGET)
 	@$(STRIP) --strip-unneeded $(TARGET)
+	@size $(TARGET)
 
 test: Makefile test.o $(STATICLIB)
 	@printf "  TEST    %s\n" $(STATICLIB)

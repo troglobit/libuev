@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <stdlib.h>		/* calloc(), free() */
 #include <sys/epoll.h>
+#include <sys/signalfd.h>	/* struct signalfd_siginfo */
 #include <unistd.h>		/* close(), read() */
 
 #include "uev.h"
@@ -157,7 +158,7 @@ int uev_run(uev_t *ctx)
 		while ((nfds = epoll_wait(ctx->efd, events, UEV_MAX_EVENTS, -1)) < 0) {
 			if (EINTR == errno)
 				continue; /* Signalled, try again */
-
+		exit:
 			result = -1;
 			ctx->running = 0;
 			break;
@@ -166,17 +167,27 @@ int uev_run(uev_t *ctx)
 		for (i = 0; i < nfds; i++) {
 			w = (uev_watcher_t *)events[i].data.ptr;
 
+			if (UEV_TIMER_TYPE == w->type) {
+				uint64_t exp;
+
+				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp))
+					goto exit;
+			}
+
+			if (UEV_SIGNAL_TYPE == w->type) {
+				struct signalfd_siginfo fdsi;
+				ssize_t sz = sizeof(fdsi);
+
+				if (read(w->fd, &fdsi, sz) != sz)
+					goto exit;
+
+				w->signo = fdsi.ssi_signo;
+			}
+
 			if (w->cb)
 				w->cb((struct uev *)ctx, w, w->arg);
 
 			if (UEV_TIMER_TYPE == w->type) {
-				uint64_t exp;
-
-				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
-					result = -1;
-					ctx->running = 0;
-				}
-
 				if (!w->period)
 					uev_timer_delete(ctx, w);
 			}

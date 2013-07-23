@@ -40,10 +40,11 @@ typedef enum {
 	UEV_DIR_OUTBOUND = 1
 } uev_dir_t;
 
-/* File, Timer, ... */
+/* I/O, timer, or signal */
 typedef enum {
 	UEV_FILE_TYPE = 1,
 	UEV_TIMER_TYPE,
+	UEV_SIGNAL_TYPE,
 } uev_type_t;
 
 /* I/O event watcher */
@@ -51,16 +52,19 @@ typedef struct uev_watcher {
 	LIST_ENTRY(uev_watcher)   link;    /* For queue.h linked list */
 
 	/* Common to all watchers */
-	uev_type_t                type;	   /* I/O, timer, or signal */
-	int                       fd;      /* File descriptor       */
+	uev_type_t                type;
+	int                       fd;
 
 	/* Watcher callback with optional argument */
 	void                    (*cb)(struct uev *, struct uev_watcher *, void *);
 	void                     *arg;
 
-	/* Timer watchers */
-	int                       timeout; /* Timeout in milliseconds      */
-	int                       period;  /* Period time, in milliseconds */
+	/* Timer watchers, time in milliseconds */
+	int                       timeout;
+	int                       period;
+
+	/* Signal watchers */
+	int                       signo;
 } uev_watcher_t;
 
 /* Main libuev context type */
@@ -84,6 +88,10 @@ int            uev_io_delete     (uev_t *ctx, uev_watcher_t *w);
 int            uev_timer_set     (uev_t *ctx, uev_watcher_t *w, int timeout, int period);
 uev_watcher_t *uev_timer_create  (uev_t *ctx, uev_cb_t *cb, void *data, int timeout, int period);
 int            uev_timer_delete  (uev_t *ctx, uev_watcher_t *w);
+
+uev_watcher_t *uev_signal_create (uev_t *ctx, uev_cb_t *handler, void *data, int signo);
+int            uev_signal_set    (uev_t *ctx, uev_watcher_t *w, int signo);
+int            uev_signal_delete (uev_t *ctx, uev_watcher_t *w);
 
 uev_t         *uev_ctx_create    (void);
 void           uev_ctx_delete    (uev_t *uev);

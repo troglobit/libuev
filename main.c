@@ -31,25 +31,24 @@
 #include "uev.h"
 
 /* Private to libuev, do not use directly! */
-uev_io_t *uev_watcher_create(uev_t *ctx, uev_type_t type, int fd, uev_dir_t dir, uev_cb_t *handler, void *data)
+uev_watcher_t *uev_watcher_create(uev_t *ctx, uev_type_t type, int fd, uev_dir_t dir, uev_cb_t *cb, void *arg)
 {
-	uev_io_t *w;
+	uev_watcher_t *w;
 	struct epoll_event ev;
 
-	if (!ctx || !handler) {
+	if (!ctx || !cb) {
 		errno = EINVAL;
 		return NULL;
 	}
 
-	w = (uev_io_t *)calloc(1, sizeof(*w));
+	w = (uev_watcher_t *)calloc(1, sizeof(*w));
 	if (!w)
 		return NULL;
 
-	w->fd      = fd;
-	w->dir     = dir;
-	w->type    = type;
-	w->handler = (void *)handler;
-	w->data    = data;
+	w->fd   = fd;
+	w->type = type;
+	w->cb   = (void *)cb;
+	w->arg  = arg;
 
 	ev.events   = dir == UEV_DIR_OUTBOUND ? EPOLLOUT : EPOLLIN;
 	ev.data.ptr = w;
@@ -64,7 +63,7 @@ uev_io_t *uev_watcher_create(uev_t *ctx, uev_type_t type, int fd, uev_dir_t dir,
 }
 
 /* Private to libuev, do not use directly! */
-int uev_watcher_delete(uev_t *ctx, uev_io_t *w)
+int uev_watcher_delete(uev_t *ctx, uev_watcher_t *w)
 {
 	if (!ctx || !w) {
 		errno = EINVAL;
@@ -114,7 +113,7 @@ uev_t *uev_ctx_create(void)
 void uev_ctx_delete(uev_t *ctx)
 {
 	while (!LIST_EMPTY(&ctx->watchers)) {
-		uev_io_t *w = LIST_FIRST(&ctx->watchers);
+		uev_watcher_t *w = LIST_FIRST(&ctx->watchers);
 
 		if (UEV_TIMER_TYPE == w->type)
 			uev_timer_delete(ctx, w);
@@ -135,7 +134,7 @@ void uev_ctx_delete(uev_t *ctx)
 int uev_run(uev_t *ctx)
 {
 	int result = 0;
-	uev_io_t *w;
+	uev_watcher_t *w;
 
         if (!ctx) {
 		errno = EINVAL;
@@ -165,10 +164,10 @@ int uev_run(uev_t *ctx)
 		}
 
 		for (i = 0; i < nfds; i++) {
-			w = (uev_io_t *)events[i].data.ptr;
+			w = (uev_watcher_t *)events[i].data.ptr;
 
-			if (w->handler)
-				w->handler((struct uev *)ctx, w, w->data);
+			if (w->cb)
+				w->cb((struct uev *)ctx, w, w->arg);
 
 			if (UEV_TIMER_TYPE == w->type) {
 				uint64_t exp;

@@ -58,10 +58,10 @@ static struct timespec msec2tspec(int msec)
  *
  * @return The new timer, or %NULL if invalid pointers or out or memory.
  */
-uev_io_t *uev_timer_create(uev_t *ctx, uev_cb_t *handler, void *data, int timeout, int period)
+uev_watcher_t *uev_timer_create(uev_t *ctx, uev_cb_t *handler, void *data, int timeout, int period)
 {
 	int fd;
-	uev_io_t *w;
+	uev_watcher_t *w;
 
 	fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 	if (fd < 0)
@@ -88,7 +88,7 @@ uev_io_t *uev_timer_create(uev_t *ctx, uev_cb_t *handler, void *data, int timeou
  *
  * @return POSIX OK(0) or non-zero with @param errno set.
  */
-int uev_timer_set(uev_t *ctx, uev_io_t *w, int timeout, int period)
+int uev_timer_set(uev_t *ctx, uev_watcher_t *w, int timeout, int period)
 {
 	struct itimerspec time;
 
@@ -116,7 +116,7 @@ int uev_timer_set(uev_t *ctx, uev_io_t *w, int timeout, int period)
  *
  * @return POSIX OK(0) or non-zero with @param errno set.
  */
-int uev_timer_delete(uev_t *ctx, uev_io_t *w)
+int uev_timer_delete(uev_t *ctx, uev_watcher_t *w)
 {
 	if (!ctx || !w) {
 		errno = EINVAL;

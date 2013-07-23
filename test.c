@@ -31,16 +31,16 @@
 
 static int in, out;
 static int period = 0;
-static uev_io_t *timer = NULL;
+static uev_watcher_t *timer = NULL;
 
-static void lifetime_cb(uev_t *ctx, uev_io_t *w __attribute__ ((unused)), void *data)
+static void lifetime_cb(uev_t *ctx, uev_watcher_t *w __attribute__ ((unused)), void *data)
 {
 	fprintf(stderr, "\nLifetime exceeded %p\n", data);
 	uev_exit(ctx);
 }
 
 /* The pipe watchdog, if it triggers we haven't received data in time. */
-static void timeout_cb(uev_t *ctx, uev_io_t *w, void *data)
+static void timeout_cb(uev_t *ctx, uev_watcher_t *w, void *data)
 {
 	timer = NULL;
 	fprintf(stderr, "\nTimeout exceeded %p\n", data);
@@ -49,12 +49,12 @@ static void timeout_cb(uev_t *ctx, uev_io_t *w, void *data)
 	uev_exit(ctx);
 }
 
-static void periodic_task(uev_t *ctx __attribute__ ((unused)), uev_io_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
+static void periodic_task(uev_t *ctx __attribute__ ((unused)), uev_watcher_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
 {
 	fprintf(stderr, "|");
 }
 
-static void pipe_read_cb(uev_t *ctx, uev_io_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
+static void pipe_read_cb(uev_t *ctx, uev_watcher_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
 {
 	int cnt;
 	char msg[50];
@@ -68,7 +68,7 @@ static void pipe_read_cb(uev_t *ctx, uev_io_t *w __attribute__ ((unused)), void 
 	fprintf(stderr, "%.*s.%d ", cnt, msg, cnt);
 }
 
-static void pipe_write_cb(uev_t *ctx, uev_io_t *w __attribute__ ((unused)), void *data)
+static void pipe_write_cb(uev_t *ctx, uev_watcher_t *w __attribute__ ((unused)), void *data)
 {
 	int cnt = (int)(intptr_t)data;
 	char *msg = "TESTING";

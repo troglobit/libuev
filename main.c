@@ -96,13 +96,7 @@ uev_t *uev_ctx_create(void)
 		return NULL;
 
 	ctx = (uev_t *)calloc(1, sizeof(*ctx));
-	if (!ctx)
-		goto exit;
-
-	ctx->events = (struct epoll_event *)calloc(UEV_MAX_EVENTS, sizeof(struct epoll_event));
-	if (!ctx->events) {
-		free(ctx);
-	exit:
+	if (!ctx) {
 		close(fd);
 		return NULL;
 	}
@@ -129,7 +123,6 @@ void uev_ctx_delete(uev_t *ctx)
 	}
 
 	close(ctx->efd);
-	free(ctx->events);
 	free(ctx);
 }
 
@@ -160,8 +153,9 @@ int uev_run(uev_t *ctx)
 
 	while (ctx->running) {
 		int i, nfds;
+		struct epoll_event events[UEV_MAX_EVENTS];
 
-		while ((nfds = epoll_wait(ctx->efd, ctx->events, UEV_MAX_EVENTS, -1)) < 0) {
+		while ((nfds = epoll_wait(ctx->efd, events, UEV_MAX_EVENTS, -1)) < 0) {
 			if (EINTR == errno)
 				continue; /* Signalled, try again */
 
@@ -171,7 +165,7 @@ int uev_run(uev_t *ctx)
 		}
 
 		for (i = 0; i < nfds; i++) {
-			w = (uev_io_t *)ctx->events[i].data.ptr;
+			w = (uev_io_t *)events[i].data.ptr;
 
 			if (w->handler)
 				w->handler((struct uev *)ctx, w, w->data);

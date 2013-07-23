@@ -65,10 +65,7 @@ typedef struct uev_io {
 /* Main libuev context type */
 typedef struct {
 	int                   running;
-
 	int                   efd;           /* For epoll() */
-	struct epoll_event   *events;
-
 	LIST_HEAD(, uev_io)  watchers;
 } uev_t;
 

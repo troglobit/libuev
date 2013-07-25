@@ -1,10 +1,6 @@
 test
-test.o
-.main.d
-main.o
-.io.d
-io.o
-.timer.d
-timer.o
+.*.d
+*.o
+*~
 libuev.a
 libuev.so.1

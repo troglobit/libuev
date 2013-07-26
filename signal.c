@@ -40,11 +40,11 @@
  *
  * @return The new watcher, or %NULL with @param errno set on error.
  */
-uev_watcher_t *uev_signal_create(uev_t *ctx, uev_cb_t *handler, void *data, int signo)
+uev_t *uev_signal_create(uev_ctx_t *ctx, uev_cb_t *handler, void *data, int signo)
 {
 	int fd;
 	sigset_t mask;
-	uev_watcher_t *w;
+	uev_t *w;
 
 	sigemptyset(&mask);
 	fd = signalfd(-1, &mask, SFD_NONBLOCK);
@@ -73,7 +73,7 @@ uev_watcher_t *uev_signal_create(uev_t *ctx, uev_cb_t *handler, void *data, int 
  *
  * @return POSIX OK(0) or non-zero with @param errno set.
  */
-int uev_signal_set(uev_t *ctx, uev_watcher_t *w, int signo)
+int uev_signal_set(uev_ctx_t *ctx, uev_t *w, int signo)
 {
 	sigset_t mask;
 
@@ -104,7 +104,7 @@ int uev_signal_set(uev_t *ctx, uev_watcher_t *w, int signo)
  *
  * @return POSIX OK(0) or non-zero with @param errno set.
  */
-int uev_signal_delete(uev_t *ctx, uev_watcher_t *w)
+int uev_signal_delete(uev_ctx_t *ctx, uev_t *w)
 {
 	int fd;
 

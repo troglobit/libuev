@@ -32,9 +32,9 @@
 #include "uev.h"
 
 /* Private to libuev, do not use directly! */
-uev_watcher_t *uev_watcher_create(uev_t *ctx, uev_type_t type, int fd, uev_dir_t dir, uev_cb_t *cb, void *arg)
+uev_t *uev_watcher_create(uev_ctx_t *ctx, uev_type_t type, int fd, uev_dir_t dir, uev_cb_t *cb, void *arg)
 {
-	uev_watcher_t *w;
+	uev_t *w;
 	struct epoll_event ev;
 
 	if (!ctx || !cb) {
@@ -42,7 +42,7 @@ uev_watcher_t *uev_watcher_create(uev_t *ctx, uev_type_t type, int fd, uev_dir_t
 		return NULL;
 	}
 
-	w = (uev_watcher_t *)calloc(1, sizeof(*w));
+	w = (uev_t *)calloc(1, sizeof(*w));
 	if (!w)
 		return NULL;
 
@@ -64,7 +64,7 @@ uev_watcher_t *uev_watcher_create(uev_t *ctx, uev_type_t type, int fd, uev_dir_t
 }
 
 /* Private to libuev, do not use directly! */
-int uev_watcher_delete(uev_t *ctx, uev_watcher_t *w)
+int uev_watcher_delete(uev_ctx_t *ctx, uev_t *w)
 {
 	if (!ctx || !w) {
 		errno = EINVAL;
@@ -84,18 +84,18 @@ int uev_watcher_delete(uev_t *ctx, uev_watcher_t *w)
 /**
  * Create an event loop context
  *
- * @return Returns a new uev_t context, or %NULL on error.
+ * @return Returns a new uev_ctx_t context, or %NULL on error.
  */
-uev_t *uev_ctx_create(void)
+uev_ctx_t *uev_ctx_create(void)
 {
 	int fd;
-	uev_t *ctx;
+	uev_ctx_t *ctx;
 
 	fd = epoll_create(1);
 	if (fd < 0)
 		return NULL;
 
-	ctx = (uev_t *)calloc(1, sizeof(*ctx));
+	ctx = (uev_ctx_t *)calloc(1, sizeof(*ctx));
 	if (!ctx) {
 		close(fd);
 		return NULL;
@@ -111,10 +111,10 @@ uev_t *uev_ctx_create(void)
  * Destroy an event loop context
  * @param ctx A valid libuev context
  */
-void uev_ctx_delete(uev_t *ctx)
+void uev_ctx_delete(uev_ctx_t *ctx)
 {
 	while (!LIST_EMPTY(&ctx->watchers)) {
-		uev_watcher_t *w = LIST_FIRST(&ctx->watchers);
+		uev_t *w = LIST_FIRST(&ctx->watchers);
 
 		if (UEV_TIMER_TYPE == w->type)
 			uev_timer_delete(ctx, w);
@@ -132,10 +132,10 @@ void uev_ctx_delete(uev_t *ctx)
  *
  * @return POSIX OK(0) upon successful termination of the event loop, or non-zero on error.
  */
-int uev_run(uev_t *ctx)
+int uev_run(uev_ctx_t *ctx)
 {
 	int result = 0;
-	uev_watcher_t *w;
+	uev_t *w;
 
         if (!ctx) {
 		errno = EINVAL;
@@ -165,7 +165,7 @@ int uev_run(uev_t *ctx)
 		}
 
 		for (i = 0; i < nfds; i++) {
-			w = (uev_watcher_t *)events[i].data.ptr;
+			w = (uev_t *)events[i].data.ptr;
 
 			if (UEV_TIMER_TYPE == w->type) {
 				uint64_t exp;
@@ -201,7 +201,7 @@ int uev_run(uev_t *ctx)
  * Terminate the event loop
  * @param ctx A valid libuev context
  */
-void uev_exit(uev_t *ctx)
+void uev_exit(uev_ctx_t *ctx)
 {
 	ctx->running = 0;
 }

@@ -48,56 +48,56 @@ typedef enum {
 } uev_type_t;
 
 /* I/O event watcher */
-typedef struct uev_watcher {
-	LIST_ENTRY(uev_watcher)   link;    /* For queue.h linked list */
+typedef struct uev {
+	LIST_ENTRY(uev)  link;    /* For queue.h linked list */
 
 	/* Common to all watchers */
-	uev_type_t                type;
-	int                       fd;
+	uev_type_t       type;
+	int              fd;
 
 	/* Watcher callback with optional argument */
-	void                    (*cb)(struct uev *, struct uev_watcher *, void *);
-	void                     *arg;
+	void           (*cb)(struct uev *, struct uev *, void *);
+	void            *arg;
 
 	/* Timer watchers, time in milliseconds */
-	int                       timeout;
-	int                       period;
+	int              timeout;
+	int              period;
 
 	/* Signal watchers */
-	int                       signo;
-} uev_watcher_t;
+	int              signo;
+} uev_t;
 
 /* Main libuev context type */
 typedef struct {
-	int                       running;
-	int                       efd;	   /* For epoll() */
-	LIST_HEAD(, uev_watcher)  watchers;
-} uev_t;
+	int              running;
+	int              efd;	/* For epoll() */
+	LIST_HEAD(, uev) watchers;
+} uev_ctx_t;
 
 /* Generic callback for watchers */
-typedef void  (uev_cb_t)         (uev_t *ctx, uev_watcher_t *w, void *data);
+typedef void  (uev_cb_t)     (uev_ctx_t *ctx, uev_t *w, void *data);
 
 /* Private methods, do not use directly! */
-uev_watcher_t *uev_watcher_create(uev_t *ctx, uev_type_t type, int fd, uev_dir_t dir, uev_cb_t *cb, void *data);
-int            uev_watcher_delete(uev_t *ctx, uev_watcher_t *w);
+uev_t     *uev_watcher_create(uev_ctx_t *ctx, uev_type_t type, int fd, uev_dir_t dir, uev_cb_t *cb, void *data);
+int        uev_watcher_delete(uev_ctx_t *ctx, uev_t *w);
 
 /* Public interface */
-uev_watcher_t *uev_io_create     (uev_t *ctx, uev_cb_t *cb, void *data, int fd, uev_dir_t dir);
-int            uev_io_delete     (uev_t *ctx, uev_watcher_t *w);
+uev_t     *uev_io_create     (uev_ctx_t *ctx, uev_cb_t *cb, void *data, int fd, uev_dir_t dir);
+int        uev_io_delete     (uev_ctx_t *ctx, uev_t *w);
 
-int            uev_timer_set     (uev_t *ctx, uev_watcher_t *w, int timeout, int period);
-uev_watcher_t *uev_timer_create  (uev_t *ctx, uev_cb_t *cb, void *data, int timeout, int period);
-int            uev_timer_delete  (uev_t *ctx, uev_watcher_t *w);
+int        uev_timer_set     (uev_ctx_t *ctx, uev_t *w, int timeout, int period);
+uev_t     *uev_timer_create  (uev_ctx_t *ctx, uev_cb_t *cb, void *data, int timeout, int period);
+int        uev_timer_delete  (uev_ctx_t *ctx, uev_t *w);
 
-uev_watcher_t *uev_signal_create (uev_t *ctx, uev_cb_t *handler, void *data, int signo);
-int            uev_signal_set    (uev_t *ctx, uev_watcher_t *w, int signo);
-int            uev_signal_delete (uev_t *ctx, uev_watcher_t *w);
+uev_t     *uev_signal_create (uev_ctx_t *ctx, uev_cb_t *handler, void *data, int signo);
+int        uev_signal_set    (uev_ctx_t *ctx, uev_t *w, int signo);
+int        uev_signal_delete (uev_ctx_t *ctx, uev_t *w);
 
-uev_t         *uev_ctx_create    (void);
-void           uev_ctx_delete    (uev_t *uev);
+uev_ctx_t *uev_ctx_create    (void);
+void       uev_ctx_delete    (uev_ctx_t *uev);
 
-int            uev_run           (uev_t *ctx);
-void           uev_exit          (uev_t *ctx);
+int        uev_run           (uev_ctx_t *ctx);
+void       uev_exit          (uev_ctx_t *ctx);
 
 #endif /* LIBUEV_UEV_H_ */
 

@@ -32,16 +32,16 @@
 
 static int in, out;
 static int period = 0;
-static uev_watcher_t *timer = NULL;
+static uev_t *timer = NULL;
 
-static void lifetime_cb(uev_t *ctx, uev_watcher_t *w __attribute__ ((unused)), void *data)
+static void lifetime_cb(uev_ctx_t *ctx, uev_t *w __attribute__ ((unused)), void *data)
 {
 	fprintf(stderr, "\nLifetime exceeded %p\n", data);
 	uev_exit(ctx);
 }
 
 /* The pipe watchdog, if it triggers we haven't received data in time. */
-static void timeout_cb(uev_t *ctx, uev_watcher_t *w, void *data)
+static void timeout_cb(uev_ctx_t *ctx, uev_t *w, void *data)
 {
 	timer = NULL;
 	fprintf(stderr, "\nTimeout exceeded %p\n", data);
@@ -50,17 +50,17 @@ static void timeout_cb(uev_t *ctx, uev_watcher_t *w, void *data)
 	uev_exit(ctx);
 }
 
-static void periodic_task(uev_t *ctx __attribute__ ((unused)), uev_watcher_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
+static void periodic_task(uev_ctx_t *ctx __attribute__ ((unused)), uev_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
 {
 	fprintf(stderr, "|");
 }
 
-static void signal_cb(uev_t *ctx __attribute__ ((unused)), uev_watcher_t *w, void *data __attribute__ ((unused)))
+static void signal_cb(uev_ctx_t *ctx __attribute__ ((unused)), uev_t *w, void *data __attribute__ ((unused)))
 {
 	fprintf(stderr, w->signo == SIGINT ? "^Cv" : "^\v");
 }
 
-static void pipe_read_cb(uev_t *ctx, uev_watcher_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
+static void pipe_read_cb(uev_ctx_t *ctx, uev_t *w __attribute__ ((unused)), void *data __attribute__ ((unused)))
 {
 	int cnt;
 	char msg[50];
@@ -74,7 +74,7 @@ static void pipe_read_cb(uev_t *ctx, uev_watcher_t *w __attribute__ ((unused)), 
 	fprintf(stderr, "%.*s.%d ", cnt, msg, cnt);
 }
 
-static void pipe_write_cb(uev_t *ctx, uev_watcher_t *w __attribute__ ((unused)), void *data)
+static void pipe_write_cb(uev_ctx_t *ctx, uev_t *w __attribute__ ((unused)), void *data)
 {
 	int cnt = (int)(intptr_t)data;
 	char *msg = "TESTING";
@@ -94,7 +94,7 @@ static void pipe_write_cb(uev_t *ctx, uev_watcher_t *w __attribute__ ((unused)),
 int main(void)
 {
 	int fd[2];
-	uev_t *ctx = uev_ctx_create();
+	uev_ctx_t *ctx = uev_ctx_create();
 
 	/* Total program execution time */
 	uev_timer_create(ctx, lifetime_cb, (void *)(intptr_t)2, 4000, 0);

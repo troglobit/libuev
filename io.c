@@ -36,7 +36,7 @@
  *
  * @return The new I/O watcher, or %NULL if invalid pointers or out or memory.
  */
-uev_watcher_t *uev_io_create(uev_t *ctx, uev_cb_t *handler, void *data, int fd, uev_dir_t dir)
+uev_t *uev_io_create(uev_ctx_t *ctx, uev_cb_t *handler, void *data, int fd, uev_dir_t dir)
 {
 	return uev_watcher_create(ctx, UEV_FILE_TYPE, fd, dir, handler, data);
 }
@@ -48,7 +48,7 @@ uev_watcher_t *uev_io_create(uev_t *ctx, uev_cb_t *handler, void *data, int fd, 
  *
  * @return POSIX OK(0) or non-zero with @param errno set.
  */
-int uev_io_delete(uev_t *ctx, uev_watcher_t *w)
+int uev_io_delete(uev_ctx_t *ctx, uev_t *w)
 {
 	return uev_watcher_delete(ctx, w);
 }

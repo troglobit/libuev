@@ -31,6 +31,8 @@
 
 #include "uev.h"
 
+#define UNUSED(arg) arg __attribute__ ((unused))
+
 /* Private to libuev, do not use directly! */
 int uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events)
 {
@@ -160,19 +162,23 @@ int uev_exit(uev_ctx_t *ctx)
 
 /**
  * Start the event loop
- * @param ctx  A valid libuev context
+ * @param ctx    A valid libuev context
+ * @param flags  A mask of %UEV_ONCE and %UEV_NONBLOCK, or zero
  *
  * @return POSIX OK(0) upon successful termination of the event loop, or non-zero on error.
  */
-int uev_run(uev_ctx_t *ctx)
+int uev_run(uev_ctx_t *ctx, int flags)
 {
-	int result = 0;
+	int result = 0, timeout = -1;
 	uev_t *w;
 
         if (!ctx || ctx->fd < 0) {
 		errno = EINVAL;
                 return -1;
 	}
+
+	if (flags & UEV_NONBLOCK)
+		timeout = 0;
 
 	/* Start the event loop */
 	ctx->running = 1;
@@ -187,7 +193,7 @@ int uev_run(uev_ctx_t *ctx)
 		int i, nfds;
 		struct epoll_event events[UEV_MAX_EVENTS];
 
-		while ((nfds = epoll_wait(ctx->fd, events, UEV_MAX_EVENTS, -1)) < 0) {
+		while ((nfds = epoll_wait(ctx->fd, events, UEV_MAX_EVENTS, timeout)) < 0) {
 			if (!ctx->running)
 				break;
 
@@ -230,10 +236,14 @@ int uev_run(uev_ctx_t *ctx)
 					uev_timer_stop(w);
 			}
 		}
+
+		if ((flags & UEV_ONCE) || LIST_EMPTY(&ctx->watchers))
+			break;
 	}
 
 	return result;
 }
+
 
 /**
  * Local Variables:

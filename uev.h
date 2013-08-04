@@ -31,12 +31,16 @@
 #include <sys/queue.h>
 
 /* Max. number of simulateneous events */
-#define UEV_MAX_EVENTS 10
+#define UEV_MAX_EVENTS  10
 
 /* I/O events, for signals and timers revents will always be UEV_READ */
-#define UEV_NONE    0
-#define UEV_READ    EPOLLIN
-#define UEV_WRITE   EPOLLOUT
+#define UEV_NONE        0
+#define UEV_READ        EPOLLIN
+#define UEV_WRITE       EPOLLOUT
+
+/* Run flags */
+#define UEV_ONCE        1
+#define UEV_NONBLOCK    2
 
 /* I/O, timer, or signal watcher */
 typedef enum {
@@ -89,8 +93,7 @@ int uev_watcher_stop   (uev_t *w);
 /* Public interface */
 int uev_init           (uev_ctx_t *ctx);
 int uev_exit           (uev_ctx_t *ctx);
-
-int uev_run            (uev_ctx_t *ctx);
+int uev_run            (uev_ctx_t *ctx, int flags);
 
 int uev_io_init        (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events);
 int uev_io_set         (uev_t *w, int fd, int events);

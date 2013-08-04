@@ -136,7 +136,7 @@ int main(void)
 	uev_timer_init(&ctx, &periodic, periodic_task, NULL, 200, 200);
 
 	/* Start event loop */
-	uev_run(&ctx);
+	uev_run(&ctx, 0);
 
 	fprintf(stderr, "Period is %d must be 10: %s\n", period, 10 == period ? "OK" : "ERROR!");
 	if (10 != period)

@@ -26,78 +26,83 @@
 #ifndef LIBUEV_UEV_H_
 #define LIBUEV_UEV_H_
 
+#include <stdio.h>
+#include <sys/epoll.h>
 #include <sys/queue.h>
 
 /* Max. number of simulateneous events */
 #define UEV_MAX_EVENTS 10
 
-/* Forward declare due to dependencys, don't try this at home. */
-struct uev;
+/* I/O events, for signals and timers revents will always be UEV_READ */
+#define UEV_NONE    0
+#define UEV_READ    EPOLLIN
+#define UEV_WRITE   EPOLLOUT
 
-/* I/O direction */
+/* I/O, timer, or signal watcher */
 typedef enum {
-	UEV_DIR_INBOUND = 0,
-	UEV_DIR_OUTBOUND = 1
-} uev_dir_t;
-
-/* I/O, timer, or signal */
-typedef enum {
-	UEV_FILE_TYPE = 1,
+	UEV_IO_TYPE = 1,
 	UEV_TIMER_TYPE,
 	UEV_SIGNAL_TYPE,
 } uev_type_t;
 
-/* I/O event watcher */
-typedef struct uev {
-	LIST_ENTRY(uev)  link;    /* For queue.h linked list */
-
-	/* Common to all watchers */
-	uev_type_t       type;
-	int              fd;
-
-	/* Watcher callback with optional argument */
-	void           (*cb)(struct uev *, struct uev *, void *);
-	void            *arg;
-
-	/* Timer watchers, time in milliseconds */
-	int              timeout;
-	int              period;
-
-	/* Signal watchers */
-	int              signo;
-} uev_t;
+/* Forward declare due to dependencys, don't try this at home kids. */
+struct uev;
 
 /* Main libuev context type */
 typedef struct {
-	int              running;
-	int              efd;	/* For epoll() */
-	LIST_HEAD(, uev) watchers;
+	int             running;
+	int             fd;	/* For epoll() */
+	LIST_HEAD(,uev) watchers;
 } uev_ctx_t;
 
+/* I/O event watcher */
+typedef struct uev {
+	LIST_ENTRY(uev) link;	/* For queue.h linked list */
+
+	/* Common to all watchers */
+	uev_ctx_t      *ctx;
+	uev_type_t      type;
+	int             active;
+	int             fd;
+	int             events;
+
+	/* Watcher callback with optional argument */
+	void          (*cb)(struct uev *, struct uev *, void *);
+	void           *arg;
+
+	/* Timer watchers, time in milliseconds */
+	int             timeout;
+	int             period;
+
+	/* Signal watchers */
+	int             signo;
+} uev_t;
+
 /* Generic callback for watchers */
-typedef void  (uev_cb_t)     (uev_ctx_t *ctx, uev_t *w, void *data);
+typedef void (uev_cb_t)(uev_ctx_t *ctx, uev_t *w, void *arg, int events);
 
 /* Private methods, do not use directly! */
-uev_t     *uev_watcher_create(uev_ctx_t *ctx, uev_type_t type, int fd, uev_dir_t dir, uev_cb_t *cb, void *data);
-int        uev_watcher_delete(uev_ctx_t *ctx, uev_t *w);
+int uev_watcher_init   (uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events);
+int uev_watcher_start  (uev_t *w);
+int uev_watcher_stop   (uev_t *w);
 
 /* Public interface */
-uev_t     *uev_io_create     (uev_ctx_t *ctx, uev_cb_t *cb, void *data, int fd, uev_dir_t dir);
-int        uev_io_delete     (uev_ctx_t *ctx, uev_t *w);
+int uev_init           (uev_ctx_t *ctx);
+int uev_exit           (uev_ctx_t *ctx);
 
-int        uev_timer_set     (uev_ctx_t *ctx, uev_t *w, int timeout, int period);
-uev_t     *uev_timer_create  (uev_ctx_t *ctx, uev_cb_t *cb, void *data, int timeout, int period);
-int        uev_timer_delete  (uev_ctx_t *ctx, uev_t *w);
+int uev_run            (uev_ctx_t *ctx);
 
-uev_t     *uev_signal_create (uev_ctx_t *ctx, uev_cb_t *handler, void *data, int signo);
-int        uev_signal_set    (uev_ctx_t *ctx, uev_t *w, int signo);
-int        uev_signal_delete (uev_ctx_t *ctx, uev_t *w);
+int uev_io_init        (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events);
+int uev_io_set         (uev_t *w, int fd, int events);
+int uev_io_stop        (uev_t *w);
 
-uev_ctx_t *uev_ctx_create    (void);
-void       uev_ctx_delete    (uev_ctx_t *uev);
+int uev_timer_init     (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeout, int period);
+int uev_timer_set      (uev_t *w, int timeout, int period);
+int uev_timer_stop     (uev_t *w);
 
-int        uev_run           (uev_ctx_t *ctx);
-void       uev_exit          (uev_ctx_t *ctx);
+int uev_signal_init    (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo);
+int uev_signal_set     (uev_t *w, int signo);
+int uev_signal_stop    (uev_t *w);
 
 #endif /* LIBUEV_UEV_H_ */
 

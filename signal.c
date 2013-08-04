@@ -33,53 +33,61 @@
 
 /**
  * Create a signal watcher
- * @param ctx     A valid libuev context
- * @param handler Timer callback
- * @param data    Optional callback argument
- * @param signo   Signal to watch for
+ * @param ctx    A valid libuev context
+ * @param w      Pointer to an uev_t watcher
+ * @param cb     Timer callback
+ * @param arg    Optional callback argument
+ * @param signo  Signal to watch for
  *
- * @return The new watcher, or %NULL with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @param errno set on error.
  */
-uev_t *uev_signal_create(uev_ctx_t *ctx, uev_cb_t *handler, void *data, int signo)
+int uev_signal_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo)
 {
 	int fd;
 	sigset_t mask;
-	uev_t *w;
 
 	sigemptyset(&mask);
 	fd = signalfd(-1, &mask, SFD_NONBLOCK);
 	if (fd < 0)
-		return NULL;
+		return -1;
 
-	w = uev_watcher_create(ctx, UEV_SIGNAL_TYPE, fd, UEV_DIR_INBOUND, handler, data);
-	if (!w)
+	if (uev_watcher_init(ctx, w, UEV_SIGNAL_TYPE, cb, arg, fd, UEV_READ))
 		goto exit;
 
-	if (uev_signal_set(ctx, w, signo)) {
-		uev_watcher_delete(ctx, w);
+	if (uev_signal_set(w, signo)) {
+		uev_watcher_stop(w);
 	exit:
 		close(fd);
-		return NULL;
+		return -1;
 	}
 
-	return w;
+	return 0;
 }
 
 /**
  * Reset a signal watcher
- * @param ctx   A valid libuev context
- * @param w     Watcher to reset
- * @param signo New signal to watch for
+ * @param w      Watcher to reset
+ * @param signo  New signal to watch for
  *
- * @return POSIX OK(0) or non-zero with @param errno set.
+ * @return POSIX OK(0) or non-zero with @param errno set on error.
  */
-int uev_signal_set(uev_ctx_t *ctx, uev_t *w, int signo)
+int uev_signal_set(uev_t *w, int signo)
 {
 	sigset_t mask;
 
-	if (!ctx || !w) {
+	/* Every watcher must be registered to a context */
+	if (!w || !w->ctx) {
 		errno = EINVAL;
 		return -1;
+	}
+
+	/* Handle stopped signal watchers */
+	if (w->fd < 0) {
+		/* Remove from internal list */
+		LIST_REMOVE(w, link);
+
+		if (uev_signal_init(w->ctx, w, (uev_cb_t *)w->cb, w->arg, signo))
+			return -1;
 	}
 
 	sigemptyset(&mask);
@@ -87,36 +95,28 @@ int uev_signal_set(uev_ctx_t *ctx, uev_t *w, int signo)
 
 	/* Block signals so that they aren't handled
 	   according to their default dispositions */
-
 	if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1)
 		return -1;
 
 	if (signalfd(w->fd, &mask, SFD_NONBLOCK) < 0)
 		return -1;
 
-	return 0;
+	return uev_watcher_start(w);
 }
 
 /**
- * Delete a signal watcher
- * @param ctx  A valid libuev context
- * @param w    Watcher to delete
+ * Stop a signal watcher
+ * @param w  Watcher to stop
  *
- * @return POSIX OK(0) or non-zero with @param errno set.
+ * @return POSIX OK(0) or non-zero with @param errno set on error.
  */
-int uev_signal_delete(uev_ctx_t *ctx, uev_t *w)
+int uev_signal_stop(uev_t *w)
 {
-	int fd;
-
-	if (!ctx || !w) {
-		errno = EINVAL;
+	if (uev_watcher_stop(w))
 		return -1;
-	}
 
-	uev_timer_set(ctx, w, 0, 0);
-	fd = w->fd;
-	uev_watcher_delete(ctx, w);
-	close(fd);
+	close(w->fd);
+	w->fd = -1;
 
 	return 0;
 }

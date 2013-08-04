@@ -30,107 +30,123 @@
 #include "uev.h"
 
 
-static struct timespec msec2tspec(int msec)
+static void msec2tspec(int msec, struct timespec *ts)
 {
-	struct timespec ts;
-
-	ts.tv_sec  =  msec / 1000;
-	ts.tv_nsec = (msec % 1000) * 1000000;
-
-	return ts;
+	if (msec) {
+		ts->tv_sec  =  msec / 1000;
+		ts->tv_nsec = (msec % 1000) * 1000000;
+	} else {
+		ts->tv_sec  = 0;
+		ts->tv_nsec = 0;
+	}
 }
 
 /**
- * Create a timer watcher
- * @param ctx     A valid libuev context
- * @param handler Timer callback
- * @param data    Optional callback argument
- * @param timeout Timeout in milliseconds before @param handler is called
- * @param period  For periodic timers this is the period time that @param timeout is reset to
+ * Create and start a timer watcher
+ * @param ctx      A valid libuev context
+ * @param w        Pointer to an uev_t watcher
+ * @param cb       Callback function
+ * @param arg      Optional callback argument
+ * @param timeout  Timeout in milliseconds before @param cb is called
+ * @param period   For periodic timers this is the period time that @param timeout is reset to
  *
  * For one-shot timers you set @param period to zero and only use @param
  * timeout.  For periodic timers you likely set @param timeout to either
  * zero, to call it as soon as the event loop starts, or to the same
- * value as @param period.  When the timer expires, the @param handler
- * is called, with the optional @param data argument.  A non-periodic
+ * value as @param period.  When the timer expires, the @param cb
+ * is called, with the optional @param arg argument.  A non-periodic
  * timer ends its life there, while a periodic task's @param timeout is
  * reset to the @param period and restarted.
  *
- * @return The new watcher, or %NULL with @param errno set on error.
- */
-uev_t *uev_timer_create(uev_ctx_t *ctx, uev_cb_t *handler, void *data, int timeout, int period)
-{
-	int fd;
-	uev_t *w;
-
-	fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-	if (fd < 0)
-		return NULL;
-
-	w = uev_watcher_create(ctx, UEV_TIMER_TYPE, fd, UEV_DIR_INBOUND, handler, data);
-	if (!w)
-		goto exit;
-
-	if (uev_timer_set(ctx, w, timeout, period)) {
-		uev_watcher_delete(ctx, w);
-	exit:
-		close(fd);
-		return NULL;
-	}
-
-	return w;
-}
-
-/**
- * Reset or reschedule a timer
- * @param ctx  A valid libuev context
- * @param w    Watcher to reset
- * @param timeout Timeout in milliseconds before @param handler is called
- * @param period  For periodic timers this is the period time that @param timeout is reset to
+ * A timer is automatically started if the event loop is already
+ * running, otherwise it is kept on hold until triggered by calling
+ * uev_run().
  *
  * @return POSIX OK(0) or non-zero with @param errno set on error.
  */
-int uev_timer_set(uev_ctx_t *ctx, uev_t *w, int timeout, int period)
+int uev_timer_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeout, int period)
 {
-	struct itimerspec time;
+	int fd;
 
-	if (!ctx || !w) {
+	fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+	if (fd < 0)
+		return -1;
+
+	if (uev_watcher_init(ctx, w, UEV_TIMER_TYPE, cb, arg, fd, UEV_READ))
+		goto exit;
+
+	if (uev_timer_set(w, timeout, period)) {
+		uev_watcher_stop(w);
+	exit:
+		close(fd);
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
+ * Reset a timer
+ * @param w        Watcher to reset
+ * @param timeout  Timeout in milliseconds before @param cb is called
+ * @param period   For periodic timers this is the period time that @param timeout is reset to
+ *
+ * @return POSIX OK(0) or non-zero with @param errno set on error.
+ */
+int uev_timer_set(uev_t *w, int timeout, int period)
+{
+	/* Every watcher must be registered to a context */
+	if (!w || !w->ctx) {
 		errno = EINVAL;
 		return -1;
+	}
+
+	/* Handle stopped timers */
+	if (w->fd < 0) {
+		/* Timer already stopped */
+		if (!timeout && !period)
+			return 0;
+
+		/* Remove from internal list */
+		LIST_REMOVE(w, link);
+
+		if (uev_timer_init(w->ctx, w, (uev_cb_t *)w->cb, w->arg, timeout, period))
+			return -1;
 	}
 
 	w->timeout = timeout;
 	w->period  = period;
 
-	if (!ctx->running)
-		return 0;
+	if (w->ctx->running) {
+		struct itimerspec time;
 
-	time.it_value    = msec2tspec(timeout);
-	time.it_interval = msec2tspec(period);
+		msec2tspec(timeout, &time.it_value);
+		msec2tspec(period, &time.it_interval);
+		timerfd_settime(w->fd, 0, &time, NULL);
 
-	return timerfd_settime(w->fd, 0, &time, NULL);
+		return uev_watcher_start(w);
+	}
+
+	return 0;
 }
 
 /**
- * Delete a timer watcher
- * @param ctx  A valid libuev context
- * @param w    Watcher to delete
+ * Stop and unregister a timer watcher
+ * @param w  Watcher to stop
  *
  * @return POSIX OK(0) or non-zero with @param errno set on error.
  */
-int uev_timer_delete(uev_ctx_t *ctx, uev_t *w)
+int uev_timer_stop(uev_t *w)
 {
-	int fd;
-
-	if (!ctx || !w) {
-		errno = EINVAL;
+	if (uev_watcher_stop(w))
 		return -1;
-	}
 
-	uev_timer_set(ctx, w, 0, 0);
-	fd = w->fd;
-	uev_watcher_delete(ctx, w);
-	close(fd);
+	/* Stop kernel timer */
+	uev_timer_set(w, 0, 0);
+
+	/* Close timerfd, will have to be reopened again on reset */
+	close(w->fd);
+	w->fd = -1;
 
 	return 0;
 }

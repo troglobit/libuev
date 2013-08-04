@@ -24,7 +24,7 @@
  */
 
 #include <errno.h>
-#include <stdlib.h>		/* calloc(), free() */
+#include <string.h>		/* memset() */
 #include <sys/epoll.h>
 #include <sys/signalfd.h>	/* struct signalfd_siginfo */
 #include <unistd.h>		/* close(), read() */
@@ -32,103 +32,135 @@
 #include "uev.h"
 
 /* Private to libuev, do not use directly! */
-uev_t *uev_watcher_create(uev_ctx_t *ctx, uev_type_t type, int fd, uev_dir_t dir, uev_cb_t *cb, void *arg)
-{
-	uev_t *w;
-	struct epoll_event ev;
-
-	if (!ctx || !cb) {
-		errno = EINVAL;
-		return NULL;
-	}
-
-	w = (uev_t *)calloc(1, sizeof(*w));
-	if (!w)
-		return NULL;
-
-	w->fd   = fd;
-	w->type = type;
-	w->cb   = (void *)cb;
-	w->arg  = arg;
-
-	ev.events   = dir == UEV_DIR_OUTBOUND ? EPOLLOUT : EPOLLIN;
-	ev.data.ptr = w;
-	if (epoll_ctl(ctx->efd, EPOLL_CTL_ADD, fd, &ev) < 0) {
-		free(w);
-		return NULL;
-	}
-
-	LIST_INSERT_HEAD(&ctx->watchers, w, link);
-
-	return w;
-}
-
-/* Private to libuev, do not use directly! */
-int uev_watcher_delete(uev_ctx_t *ctx, uev_t *w)
+int uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events)
 {
 	if (!ctx || !w) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	/* Remove from kernel */
-	epoll_ctl(ctx->efd, EPOLL_CTL_DEL, w->fd, NULL);
+	memset(w, 0, sizeof(*w));
+	w->ctx    = ctx;
+	w->fd     = fd;
+	w->type   = type;
+	w->cb     = (void *)cb;
+	w->arg    = arg;
+	w->events = events;
 
-	/* Remove from internal list */
-	LIST_REMOVE(w, link);
-	free(w);
+	LIST_INSERT_HEAD(&w->ctx->watchers, w, link);
+
+	return 0;
+}
+
+/* Private to libuev, do not use directly! */
+int uev_watcher_start(uev_t *w)
+{
+	struct epoll_event ev;
+
+	if (!w || w->fd < 0) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (w->active)
+		return 0;
+
+	ev.events   = w->events;
+	ev.data.ptr = w;
+	if (epoll_ctl(w->ctx->fd, EPOLL_CTL_ADD, w->fd, &ev) < 0)
+		return -1;
+
+	w->active = 1;
+
+	return 0;
+}
+
+/* Private to libuev, do not use directly! */
+int uev_watcher_stop(uev_t *w)
+{
+	if (!w) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (!w->active)
+		return 0;
+
+	/* Remove from kernel */
+	epoll_ctl(w->ctx->fd, EPOLL_CTL_DEL, w->fd, NULL);
+	w->active = 0;
 
 	return 0;
 }
 
 /**
  * Create an event loop context
+ * @param ctx  Pointer to an uev_ctx_t context to be initialized
  *
- * @return Returns a new uev_ctx_t context, or %NULL on error.
+ * @return POSIX OK(0) on success, or non-zero on error.
  */
-uev_ctx_t *uev_ctx_create(void)
+int uev_init(uev_ctx_t *ctx)
 {
 	int fd;
-	uev_ctx_t *ctx;
 
 	fd = epoll_create(1);
 	if (fd < 0)
-		return NULL;
+		return -1;
 
-	ctx = (uev_ctx_t *)calloc(1, sizeof(*ctx));
-	if (!ctx) {
-		close(fd);
-		return NULL;
-	}
-
-	ctx->efd = fd;
+	memset(ctx, 0, sizeof(*ctx));
+	ctx->fd = fd;
 	LIST_INIT(&ctx->watchers);
 
-	return ctx;
+	return 0;
 }
 
 /**
- * Destroy an event loop context
- * @param ctx A valid libuev context
+ * Terminate the event loop
+ * @param ctx  A valid libuev context
+ *
+ * @return POSIX OK(0) or non-zero with @param errno set on error.
  */
-void uev_ctx_delete(uev_ctx_t *ctx)
+int uev_exit(uev_ctx_t *ctx)
 {
+	if (!ctx) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	while (!LIST_EMPTY(&ctx->watchers)) {
 		uev_t *w = LIST_FIRST(&ctx->watchers);
 
-		if (UEV_TIMER_TYPE == w->type)
-			uev_timer_delete(ctx, w);
-		else
-			uev_io_delete(ctx, w);
+		/* Remove from internal list */
+		LIST_REMOVE(w, link);
+
+		if (!w->active)
+			continue;
+
+		switch (w->type) {
+		case UEV_TIMER_TYPE:
+			uev_timer_stop(w);
+			break;
+
+		case UEV_SIGNAL_TYPE:
+			uev_signal_stop(w);
+			break;
+
+		case UEV_IO_TYPE:
+			uev_io_stop(w);
+			break;
+		}
 	}
 
-	close(ctx->efd);
-	free(ctx);
+	ctx->running = 0;
+	close(ctx->fd);
+	ctx->fd = -1;
+
+	return 0;
 }
 
 /**
  * Start the event loop
- * @param ctx A valid libuev context
+ * @param ctx  A valid libuev context
  *
  * @return POSIX OK(0) upon successful termination of the event loop, or non-zero on error.
  */
@@ -137,7 +169,7 @@ int uev_run(uev_ctx_t *ctx)
 	int result = 0;
 	uev_t *w;
 
-        if (!ctx) {
+        if (!ctx || ctx->fd < 0) {
 		errno = EINVAL;
                 return -1;
 	}
@@ -148,14 +180,17 @@ int uev_run(uev_ctx_t *ctx)
 	/* Start all dormant timers */
 	LIST_FOREACH(w, &ctx->watchers, link) {
 		if (UEV_TIMER_TYPE == w->type)
-			uev_timer_set(ctx, w, w->timeout, w->period);
+			uev_timer_set(w, w->timeout, w->period);
 	}
 
 	while (ctx->running) {
 		int i, nfds;
 		struct epoll_event events[UEV_MAX_EVENTS];
 
-		while ((nfds = epoll_wait(ctx->efd, events, UEV_MAX_EVENTS, -1)) < 0) {
+		while ((nfds = epoll_wait(ctx->fd, events, UEV_MAX_EVENTS, -1)) < 0) {
+			if (!ctx->running)
+				break;
+
 			if (EINTR == errno)
 				continue; /* Signalled, try again */
 		exit:
@@ -164,7 +199,7 @@ int uev_run(uev_ctx_t *ctx)
 			break;
 		}
 
-		for (i = 0; i < nfds; i++) {
+		for (i = 0; ctx->running && i < nfds; i++) {
 			w = (uev_t *)events[i].data.ptr;
 
 			if (UEV_TIMER_TYPE == w->type) {
@@ -172,6 +207,9 @@ int uev_run(uev_ctx_t *ctx)
 
 				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp))
 					goto exit;
+
+				if (!w->period)
+					w->timeout = 0;
 			}
 
 			if (UEV_SIGNAL_TYPE == w->type) {
@@ -188,22 +226,13 @@ int uev_run(uev_ctx_t *ctx)
 				w->cb((struct uev *)ctx, w, w->arg);
 
 			if (UEV_TIMER_TYPE == w->type) {
-				if (!w->period)
-					uev_timer_delete(ctx, w);
+				if (!w->timeout)
+					uev_timer_stop(w);
 			}
 		}
 	}
 
 	return result;
-}
-
-/**
- * Terminate the event loop
- * @param ctx A valid libuev context
- */
-void uev_exit(uev_ctx_t *ctx)
-{
-	ctx->running = 0;
 }
 
 /**

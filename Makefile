@@ -34,7 +34,7 @@ CC          = $(CROSS)gcc
 AR          = $(CROSS)ar
 STRIP       = $(CROSS)strip
 CFLAGS     += -fPIC -Os
-CPPFLAGS   += -W -Wall -Iinclude
+CPPFLAGS   += -W -Wall -Werror -Iinclude
 ARFLAGS     = crus
 JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.*
 

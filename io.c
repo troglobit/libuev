@@ -29,28 +29,53 @@
 /**
  * Create an I/O watcher
  * @param ctx     A valid libuev context
- * @param handler I/O callback
- * @param data    Optional callback argument
- * @param fd      File descriptor to watch
- * @param dir     Direction of I/O to watch for: %UEV_DIR_INBOUND, or %UEV_DIR_OUTBOUND
+ * @param w       Pointer to an uev_t watcher
+ * @param cb      I/O callback
+ * @param arg     Optional callback argument
+ * @param fd      File descriptor to watch, or -1 to register an empty watcher
+ * @param events  Requested events to watch for, a mask of %UEV_READ and %UEV_WRITE
  *
- * @return The new I/O watcher, or %NULL if invalid pointers or out or memory.
+ * @return POSIX OK(0) or non-zero with @param errno set on error.
  */
-uev_t *uev_io_create(uev_ctx_t *ctx, uev_cb_t *handler, void *data, int fd, uev_dir_t dir)
+int uev_io_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events)
 {
-	return uev_watcher_create(ctx, UEV_FILE_TYPE, fd, dir, handler, data);
+	if (uev_watcher_init(ctx, w, UEV_IO_TYPE, cb, arg, fd, events))
+		return -1;
+
+	if (fd < 0)
+		return 0;
+
+	return uev_watcher_start(w);
 }
 
 /**
- * Delete an I/O watcher
- * @param ctx  A valid libuev context
- * @param w    I/O watcher
+ * Reset an I/O watcher
+ * @param w       Pointer to an uev_t watcher
+ * @param fd      New file descriptor to monitor
+ * @param events  Requested events to watch for, a mask of %UEV_READ and %UEV_WRITE
  *
- * @return POSIX OK(0) or non-zero with @param errno set.
+ * @return POSIX OK(0) or non-zero with @param errno set on error.
  */
-int uev_io_delete(uev_ctx_t *ctx, uev_t *w)
+int uev_io_set(uev_t *w, int fd, int events)
 {
-	return uev_watcher_delete(ctx, w);
+	if (uev_io_stop(w))
+		return -1;
+
+	/* Remove from internal list */
+	LIST_REMOVE(w, link);
+
+	return uev_io_init(w->ctx, w, (uev_cb_t *)w->cb, w->arg, fd, events);
+}
+
+/**
+ * Stop an I/O watcher
+ * @param w  Pointer to an uev_t watcher
+ *
+ * @return POSIX OK(0) or non-zero with @param errno set on error.
+ */
+int uev_io_stop(uev_t *w)
+{
+	return uev_watcher_stop(w);
 }
 
 /**

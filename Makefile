@@ -107,8 +107,12 @@ test: Makefile test.o $(STATICLIB)
 	@printf "  TEST    %s\n" $(STATICLIB)
 	@$(CC) $(CPPFLAGS) -g -o test test.c $(STATICLIB) && ./test
 
-check: clean
-	@$(CHECK) $(CHECK_FLAGS) $(CPPFLAGS) $(SRCS)
+bench: Makefile bench.o $(STATICLIB)
+	@printf "  BENCH   %s\n" $(STATICLIB)
+	@$(CC) $(CPPFLAGS) -g -o bench bench.c $(STATICLIB) && ./bench
+
+check:
+	@$(CHECK) $(CHECK_FLAGS) $(CPPFLAGS) $(SRCS) bench.c
 
 clean:
 	-@$(RM) $(TARGET) *.o test

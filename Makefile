@@ -30,12 +30,16 @@ NAME        = libuev
 PKG         = $(NAME)-$(VERSION)
 ARCHIVE     = $(PKG).tar.xz
 
-CC          = $(CROSS)gcc
-AR          = $(CROSS)ar
-STRIP       = $(CROSS)strip
+CC         ?= $(CROSS)gcc
+AR         ?= $(CROSS)ar
+STRIP      ?= $(CROSS)strip
+CHECK      ?= sparse
 CFLAGS     += -fPIC -Os
-CPPFLAGS   += -W -Wall -Werror -Iinclude
+CPPFLAGS   += -W -Wall -Werror
 ARFLAGS     = crus
+CHECK_FLAGS = -Wcast-to-as -Wdefault-bitfield-sign -Wdo-while -Wparen-string        \
+	      -Wptr-subtraction-blows -Wreturn-void -Wshadow -Wtypesign -Wbitwise   \
+	      -std=gnu99  -D__x86_64__ -D__LP64__ -I/usr/include/x86_64-linux-gnu
 JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.*
 
 LIBNAME     = $(NAME)
@@ -102,6 +106,9 @@ strip: $(TARGET)
 test: Makefile test.o $(STATICLIB)
 	@printf "  TEST    %s\n" $(STATICLIB)
 	@$(CC) $(CPPFLAGS) -g -o test test.c $(STATICLIB) && ./test
+
+check: clean
+	@$(CHECK) $(CHECK_FLAGS) $(CPPFLAGS) $(SRCS)
 
 clean:
 	-@$(RM) $(TARGET) *.o test

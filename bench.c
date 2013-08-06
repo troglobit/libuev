@@ -149,7 +149,7 @@ static struct timeval *run_once(uev_ctx_t *ctx)
 		ta.tv_sec * 1000000L + ta.tv_usec,
 		ts.tv_sec * 1000000L + ts.tv_usec);
 
-	return (&te);
+	return &te;
 }
 
 int main(int argc, char **argv)
@@ -183,13 +183,14 @@ int main(int argc, char **argv)
 
 		default:
 			fprintf(stderr, "Illegal argument \"%c\"\n", c);
-			exit(1);
+			return 1;
 		}
 	}
 
-	rl.rlim_cur = rl.rlim_max = num_pipes * 2 + 50;
+	rl.rlim_cur = rl.rlim_max = num_pipes * 3 + 50;
 	if (setrlimit(RLIMIT_NOFILE, &rl) == -1) {
 		perror("setrlimit");
+		return 1;
 	}
 
 	args   = calloc(num_pipes, sizeof(myarg_t));
@@ -198,7 +199,7 @@ int main(int argc, char **argv)
 	pipes  = calloc(num_pipes * 2, sizeof(int));
 	if (!args || !evio || !evto || !pipes) {
 		perror("calloc");
-		exit(1);
+		return 1;
 	}
 
 	uev_init(&ctx);

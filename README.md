@@ -50,3 +50,19 @@ for use-cases where the engineer wants to avoid the use of threads.  To
 support threads the signal handling needs to be patched first, other
 than that an event context per thread should be sufficient.
 
+
+History and References
+----------------------
+
+Libuev is a fork of the original LibUEvent by Flemming Madsen but has
+been completely rewritten and is now more similar to the famous libev by
+Mark Lehmann.  Another small event library used for inspiration is the
+very small Picoev by Oku Kazuho.
+
+   * http://code.google.com/p/libuevent/
+   * http://software.schmorp.de/pkg/libev.html
+   * http://libev.schmorp.de/bench.html
+   * http://libevent.org/
+   * http://developer.cybozu.co.jp/archives/kazuho/2009/08/picoev-a-tiny-e.html
+   * http://coderepos.org/share/browser/lang/c/picoev/
+

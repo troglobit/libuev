@@ -3,7 +3,8 @@ libuev | Micro event loop library
 
 Libuev is a small event library in the style of libevent, the excellent
 libev and the venerable Xt(3) event loop.  The primary target is modern
-embedded Linux systems.
+embedded Linux systems.  For power users, libuev is mainly a convenience
+wrapper for epoll, timerfd and signalfd.
 
 
 Usage
@@ -19,11 +20,16 @@ loop that will only return at program termination.
    3. Enter the event loop with `uev_run()`
    4. Exit the event loop with `uev_exit()`, possibly from a callback
 
-**Note:** Make sure to use non-blocking stream I/O!
+**Note:** Make sure to use non-blocking stream I/O!  Most hard to find
+  bugs in event driven applications is due to file descriptors and
+  sockets being opened in blocking mode.  Be careful out there!
 
 
 Example
 -------
+
+Here is a very brief example to illustrate how one can use libuev.  But
+please, pay more attention to return values than the author did below.
 
     #include "uev.h"
     
@@ -56,6 +62,9 @@ Example
 
         return uev_run(&ctx);
     }
+
+For a more complete, and perhaps more relevant example, see the code for
+the TFTP/FTP server [uftpd](https://github.com/troglobit/uftpd).
 
 
 API

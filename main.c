@@ -165,7 +165,14 @@ int uev_exit(uev_ctx_t *ctx)
  * @param ctx    A valid libuev context
  * @param flags  A mask of %UEV_ONCE and %UEV_NONBLOCK, or zero
  *
- * @return POSIX OK(0) upon successful termination of the event loop, or non-zero on error.
+ * With @flags set to %UEV_ONCE the event loop returns after the first
+ * event has been served, useful for instance to set a timeout on a file
+ * descriptor.  If @flags also has the %UEV_NONBLOCK flag set the event
+ * loop will return immediately if no event is pending, useful when run
+ * inside another event loop.
+ *
+ * @return POSIX OK(0) upon successful termination of the event loop, or
+ * non-zero on error.
  */
 int uev_run(uev_ctx_t *ctx, int flags)
 {

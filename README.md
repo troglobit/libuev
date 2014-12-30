@@ -48,6 +48,7 @@ Here is the interface to libuEv.  It handles three different types of
 events: I/O (files, sockets, message queues, etc.), timers, and
 signals.
 
+```C
     /* Event loop functions */
     int uev_init        (uev_ctx_t *ctx);
     int uev_exit        (uev_ctx_t *ctx);
@@ -74,6 +75,7 @@ signals.
     int uev_signal_set  (uev_t *w, int signo);
     /* Stop signal watcher */
     int uev_signal_stop (uev_t *w);
+```
 
 To be able to setup callbacks to events the developer first need to
 create an *event context*, achieved by calling `uev_init()` with a

@@ -111,6 +111,10 @@ bench: Makefile bench.o $(STATICLIB)
 	@printf "  BENCH   %s\n" $(STATICLIB)
 	@$(CC) $(CPPFLAGS) -g -o bench bench.c $(STATICLIB) && ./bench
 
+joystick: Makefile joystick.o $(STATICLIB)
+	@printf "  JOTST   %s\n" $(STATICLIB)
+	@$(CC) $(CPPFLAGS) -g -o joystick joystick.c $(STATICLIB) && ./joystick
+
 check:
 	@$(CHECK) $(CHECK_FLAGS) $(CPPFLAGS) $(SRCS) bench.c
 

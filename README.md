@@ -1,14 +1,14 @@
 libuEv | Simple event loop for Linux
 ====================================
 
-> "Why an event loop library, why not use threads?"
+> "Why an event loop, why not use threads?"
 
 With the advent of light-weight processes (threads) programmers these
 days have a [golden hammer](http://c2.com/cgi/wiki?GoldenHammer) they
 often swing without consideration.  Event loops and non-blocking I/O is
 often a far easier approach, as well as less error prone.
 
-The purpose of many applications is, with a little logic sprikled on
+The purpose of many applications is, with a little logic sprinkled on
 top, to act on: network packets entering an interface, timeouts
 expiring, mouse clicks, or other types of events.  Such applications are
 often very well suited to use an event loop.
@@ -54,35 +54,44 @@ signals.
     /* Event callback definition, arg is the same arg as passed to below *_init() functions */
     typedef void (uev_cb_t)(uev_ctx_t *ctx, uev_t *w, void *arg, int events);
     
-    /* I/O watcher */
+    /* I/O watcher, fd is the non-blocking file descriptor, events is UEV_READ and/or UEV_WRITE */
     int uev_io_init     (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events);
     int uev_io_set      (uev_t *w, int fd, int events);
     int uev_io_stop     (uev_t *w);
 
     /* Timer watcher, timeout and period in milliseconds */
     int uev_timer_init  (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeout, int period);
+    /* Change timer timeout and/or period */
     int uev_timer_set   (uev_t *w, int timeout, int period);
+    /* Stop a timer */
     int uev_timer_stop  (uev_t *w);
 
-    /* Signal watcher */
+    /* Signal watcher, signo is the signal to wait for, e.g., SIGTERM */
     int uev_signal_init (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo);
+    /* Change the signal a watcher waits for */
     int uev_signal_set  (uev_t *w, int signo);
+    /* Stop signal watcher */
     int uev_signal_stop (uev_t *w);
 
 To be able to setup callbacks to events the developer first need to
 create an *event context*, achieved by calling `uev_init()` with a
 pointer to a local `uev_ctx_t` variable.
 
-Events are monitored by watchers and each watcher needs to be
-registered, with a callback, with the event context.  This is done by
-passing the `uev_ctx_t` variable, along with an `uev_t` variable to each
-event's `_init()` function.
+Events are monitored by watchers in libuEV.  A watcher is nothing more
+than a mechnism that polls a file descriptor.  Register a watcher with a
+callback to the event context by passing the `uev_ctx_t` variable, along
+with an `uev_t` variable to each event's `_init()` function.
+
+When all watchers are registered call the event loop with `uev_run()`
+and the argument to the event context.
+
+Summary:
 
    1. Prepare an event context with `uev_init()`
-   2. Register callback with `uev_io_init()`, `uev_signal_init()` or
-      `uev_timer_init()`
+   2. Register event callbacks with `uev_io_init()`, `uev_signal_init()`
+      or `uev_timer_init()`
    3. Enter the event loop with `uev_run()`
-   4. Exit the event loop with `uev_exit()`, possibly from a callback
+   4. Leave the event loop with `uev_exit()`, possibly from a callback
 
 **Note:** Make sure to use non-blocking stream I/O!  Most hard to find
   bugs in event driven applications is due to file descriptors and
@@ -148,7 +157,8 @@ int main(void)
 
 To compile the program, save the code as `joystick.c` and call GCC with
 `gcc -o joystick joystick.c io.c timer.c signal.c main.c` from this
-directory, skips using a Makefile altogether.
+directory, skips using a Makefile altogether.  Alternatively, call the
+`Makefile` with `make joystick` from this directory.
 
 For a more complete, and perhaps more relevant example, see the code for
 the TFTP/FTP server [uftpd](https://github.com/troglobit/uftpd).  It

@@ -15,17 +15,19 @@ often very well suited to use an event loop.
 
 Applications that need to churn massively parallel algorithms are more
 suitable for running multiple (independent) threads on several CPU
-cores.  However, threaded applications need to deal with all the issues
-concurrency can cause, like: race conditions, deadlocks, live locks,
-etc. Writing error free threaded applications is hard, debugging them
-can be even harder.
+cores.  However, threaded applications must deal with the side effects
+of concurrency, like: race conditions, deadlocks, live locks, etc.
+Writing error free threaded applications is hard, debugging them can be
+even harder.
 
 Sometimes the combination of multiple threads *and* an event loop per
 thread can be the best approach, but each application of course needs to
 be broken down individually to find the most optimal approach.  Do keep
 in mind, however, that not all systems your application will run on have
 multiple CPU cores -- some small embedded systems still use a single CPU
-core, even though they run Linux.
+core, even though they run Linux, with multiple threads a program may
+actually run slower!  Always profile your program, and if possible, test
+it on several different architectures.
 
 LibuEv is a simple event loop in the style of the more established
 [libevent](http://libevent.org/),
@@ -83,7 +85,11 @@ callback to the event context by passing the `uev_ctx_t` variable, along
 with an `uev_t` variable to each event's `_init()` function.
 
 When all watchers are registered call the event loop with `uev_run()`
-and the argument to the event context.
+and the argument to the event context.  The flags parameter is slightly
+mysterious, but can be used to integrate libuEv into another event loop.
+With `flags` set to `UEV_ONCE` the event loop returns after having
+served the first event.  If `flags` is set to `UEV_ONCE | UEV_NONBLOCK`
+the event loop returns immediately if no event is available.
 
 Summary:
 

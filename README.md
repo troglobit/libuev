@@ -55,10 +55,10 @@ signals.
  */
 void callback(uev_ctx_t *ctx, uev_t *w, void *arg, int events);
 
-/* Event loop functions */
+/* Event loop functions, notice use of flags! */
 int uev_init       (uev_ctx_t *ctx);
 int uev_exit       (uev_ctx_t *ctx);
-int uev_run        (uev_ctx_t *ctx, int flags);         /* UEV_ONCE, UEV_NONBLOCK, or UEV_NONE(0) */
+int uev_run        (uev_ctx_t *ctx, int flags);         /* UEV_NONE, UEV_ONCE, and/or UEV_NONBLOCK */
 
 /* I/O watcher:     fd is non-blocking, events is UEV_READ and/or UEV_WRITE */
 int uev_io_init    (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events);

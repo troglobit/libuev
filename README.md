@@ -1,7 +1,7 @@
 libuEv | Simple event loop for Linux
 ====================================
 
-> "Why an event loop, why not use threads?"
+> “Why an event loop, why not use threads?”
 
 With the advent of light-weight processes (threads) programmers these
 days have a [golden hammer](http://c2.com/cgi/wiki?GoldenHammer) they
@@ -27,7 +27,7 @@ in mind, however, that not all systems your application will run on have
 multiple CPU cores -- some small embedded systems still use a single CPU
 core, even though they run Linux, with multiple threads a program may
 actually run slower!  Always profile your program, and if possible, test
-it on several different architectures.
+it on different architectures.
 
 LibuEv is a simple event loop in the style of the more established
 [libevent](http://libevent.org/),
@@ -86,7 +86,7 @@ callback to the event context by passing the `uev_ctx_t` variable, along
 with an `uev_t` variable to each event's `_init()` function.
 
 When all watchers are registered call the event loop with `uev_run()`
-and the argument to the event context.  The flags parameter is slightly
+and the argument to the event context.  The `flags` parameter is slightly
 mysterious, but can be used to integrate libuEv into another event loop.
 With `flags` set to `UEV_ONCE` the event loop returns after having
 served the first event.  If `flags` is set to `UEV_ONCE | UEV_NONBLOCK`
@@ -94,15 +94,15 @@ the event loop returns immediately if no event is available.
 
 Summary:
 
-   1. Prepare an event context with `uev_init()`
-   2. Register event callbacks with `uev_io_init()`, `uev_signal_init()`
-      or `uev_timer_init()`
-   3. Enter the event loop with `uev_run()`
-   4. Leave the event loop with `uev_exit()`, possibly from a callback
+1. Prepare an event context with `uev_init()`
+2. Register event callbacks with `uev_io_init()`, `uev_signal_init()`
+   or `uev_timer_init()`
+3. Enter the event loop with `uev_run()`
+4. Leave the event loop with `uev_exit()`, possibly from a callback
 
 **Note:** Make sure to use non-blocking stream I/O!  Most hard to find
-  bugs in event driven applications is due to file descriptors and
-  sockets being opened in blocking mode.  Be careful out there!
+bugs in event driven applications is due to file descriptors and sockets
+being opened in blocking mode.  Be careful out there!
 
 
 Example
@@ -183,9 +183,9 @@ The library is built and developed for GNU/Linux systems, as such it may
 use GNU GCC and GNU Make specific features.  Patches to support *BSD
 kqueue are most welcome.
 
-   * `make all`: The library
-   * `make test`: Test and showcase
-   * `make install`: Honors `$prefix` and `$DESTDIR` environment variables
+* `make all`: The library
+* `make test`: Test and showcase
+* `make install`: Honors `$prefix` and `$DESTDIR` environment variables
 
 Size of libuEv:
 
@@ -209,21 +209,21 @@ Size of libuEv:
 Origin & References
 --------------------
 
-LibuEv was originally based on
+LibuEv (this library) was originally based on
 [LibUEvent](http://code.google.com/p/libuevent/) by
 [Flemming Madsen](http://www.madsensoft.dk/) but has been completely
-rewritten and is now more similar to the famous
+rewritten with a much clearer API.  Now more similar to the famous
 [libev](http://software.schmorp.de/pkg/libev.html) by Mark Lehmann.
 Another small event library used for inspiration is the very small
 [Picoev](https://github.com/kazuho/picoev) by
 [Oku Kazuho](https://github.com/kazuho).
 
-   * http://code.google.com/p/libuevent/
-   * http://software.schmorp.de/pkg/libev.html
-   * http://libev.schmorp.de/bench.html
-   * http://libevent.org/
-   * http://developer.cybozu.co.jp/archives/kazuho/2009/08/picoev-a-tiny-e.html
-   * http://coderepos.org/share/browser/lang/c/picoev/
+* http://code.google.com/p/libuevent/
+* http://software.schmorp.de/pkg/libev.html
+* http://libev.schmorp.de/bench.html
+* http://libevent.org/
+* http://developer.cybozu.co.jp/archives/kazuho/2009/08/picoev-a-tiny-e.html
+* http://coderepos.org/share/browser/lang/c/picoev/
 
 LibuEv is maintained by [Joachim Nilsson](mailto:troglobit@gmail.com) at
 [GitHub](https://github.com/troglobit/libuev)

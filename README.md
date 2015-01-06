@@ -9,7 +9,7 @@ often swing without consideration.  Event loops and non-blocking I/O is
 often a far easier approach, as well as less error prone.
 
 The purpose of many applications is, with a little logic sprinkled on
-top, to act on: network packets entering an interface, timeouts
+top, to act upon: network packets entering an interface, timeouts
 expiring, mouse clicks, or other types of events.  Such applications are
 often very well suited to use an event loop.
 
@@ -35,7 +35,7 @@ LibuEv is a simple event loop in the style of the more established
 [Xt(3)](http://unix.com/man-page/All/3x/XtDispatchEvent) event loop.
 The *u* (micro) in the name refers to both the small feature set and the
 small size overhead impact of the library.  The primary target of libuEv
-is modern Linux systems.
+is a modern Linux system.
 
 Experienced developers may appreciate that libuEv is built on top of
 modern Linux APIs: epoll, timerfd and signalfd.
@@ -101,15 +101,15 @@ Summary:
 4. Leave the event loop with `uev_exit()`, possibly from a callback
 
 **Note:** Make sure to use non-blocking stream I/O!  Most hard to find
-bugs in event driven applications is due to file descriptors and sockets
-being opened in blocking mode.  Be careful out there!
+bugs in event driven applications are due to sockets and files being
+opened in blocking mode.  Be careful out there!
 
 
 Example
 -------
 
 Here follows a very brief example to illustrate how one can use libuEv
-to act on joystick input.
+to act upon joystick input.
 
 ```C
 #include <err.h>
@@ -179,9 +179,10 @@ libevent and libev.
 Build & Install
 ---------------
 
-The library is built and developed for GNU/Linux systems, as such it may
-use GNU GCC and GNU Make specific features.  Patches to support *BSD
-kqueue are most welcome.
+The library is built for and developed on GNU/Linux systems, so it may
+use GCC and GNU Make specific extensions here and there.  This is not on
+purpose and patches to correct this are most welcome.  Particularly
+patches to support *BSD and its kqueue interface.
 
 * `make all`: The library
 * `make test`: Test and showcase

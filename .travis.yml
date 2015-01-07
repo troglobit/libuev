@@ -1,0 +1,7 @@
+# Travis CI integration -- https://travis-ci.org/troglobit/libuev
+language: c
+compiler:
+  - gcc
+  - clang
+
+script: make

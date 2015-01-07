@@ -25,7 +25,7 @@
 .PHONY: all test clean
 
 #VERSION    = $(shell git tag -l | tail -1)
-VERSION    ?= 1.0.1
+VERSION    ?= 1.0.2
 NAME        = libuev
 PKG         = $(NAME)-$(VERSION)
 ARCHIVE     = $(PKG).tar.xz
@@ -126,7 +126,7 @@ distclean: clean
 
 dist:
 	@echo "Building .xz tarball of $(PKG) in parent dir..."
-	git archive --format=tar --prefix=$(PKG)/ $(VERSION) | xz >../$(ARCHIVE)
+	git archive --format=tar --prefix=$(PKG)/ v$(VERSION) | xz >../$(ARCHIVE)
 	@(cd ..; md5sum $(ARCHIVE) | tee $(ARCHIVE).md5)
 
 # Include automatically generated rules

@@ -33,13 +33,9 @@ ARCHIVE     = $(PKG).tar.xz
 CC         ?= $(CROSS)gcc
 AR         ?= $(CROSS)ar
 STRIP      ?= $(CROSS)strip
-CHECK      ?= sparse
 CFLAGS     += -fPIC -Os
 CPPFLAGS   += -W -Wall -Werror
 ARFLAGS     = crus
-CHECK_FLAGS = -Wcast-to-as -Wdefault-bitfield-sign -Wdo-while -Wparen-string        \
-	      -Wptr-subtraction-blows -Wreturn-void -Wshadow -Wtypesign -Wbitwise   \
-	      -std=gnu99  -D__x86_64__ -D__LP64__ -I/usr/include/x86_64-linux-gnu
 JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.*
 
 LIBNAME     = $(NAME)
@@ -115,8 +111,9 @@ joystick: Makefile joystick.o $(STATICLIB)
 	@printf "  JOTST   %s\n" $(STATICLIB)
 	@$(CC) $(CPPFLAGS) -g -o joystick joystick.c $(STATICLIB) && ./joystick
 
-check:
-	@$(CHECK) $(CHECK_FLAGS) $(CPPFLAGS) $(SRCS) bench.c
+# Runs Clang scan-build on the whole tree
+check: clean
+	@scan-build $(MAKE) all
 
 clean:
 	-@$(RM) $(TARGET) *.o test

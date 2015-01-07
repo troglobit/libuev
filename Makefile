@@ -1,7 +1,7 @@
 # -*-Makefile-*- for libuEv
 #
-# Copyright (c) 2012  Flemming Madsen <flemming!madsen()madsensoft!dk>
-# Copyright (c) 2013  Joachim Nilsson <troglobit()gmail!com>
+# Copyright (c) 2012       Flemming Madsen <flemming!madsen()madsensoft!dk>
+# Copyright (c) 2013-2015  Joachim Nilsson <troglobit()gmail!com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -116,7 +116,7 @@ check: clean
 	@scan-build $(MAKE) all
 
 clean:
-	-@$(RM) $(TARGET) *.o test
+	-@$(RM) $(TARGET) *.o test joystick bench
 
 distclean: clean
 	-@$(RM) $(DEPS) $(JUNK)

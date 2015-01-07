@@ -1,5 +1,7 @@
 libuEv | Simple event loop for Linux
 ====================================
+[![Build Status](https://travis-ci.org/troglobit/libuev.png?branch=master)](https://travis-ci.org/troglobit/libuev)
+[![Coverity Scan Status](https://scan.coverity.com/projects/3846/badge.svg)](https://scan.coverity.com/projects/3846)
 
 > “Why an event loop, why not use threads?”
 

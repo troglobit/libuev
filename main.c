@@ -1,4 +1,4 @@
-/* libuev - Micro event loop library
+/* libuEv - Micro event loop library
  *
  * Copyright (c) 2012  Flemming Madsen <flemming!madsen()madsensoft!dk>
  * Copyright (c) 2013  Joachim Nilsson <troglobit()gmail!com>
@@ -33,7 +33,7 @@
 
 #define UNUSED(arg) arg __attribute__ ((unused))
 
-/* Private to libuev, do not use directly! */
+/* Private to libuEv, do not use directly! */
 int uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events)
 {
 	if (!ctx || !w) {
@@ -54,7 +54,7 @@ int uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, vo
 	return 0;
 }
 
-/* Private to libuev, do not use directly! */
+/* Private to libuEv, do not use directly! */
 int uev_watcher_start(uev_t *w)
 {
 	struct epoll_event ev;
@@ -77,7 +77,7 @@ int uev_watcher_start(uev_t *w)
 	return 0;
 }
 
-/* Private to libuev, do not use directly! */
+/* Private to libuEv, do not use directly! */
 int uev_watcher_stop(uev_t *w)
 {
 	if (!w) {
@@ -118,7 +118,7 @@ int uev_init(uev_ctx_t *ctx)
 
 /**
  * Terminate the event loop
- * @param ctx  A valid libuev context
+ * @param ctx  A valid libuEv context
  *
  * @return POSIX OK(0) or non-zero with @param errno set on error.
  */
@@ -162,7 +162,7 @@ int uev_exit(uev_ctx_t *ctx)
 
 /**
  * Start the event loop
- * @param ctx    A valid libuev context
+ * @param ctx    A valid libuEv context
  * @param flags  A mask of %UEV_ONCE and %UEV_NONBLOCK, or zero
  *
  * With @flags set to %UEV_ONCE the event loop returns after the first

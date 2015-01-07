@@ -32,7 +32,7 @@
  *
  * Sun 04/08/2013 - Modified by Joachim Nilsson <troglobit@gmail.com>
  *
- *     Adaptations for libuev, no libev/libevent API wrappers available.
+ *     Adaptations for libuEv, no libev/libevent API wrappers available.
  *     Reindent to Linux coding style
  */
 

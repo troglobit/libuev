@@ -1,4 +1,4 @@
-/* libuev - Micro event loop library
+/* libuEv - Micro event loop library
  *
  * Copyright (c) 2012  Flemming Madsen <flemming!madsen()madsensoft!dk>
  * Copyright (c) 2013  Joachim Nilsson <troglobit()gmail!com>
@@ -28,7 +28,7 @@
 
 /**
  * Create an I/O watcher
- * @param ctx     A valid libuev context
+ * @param ctx     A valid libuEv context
  * @param w       Pointer to an uev_t watcher
  * @param cb      I/O callback
  * @param arg     Optional callback argument

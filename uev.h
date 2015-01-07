@@ -1,4 +1,4 @@
-/* libuev - Micro event loop library
+/* libuEv - Micro event loop library
  *
  * Copyright (c) 2012  Flemming Madsen <flemming!madsen()madsensoft!dk>
  * Copyright (c) 2013  Joachim Nilsson <troglobit()gmail!com>
@@ -52,7 +52,7 @@ typedef enum {
 /* Forward declare due to dependencys, don't try this at home kids. */
 struct uev;
 
-/* Main libuev context type */
+/* Main libuEv context type */
 typedef struct {
 	int             running;
 	int             fd;	/* For epoll() */

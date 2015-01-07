@@ -1,4 +1,4 @@
-/* Test libuev event library
+/* Test libuEv event library
  *
  * Copyright (c) 2012  Flemming Madsen <flemming!madsen()madsensoft!dk>
  * Copyright (c) 2013  Joachim Nilsson <troglobit()gmail!com>

@@ -3,6 +3,20 @@ libuEv | Simple event loop for Linux
 [![Build Status](https://travis-ci.org/troglobit/libuev.png?branch=master)](https://travis-ci.org/troglobit/libuev)
 [![Coverity Scan Status](https://scan.coverity.com/projects/3846/badge.svg)](https://scan.coverity.com/projects/3846)
 
+
+Table of Contents
+-----------------
+
+* [Introduction](#introduction)
+* [API](#api)
+* [Example](#example)
+* [Build & Install](#build--install)
+* [Origin & References](#origin--references)
+
+
+Introduction
+------------
+
 > “Why an event loop, why not use threads?”
 
 With the advent of light-weight processes (threads) programmers these
@@ -167,15 +181,15 @@ int main(void)
 To compile the program, save the code as `joystick.c` and call GCC with
 `gcc -o joystick joystick.c io.c timer.c signal.c main.c` from this
 directory, skips using a Makefile altogether.  Alternatively, call the
-`Makefile` with `make joystick` from this directory.
+`Makefile` with <kbd>make joystick</kbd> from this directory.
 
 For a more complete, and perhaps more relevant example, see the code for
 the TFTP/FTP server [uftpd](https://github.com/troglobit/uftpd).  It
 uses libuEv as a GIT submodule.
 
-Also, see the `bench.c` program (`make bench` from within the library)
-for [reference benchmarks](http://libev.schmorp.de/bench.html) against
-libevent and libev.
+Also, see the `bench.c` program (<kbd>make bench</kbd> from within the
+library) for [reference benchmarks](http://libev.schmorp.de/bench.html)
+against libevent and libev.
 
 
 Build & Install
@@ -186,9 +200,9 @@ use GCC and GNU Make specific extensions here and there.  This is not on
 purpose and patches to correct this are most welcome.  Particularly
 patches to support *BSD and its kqueue interface.
 
-* `make all`: The library
-* `make test`: Test and showcase
-* `make install`: Honors `$prefix` and `$DESTDIR` environment variables
+* <kbd>make all</kbd>: The library
+* <kbd>make test</kbd>: Test and showcase
+* <kbd>make install</kbd>: Honors `$prefix` and `$DESTDIR` environment variables
 
 Size of libuEv:
 

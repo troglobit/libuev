@@ -42,17 +42,17 @@ static uev_t *watchdog;
 
 static void lifetime_cb(uev_ctx_t *ctx, uev_t UNUSED(*w), void *arg, int UNUSED(events))
 {
-	fprintf(stderr, "\nLifetime exceeded %p\n", arg);
+	fprintf(stderr, "\nLifetime exceeded, program completed successfully! (arg:%p)\n", arg);
 	uev_exit(ctx);
 }
 
 /* The pipe watchdog, if it triggers we haven't received data in time. */
-static void timeout_cb(uev_ctx_t *ctx, uev_t *w, void *arg, int UNUSED(events))
+static void timeout_cb(uev_ctx_t *ctx, uev_t *UNUSED(w), void *arg, int UNUSED(events))
 {
 	watchdog = NULL;
 	fprintf(stderr, "\nTimeout exceeded %p\n", arg);
 
-	uev_timer_stop(w);
+	// uev_timer_stop(w); <-- No need to stop timers with period=0 :)
 	uev_exit(ctx);
 }
 

@@ -56,6 +56,11 @@ is a modern Linux system.
 Experienced developers may appreciate that libuEv is built on top of
 modern Linux APIs: epoll, timerfd and signalfd.
 
+> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple]
+
+See the [launchd video](http://www.youtube.com/watch?v=cD_s6Fjdri8) for
+more info.
+
 
 API
 ---
@@ -96,7 +101,7 @@ To be able to set up callbacks to events the developer first need to
 create an *event context*, achieved by calling `uev_init()` with a
 pointer to a local `uev_ctx_t` variable.
 
-Events are monitored by watchers in libuEV.  A watcher is nothing more
+Events are monitored by watchers in libuEv.  A watcher is nothing more
 than a mechnism that polls a file descriptor.  Register a watcher with a
 callback to the event context by passing the `uev_ctx_t` variable, along
 with an `uev_t` variable to each event's `_init()` function.

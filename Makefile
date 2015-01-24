@@ -38,6 +38,7 @@ CPPFLAGS   += -W -Wall -Werror
 ARFLAGS     = crus
 JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.*
 
+ROOTDIR    ?= $(shell pwd)
 LIBNAME     = $(NAME)
 prefix     ?= /usr/local
 libdir     ?= $(prefix)/lib
@@ -57,7 +58,7 @@ TARGET      = $(STATICLIB) $(SOLIB)
 
 # Pattern rules
 .c.o:
-	@printf "  CC      $@\n"
+	@printf "  CC      $(subst $(ROOTDIR)/,,$(shell pwd)/)$@\n"
 	@$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 # Smart autodependecy generation via GCC -M.

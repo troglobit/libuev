@@ -54,9 +54,11 @@ small size overhead impact of the library.  The primary target of libuEv
 is a modern Linux system.
 
 Experienced developers may appreciate that libuEv is built on top of
-modern Linux APIs: epoll, timerfd and signalfd.
+modern Linux APIs: epoll, timerfd and signalfd.  Note, a certain amount
+of care is needed when dealing with APIs that employ signalfd.  For
+details, see this article at [lwn.net](http://lwn.net/Articles/415684/).
 
-> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple]
+> “Event driven software improves concurrency” -- Dave Zarzycki, Apple
 
 See the [launchd video](http://www.youtube.com/watch?v=cD_s6Fjdri8) for
 more info.

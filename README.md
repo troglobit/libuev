@@ -45,31 +45,25 @@ core, even though they run Linux, with multiple threads a program may
 actually run slower!  Always profile your program, and if possible, test
 it on different architectures.
 
-LibuEv is a simple event loop in the style of the more established
-[libevent](http://libevent.org/),
-[libev](http://software.schmorp.de/pkg/libev.html) and the venerable
-[Xt(3)](http://unix.com/man-page/All/3x/XtDispatchEvent) event loop.
-The *u* (micro) in the name refers to both the small feature set and the
-small size overhead impact of the library.  The primary target of libuEv
-is a modern Linux system.
+[libuEv] is a simple event loop in the style of the more established
+[libevent][1], [libev][2] and the venerable [Xt(3)][3] event loop.  The
+*u* (micro) in the name refers to both the small feature set and the
+small size overhead impact of the library.  The primary target of
+[libuEv] is a modern Linux system.
 
-Experienced developers may appreciate that libuEv is built on top of
+Experienced developers may appreciate that [libuEv] is built on top of
 modern Linux APIs: epoll, timerfd and signalfd.  Note, a certain amount
 of care is needed when dealing with APIs that employ signalfd.  For
-details, see this article at [lwn.net](http://lwn.net/Articles/415684/).
+details, see [this article][4] at [lwn.net](http://lwn.net).
 
-> “Event driven software improves concurrency” -- Dave Zarzycki, Apple
-
-See the [launchd video](http://www.youtube.com/watch?v=cD_s6Fjdri8) for
-more info.
+> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple]
 
 
 API
 ---
 
-Here is the interface to libuEv.  It handles three different types of
-events: I/O (files, sockets, message queues, etc.), timers, and
-signals.
+Here is the interface to [libuEv].  It handles three different types of
+events: I/O (files, sockets, message queues, etc.), timers, and signals.
 
 ```C
 /* Callback example, arg is passed from watcher's *_init()
@@ -103,14 +97,14 @@ To be able to set up callbacks to events the developer first need to
 create an *event context*, achieved by calling `uev_init()` with a
 pointer to a local `uev_ctx_t` variable.
 
-Events are monitored by watchers in libuEv.  A watcher is nothing more
+Events are monitored by watchers in [libuEv].  A watcher is nothing more
 than a mechnism that polls a file descriptor.  Register a watcher with a
 callback to the event context by passing the `uev_ctx_t` variable, along
 with an `uev_t` variable to each event's `_init()` function.
 
 When all watchers are registered call the event loop with `uev_run()`
 and the argument to the event context.  The `flags` parameter is slightly
-mysterious, but can be used to integrate libuEv into another event loop.
+mysterious, but can be used to integrate [libuEv] into another event loop.
 With `flags` set to `UEV_ONCE` the event loop returns after having
 served the first event.  If `flags` is set to `UEV_ONCE | UEV_NONBLOCK`
 the event loop returns immediately if no event is available.
@@ -131,7 +125,7 @@ opened in blocking mode.  Be careful out there!
 Example
 -------
 
-Here follows a very brief example to illustrate how one can use libuEv
+Here follows a very brief example to illustrate how one can use [libuEv]
 to act upon joystick input.
 
 ```C
@@ -190,13 +184,12 @@ To compile the program, save the code as `joystick.c` and call GCC with
 directory, skips using a Makefile altogether.  Alternatively, call the
 `Makefile` with <kbd>make joystick</kbd> from this directory.
 
-For a more complete, and perhaps more relevant example, see the code for
-the TFTP/FTP server [uftpd](https://github.com/troglobit/uftpd).  It
-uses libuEv as a GIT submodule.
+More complete and relevant example uses of [libuEv] is the TFTP/FTP
+server [uftpd][5], and the Linux `/sbin/init` replacement [finit][6].
+Both use [libuEv] as a GIT submodule.
 
 Also, see the `bench.c` program (<kbd>make bench</kbd> from within the
-library) for [reference benchmarks](http://libev.schmorp.de/bench.html)
-against libevent and libev.
+library) for [reference benchmarks][7] against libevent and libev.
 
 
 Build & Install
@@ -211,7 +204,7 @@ patches to support *BSD and its kqueue interface.
 * <kbd>make test</kbd>: Test and showcase
 * <kbd>make install</kbd>: Honors `$prefix` and `$DESTDIR` environment variables
 
-Size of libuEv:
+Size of [libuEv]:
 
     $ make strip
     CC      main.o
@@ -233,22 +226,26 @@ Size of libuEv:
 Origin & References
 --------------------
 
-LibuEv (this library) was originally based on
-[LibUEvent](http://code.google.com/p/libuevent/) by
-[Flemming Madsen](http://www.madsensoft.dk/) but has been completely
-rewritten with a much clearer API.  Now more similar to the famous
-[libev](http://software.schmorp.de/pkg/libev.html) by Mark Lehmann.
-Another small event library used for inspiration is the very small
-[Picoev](https://github.com/kazuho/picoev) by
-[Oku Kazuho](https://github.com/kazuho).
+[libuEv] was originally based on [LibUEvent][8] by [Flemming Madsen] but
+has been completely rewritten with a much clearer API.  Now more similar
+to the famous [libev][2] by [Mark Lehmann].  Another small event library
+used for inspiration is the very small [Picoev][9] by [Oku Kazuho].
 
-* http://code.google.com/p/libuevent/
-* http://software.schmorp.de/pkg/libev.html
-* http://libev.schmorp.de/bench.html
-* http://libevent.org/
-* http://developer.cybozu.co.jp/archives/kazuho/2009/08/picoev-a-tiny-e.html
-* http://coderepos.org/share/browser/lang/c/picoev/
+[1]: http://libevent.org
+[2]: http://software.schmorp.de/pkg/libev.html
+[3]: http://unix.com/man-page/All/3x/XtDispatchEvent
+[4]: http://lwn.net/Articles/415684/
+[5]: https://github.com/troglobit/uftpd
+[6]: https://github.com/troglobit/finit
+[7]: http://libev.schmorp.de/bench.html
+[8]: http://code.google.com/p/libuevent/
+[9]: https://github.com/kazuho/picoev
+[LibuEV]: https://github.com/troglobit/libuev
+[Oku Kazuho]: https://github.com/kazuho
+[Mark Lehmann]: http://software.schmorp.de
+[Joachim Nilsson]: http://troglobit.com
+[Flemming Madsen]: http://www.madsensoft.dk
+[Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8
 
-LibuEv is maintained by [Joachim Nilsson](mailto:troglobit@gmail.com) at
-[GitHub](https://github.com/troglobit/libuev)
+[libuEv] is developed and maintained by [Joachim Nilsson]
 

@@ -25,7 +25,7 @@
 .PHONY: all test clean
 
 #VERSION    = $(shell git tag -l | tail -1)
-VERSION    ?= 1.0.3
+VERSION    ?= 1.0.4
 NAME        = libuev
 PKG         = $(NAME)-$(VERSION)
 ARCHIVE     = $(PKG).tar.xz

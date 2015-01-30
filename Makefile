@@ -44,7 +44,7 @@ prefix     ?= /usr/local
 libdir     ?= $(prefix)/lib
 datadir    ?= $(prefix)/share/doc/$(LIBNAME)
 incdir     ?= $(prefix)/include
-DISTFILES   = README LICENSE test.c
+DISTFILES   = README CHANGELOG TODO LICENSE test.c
 HEADER      = uev.h
 
 OBJS       := main.o io.o timer.o signal.o

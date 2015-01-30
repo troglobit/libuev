@@ -49,23 +49,18 @@ HEADER      = uev.h
 
 OBJS       := main.o io.o timer.o signal.o
 SRCS       := $(OBJS:.o=.c)
-DEPS       := $(addprefix .,$(SRCS:.c=.d))
+DEPS       := $(SRCS:.c=.d)
 VER         = 1
 SOLIB       = $(LIBNAME).so.$(VER)
 SYMLIB      = $(LIBNAME).so
 STATICLIB   = $(LIBNAME).a
 TARGET      = $(STATICLIB) $(SOLIB)
 
-# Pattern rules
-.c.o:
+# Pretty printing and GCC -M for auto dep files
+%.o: %.c
 	@printf "  CC      $(subst $(ROOTDIR)/,,$(shell pwd)/)$@\n"
-	@$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+	@$(CC) $(CFLAGS) $(CPPFLAGS) -c -MMD -MP -o $@ $<
 
-# Smart autodependecy generation via GCC -M.
-.%.d: %.c
-	@$(SHELL) -ec "$(CC) -MM $(CFLAGS) $(CPPFLAGS) $< 2>/dev/null \
-		| sed 's,.*: ,$*.o $@ : ,g' > $@; \
-                [ -s $@ ] || rm -f $@"
 
 # Build rules
 all: $(TARGET)
@@ -128,9 +123,4 @@ dist:
 	@(cd ..; md5sum $(ARCHIVE) | tee $(ARCHIVE).md5)
 
 # Include automatically generated rules
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),distclean)
 -include $(DEPS)
-endif
-endif
-

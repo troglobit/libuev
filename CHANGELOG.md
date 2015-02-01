@@ -82,12 +82,12 @@ v0.0.1 - 2012-03-17
 users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/finit/compare/v1.0.4...HEAD
-[v1.0.4]: https://github.com/troglobit/finit/compare/v1.0.3...v1.0.4
-[v1.0.3]: https://github.com/troglobit/finit/compare/v1.0.2...v1.0.3
-[v1.0.2]: https://github.com/troglobit/finit/compare/v1.0.1...v1.0.2
-[v1.0.1]: https://github.com/troglobit/finit/compare/v1.0.0...v1.0.1
-[v1.0.0]: https://github.com/troglobit/finit/compare/v0.0.1...v1.0.0
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.0.4...HEAD
+[v1.0.4]: https://github.com/troglobit/libuev/compare/v1.0.3...v1.0.4
+[v1.0.3]: https://github.com/troglobit/libuev/compare/v1.0.2...v1.0.3
+[v1.0.2]: https://github.com/troglobit/libuev/compare/v1.0.1...v1.0.2
+[v1.0.1]: https://github.com/troglobit/libuev/compare/v1.0.0...v1.0.1
+[v1.0.0]: https://github.com/troglobit/libuev/compare/v0.0.1...v1.0.0
 [TODO.md]: https://github.com/troglobit/libuev/blob/master/TODO.md
 [README.md]: https://github.com/troglobit/libuev/blob/master/README.md
 [CHANGLOG.md]: https://github.com/troglobit/libuev/blob/master/CHANGELOG.md

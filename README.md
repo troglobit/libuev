@@ -117,9 +117,18 @@ Summary:
 3. Enter the event loop with `uev_run()`
 4. Leave the event loop with `uev_exit()`, possibly from a callback
 
-**Note:** Make sure to use non-blocking stream I/O!  Most hard to find
+**Note 1:** Make sure to use non-blocking stream I/O!  Most hard to find
 bugs in event driven applications are due to sockets and files being
 opened in blocking mode.  Be careful out there!
+
+**Note 2:** As mentioned above, a certain amount of care is needed when
+dealing with signalfd.  This means that if your application, for
+instance, uses `system()` you must redesign that to use `fork()`, and
+then in the child, unblock all signals blocked by your parent process,
+before you run `exec()`.  This because Linux does not unblock signals
+for your children, and neither does most (all?) C-libraries.  An example
+of this, from [finit][6], implementing `run()` as a better replacement
+to `system()`, which sucks anyawy :)
 
 
 Example

@@ -98,14 +98,17 @@ int uev_run            (uev_ctx_t *ctx, int flags);
 
 int uev_io_init        (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events);
 int uev_io_set         (uev_t *w, int fd, int events);
+int uev_io_start       (uev_t *w);
 int uev_io_stop        (uev_t *w);
 
 int uev_timer_init     (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeout, int period);
 int uev_timer_set      (uev_t *w, int timeout, int period);
+int uev_timer_start    (uev_t *w);
 int uev_timer_stop     (uev_t *w);
 
 int uev_signal_init    (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo);
 int uev_signal_set     (uev_t *w, int signo);
+int uev_signal_start   (uev_t *w);
 int uev_signal_stop    (uev_t *w);
 
 #endif /* LIBUEV_UEV_H_ */

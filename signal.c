@@ -46,6 +46,12 @@ int uev_signal_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo
 	int fd;
 	sigset_t mask;
 
+	if (!w || !ctx) {
+		errno = EINVAL;
+		return -1;
+	}
+	w->fd = -1;
+
 	sigemptyset(&mask);
 	fd = signalfd(-1, &mask, SFD_NONBLOCK);
 	if (fd < 0)
@@ -81,6 +87,9 @@ int uev_signal_set(uev_t *w, int signo)
 		return -1;
 	}
 
+	/* Remember for callbacks and start/stop */
+	w->signo = signo;
+
 	/* Handle stopped signal watchers */
 	if (w->fd < 0) {
 		/* Remove from internal list */
@@ -102,6 +111,26 @@ int uev_signal_set(uev_t *w, int signo)
 		return -1;
 
 	return uev_watcher_start(w);
+}
+
+
+/**
+ * Start a stopped signal watcher
+ * @param w  Watcher to start (again)
+ *
+ * @return POSIX OK(0) or non-zero with @param errno set on error.
+ */
+int uev_signal_start(uev_t *w)
+{
+	if (!w) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (-1 != w->fd)
+		uev_signal_stop(w);
+
+	return uev_signal_set(w, w->signo);
 }
 
 /**

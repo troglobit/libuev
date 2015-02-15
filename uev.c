@@ -231,8 +231,6 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 				if (read(w->fd, &fdsi, sz) != sz)
 					goto exit;
-
-				w->signo = fdsi.ssi_signo;
 			}
 
 			if (w->cb)

@@ -23,6 +23,8 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <errno.h>
+
 #include "uev.h"
 
 
@@ -39,11 +41,13 @@
  */
 int uev_io_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events)
 {
+	if (fd < 0) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	if (uev_watcher_init(ctx, w, UEV_IO_TYPE, cb, arg, fd, events))
 		return -1;
-
-	if (fd < 0)
-		return 0;
 
 	return uev_watcher_start(w);
 }
@@ -68,14 +72,27 @@ int uev_io_set(uev_t *w, int fd, int events)
 }
 
 /**
+ * Start an I/O watcher
+ * @param w  Watcher to start (again)
+ *
+ * @return POSIX OK(0) or non-zero with @param errno set on error.
+ */
+int uev_io_start(uev_t *w)
+{
+	return uev_io_set(w, w->fd, w->events);
+}
+
+/**
  * Stop an I/O watcher
- * @param w  Pointer to an uev_t watcher
+ * @param w  Watcher to stop
  *
  * @return POSIX OK(0) or non-zero with @param errno set on error.
  */
 int uev_io_stop(uev_t *w)
 {
-	return uev_watcher_stop(w);
+	int status = uev_watcher_stop(w);
+
+	return status;
 }
 
 /**

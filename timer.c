@@ -131,6 +131,25 @@ int uev_timer_set(uev_t *w, int timeout, int period)
 }
 
 /**
+ * Start a stopped timer watcher
+ * @param w  Watcher to start (again)
+ *
+ * @return POSIX OK(0) or non-zero with @param errno set on error.
+ */
+int uev_timer_start(uev_t *w)
+{
+	if (!w) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (-1 != w->fd)
+		uev_watcher_stop(w);
+
+	return uev_timer_set(w, w->timeout, w->period);
+}
+
+/**
  * Stop and unregister a timer watcher
  * @param w  Watcher to stop
  *

@@ -103,6 +103,8 @@ static void work_cb(uev_ctx_t *UNUSED(ctx), uev_t *UNUSED(w), void *arg, int UNU
 		printf("Child exited normally => %d\n", WEXITSTATUS(status));
 	else if (WCOREDUMP(status))
 		printf("Child crashed!\n");
+	else
+		printf("Child did not exit normally!\n");
 }
 
 static void exit_cb(uev_ctx_t *ctx, uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))

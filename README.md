@@ -65,31 +65,34 @@ Here is the interface to [libuEv].  It handles three different types of
 events: I/O (files, sockets, message queues, etc.), timers, and signals.
 
 ```C
-/* Callback example, arg is passed from watcher's *_init()
- * w->fd holds the file descriptor, events is set by libuEv
- * to indicate if any of UEV_READ and/or UEV_WRITE is ready.
- */
-void callback(uev_ctx_t *ctx, uev_t *w, void *arg, int events);
+    /* Callback example, arg is passed from watcher's *_init()
+     * w->fd holds the file descriptor, events is set by libuEv
+     * to indicate if any of UEV_READ and/or UEV_WRITE is ready.
+     */
+    void callback       (uev_ctx_t *ctx, uev_t *w, void *arg, int events);
 
-/* Event loop functions, notice use of flags! */
-int uev_init       (uev_ctx_t *ctx);
-int uev_exit       (uev_ctx_t *ctx);
-int uev_run        (uev_ctx_t *ctx, int flags);         /* UEV_NONE, UEV_ONCE, and/or UEV_NONBLOCK */
-
-/* I/O watcher:     fd is non-blocking, events is UEV_READ and/or UEV_WRITE */
-int uev_io_init    (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events);
-int uev_io_set     (uev_t *w, int fd, int events);
-int uev_io_stop    (uev_t *w);
-
-/* Timer watcher:   timeout and period in milliseconds */
-int uev_timer_init (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeout, int period);
-int uev_timer_set  (uev_t *w, int timeout, int period); /* Change timeout or period */
-int uev_timer_stop (uev_t *w);                          /* Stop a timer */
-
-/* Signal watcher:  signo is the signal to wait for, e.g., SIGTERM */
-int uev_signal_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo);
-int uev_signal_set (uev_t *w, int signo);               /* Change signal to wait for */
-int uev_signal_stop(uev_t *w);                          /* Stop signal watcher */
+    /* Event loop functions, notice use of flags! */
+    int uev_init        (uev_ctx_t *ctx);
+    int uev_exit        (uev_ctx_t *ctx);
+    int uev_run         (uev_ctx_t *ctx, int flags);         /* UEV_NONE, UEV_ONCE, and/or UEV_NONBLOCK */
+    
+    /* I/O watcher:     fd is non-blocking, events is UEV_READ and/or UEV_WRITE */
+    int uev_io_init     (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events);
+    int uev_io_set      (uev_t *w, int fd, int events);
+    int uev_io_start    (uev_t *w);
+    int uev_io_stop     (uev_t *w);
+    
+    /* Timer watcher:   timeout and period in milliseconds */
+    int uev_timer_init  (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeout, int period);
+    int uev_timer_set   (uev_t *w, int timeout, int period); /* Change timeout or period */
+    int uev_timer_start (uev_t *w);                          /* Restart a stopped timer */
+    int uev_timer_stop  (uev_t *w);                          /* Stop a timer */
+    
+    /* Signal watcher:  signo is the signal to wait for, e.g., SIGTERM */
+    int uev_signal_init (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo);
+    int uev_signal_set  (uev_t *w, int signo);               /* Change signal to wait for */
+    int uev_signal_start(uev_t *w);                          /* Restart a stopped signal watcher */
+    int uev_signal_stop (uev_t *w);                          /* Stop signal watcher */
 ```
 
 To be able to set up callbacks to events the developer first need to

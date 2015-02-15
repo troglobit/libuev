@@ -7,7 +7,16 @@ All notable changes to the project are documented in this file.
 [UNRELEASED]
 ------------
 
-...
+Minor fixes.
+
+### Changes
+- Update [README.md] with new `uev_*_start()` functions.
+
+### Fixes
+- Remove `test.c` from `DISTFILES` in `Makefile`.  You need the
+  comeplete sources to build the examples now.  Thanks to @karasz for
+  the heads up on this and the musl libc issue with missing `queue.h`!
+- Fix broken link to [v1.0.5] in this file.
 
 
 [v1.0.5]
@@ -92,7 +101,7 @@ v0.0.1 - 2012-03-17
 [Initial announcement] of [libuevent] by [Flemming Madsen] to the Lua
 users mailing list.
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.0.6...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.0.5...HEAD
 [v1.0.5]: https://github.com/troglobit/libuev/compare/v1.0.4...v1.0.5
 [v1.0.4]: https://github.com/troglobit/libuev/compare/v1.0.3...v1.0.4
 [v1.0.3]: https://github.com/troglobit/libuev/compare/v1.0.2...v1.0.3

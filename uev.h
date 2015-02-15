@@ -28,7 +28,8 @@
 
 #include <stdio.h>
 #include <sys/epoll.h>
-#include <sys/queue.h>
+
+#include "queue.h"	       /* OpenBSD queue.h > old GLIBC version */
 
 /* Max. number of simulateneous events */
 #define UEV_MAX_EVENTS  10

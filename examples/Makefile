@@ -24,7 +24,7 @@
 #
 .PHONY: all clean
 
-TARGET      = joystick test
+TARGET      = signal test joystick
 OBJS       := $(addsuffix .o, $(TARGET))
 SRCS       := $(OBJS:.o=.c)
 DEPS       := $(SRCS:.c=.d)
@@ -37,6 +37,8 @@ LDLIBS     := ../$(STATICLIB)
 include ../rules.mk
 
 all: $(TARGET)
+
+signal: signal.o
 
 test: test.o
 

@@ -101,7 +101,7 @@ bench: Makefile bench.o $(STATICLIB)
 	@printf "  BENCH   %s\n" $(STATICLIB)
 	@$(CC) $(CPPFLAGS) -g -o bench bench.c $(STATICLIB) && ./bench
 
-examples:
+examples: all
 	@$(MAKE) -C examples
 
 test joystick:

@@ -111,7 +111,7 @@ int main(void)
 	if (pipe(fd) < 0)
 		return 1;
 
-	/*  */
+	/* Initialize libuEv */
 	uev_init(&ctx);
 
 	/* Signal watchers, Ctrl-C => SIGINT, Ctrl-\ => SIGQUIT */
@@ -141,7 +141,7 @@ int main(void)
 	fprintf(stderr, "Period is %d must be 10: %s\n", period, 10 == period ? "OK" : "ERROR!");
 	if (10 != period)
 		return 1;
-                
+
 	return 0;
 }
 

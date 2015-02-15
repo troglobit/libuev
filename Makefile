@@ -1,4 +1,4 @@
-# -*-Makefile-*- for libuEv
+# libuEv main build file
 #
 # Copyright (c) 2012       Flemming Madsen <flemming!madsen()madsensoft!dk>
 # Copyright (c) 2013-2015  Joachim Nilsson <troglobit()gmail!com>
@@ -22,7 +22,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-.PHONY: all test clean
+.PHONY: all test clean joystick test examples
 
 #VERSION    = $(shell git tag -l | tail -1)
 VERSION    ?= 1.0.5-dev
@@ -36,7 +36,9 @@ STRIP      ?= $(CROSS)strip
 CFLAGS     += -fPIC -Os
 CPPFLAGS   += -W -Wall -Werror
 ARFLAGS     = crus
-JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.*
+JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.* *.html
+
+MAKEFLAGS   = --no-print-directory
 
 ROOTDIR    ?= $(shell pwd)
 LIBNAME     = $(NAME)
@@ -56,11 +58,11 @@ SYMLIB      = $(LIBNAME).so
 STATICLIB   = $(LIBNAME).a
 TARGET      = $(STATICLIB) $(SOLIB)
 
-# Pretty printing and GCC -M for auto dep files
-%.o: %.c
-	@printf "  CC      $(subst $(ROOTDIR)/,,$(shell pwd)/)$@\n"
-	@$(CC) $(CFLAGS) $(CPPFLAGS) -c -MMD -MP -o $@ $<
+export STATICLIB JUNK ROOTDIR CFLAGS CPPFLAGS
 
+# This magic trick looks like a comment, but works on BSD PMake
+#include <rules.mk>
+include rules.mk
 
 # Build rules
 all: $(TARGET)
@@ -95,26 +97,26 @@ strip: $(TARGET)
 	@$(STRIP) --strip-unneeded $(TARGET)
 	@size $(TARGET)
 
-test: Makefile test.o $(STATICLIB)
-	@printf "  TEST    %s\n" $(STATICLIB)
-	@$(CC) $(CPPFLAGS) -g -o test test.c $(STATICLIB) && ./test
-
 bench: Makefile bench.o $(STATICLIB)
 	@printf "  BENCH   %s\n" $(STATICLIB)
 	@$(CC) $(CPPFLAGS) -g -o bench bench.c $(STATICLIB) && ./bench
 
-joystick: Makefile joystick.o $(STATICLIB)
-	@printf "  JOTST   %s\n" $(STATICLIB)
-	@$(CC) $(CPPFLAGS) -g -o joystick joystick.c $(STATICLIB) && ./joystick
+examples:
+	@$(MAKE) -C examples
+
+test joystick:
+	@$(MAKE) -C examples $@
 
 # Runs Clang scan-build on the whole tree
 check: clean
 	@scan-build $(MAKE) all
 
 clean:
+	-@$(MAKE) -C examples $@
 	-@$(RM) $(TARGET) *.o test joystick bench
 
 distclean: clean
+	-@$(MAKE) -C examples $@
 	-@$(RM) $(DEPS) $(JUNK)
 
 dist:

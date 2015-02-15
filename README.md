@@ -1,7 +1,6 @@
 libuEv | Simple event loop for Linux
 ====================================
-[![Build Status](https://travis-ci.org/troglobit/libuev.png?branch=master)](https://travis-ci.org/troglobit/libuev)
-[![Coverity Scan Status](https://scan.coverity.com/projects/3846/badge.svg)](https://scan.coverity.com/projects/3846)
+[![Travis Status]][Travis] [![Coverity Status]][Coverity Scan]
 
 
 Table of Contents
@@ -249,12 +248,15 @@ used for inspiration is the very small [Picoev][9] by [Oku Kazuho].
 [7]: http://libev.schmorp.de/bench.html
 [8]: http://code.google.com/p/libuevent/
 [9]: https://github.com/kazuho/picoev
-[LibuEV]: https://github.com/troglobit/libuev
-[Oku Kazuho]: https://github.com/kazuho
-[Mark Lehmann]: http://software.schmorp.de
+[Travis]:          https://travis-ci.org/troglobit/libuev
+[Travis Status]:   https://travis-ci.org/troglobit/libuev.png?branch=master
+[Coverity Scan]:   https://scan.coverity.com/projects/3846
+[Coverity Status]: https://scan.coverity.com/projects/3846/badge.svg
+[LibuEV]:          https://github.com/troglobit/libuev
+[Oku Kazuho]:      https://github.com/kazuho
+[Mark Lehmann]:    http://software.schmorp.de
 [Joachim Nilsson]: http://troglobit.com
 [Flemming Madsen]: http://www.madsensoft.dk
 [Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8
 
 [libuEv] is developed and maintained by [Joachim Nilsson]
-

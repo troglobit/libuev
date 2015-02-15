@@ -3,6 +3,13 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+
+[UNRELEASED]
+------------
+
+...
+
+
 [v1.0.5]
 --------
 
@@ -85,8 +92,8 @@ v0.0.1 - 2012-03-17
 [Initial announcement] of [libuevent] by [Flemming Madsen] to the Lua
 users mailing list.
 
-
-[v1.0.4]: https://github.com/troglobit/libuev/compare/v1.0.4...v1.0.5
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.0.6...HEAD
+[v1.0.5]: https://github.com/troglobit/libuev/compare/v1.0.4...v1.0.5
 [v1.0.4]: https://github.com/troglobit/libuev/compare/v1.0.3...v1.0.4
 [v1.0.3]: https://github.com/troglobit/libuev/compare/v1.0.2...v1.0.3
 [v1.0.2]: https://github.com/troglobit/libuev/compare/v1.0.1...v1.0.2

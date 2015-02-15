@@ -3,12 +3,16 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
-[UNRELEASED]
-------------
-
-Minor documentation updates.
+[v1.0.5]
+--------
 
 ### Changes
+- Add `uev_*_start()` functions.
+- Add slightly odd `examples/signal.c` example that utilises `fork()`
+  and causes segfault in child.
+- Renamed `main.c` to `uev.c`
+- Move examples to `examples/` subdirectory
+- Simplify automatic dependency calculation
 - Add [TODO.md] for wishlist items
 - Add [CHANGELOG.md], attempt to align with http://keepachangelog.com
 - Further updates to [README.md]
@@ -82,7 +86,7 @@ v0.0.1 - 2012-03-17
 users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.0.4...HEAD
+[v1.0.4]: https://github.com/troglobit/libuev/compare/v1.0.4...v1.0.5
 [v1.0.4]: https://github.com/troglobit/libuev/compare/v1.0.3...v1.0.4
 [v1.0.3]: https://github.com/troglobit/libuev/compare/v1.0.2...v1.0.3
 [v1.0.2]: https://github.com/troglobit/libuev/compare/v1.0.1...v1.0.2
@@ -98,3 +102,9 @@ users mailing list.
 [libuevent]: https://code.google.com/p/libuevent/
 [Flemming Madsen]: http://www.madsensoft.dk
 [Initial announcement]: http://lua-users.org/lists/lua-l/2012-03/msg00510.html
+
+<!--
+  -- Local Variables:
+  --  mode: markdown
+  -- End:
+  -->

@@ -25,7 +25,7 @@
 .PHONY: all test clean joystick test examples
 
 #VERSION    = $(shell git tag -l | tail -1)
-VERSION    ?= 1.0.5-dev
+VERSION    ?= 1.0.5
 NAME        = libuev
 PKG         = $(NAME)-$(VERSION)
 ARCHIVE     = $(PKG).tar.xz

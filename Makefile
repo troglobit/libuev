@@ -49,7 +49,7 @@ incdir     ?= $(prefix)/include
 DISTFILES   = README CHANGELOG TODO LICENSE test.c
 HEADER      = uev.h
 
-OBJS       := main.o io.o timer.o signal.o
+OBJS       := uev.o io.o timer.o signal.o
 SRCS       := $(OBJS:.o=.c)
 DEPS       := $(SRCS:.c=.d)
 VER         = 1

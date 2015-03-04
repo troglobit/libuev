@@ -24,6 +24,7 @@
  */
 
 #include <errno.h>
+#include <fcntl.h>		/* O_CLOEXEC */
 #include <string.h>		/* memset() */
 #include <sys/epoll.h>
 #include <sys/signalfd.h>	/* struct signalfd_siginfo */
@@ -33,6 +34,28 @@
 
 #define UNUSED(arg) arg __attribute__ ((unused))
 
+
+static int _init(uev_ctx_t *ctx, int close_old)
+{
+	int fd = epoll_create1(O_CLOEXEC);
+
+	if (fd < 0)
+		return -1;
+
+	if (close_old)
+		close(ctx->fd);
+
+	ctx->fd = fd;
+
+	return 0;
+}
+
+/* Simple check if a descriptor is still valid in the kernel */
+static int is_valid_fd(int fd)
+{
+    return fcntl(fd, F_GETFL) != -1 || errno != EBADF;
+}
+
 /* Private to libuEv, do not use directly! */
 int uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events)
 {
@@ -41,15 +64,13 @@ int uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, vo
 		return -1;
 	}
 
-	memset(w, 0, sizeof(*w));
 	w->ctx    = ctx;
-	w->fd     = fd;
 	w->type   = type;
+	w->active = 0;
+	w->fd     = fd;
 	w->cb     = (void *)cb;
 	w->arg    = arg;
 	w->events = events;
-
-	LIST_INSERT_HEAD(&w->ctx->watchers, w, link);
 
 	return 0;
 }
@@ -67,12 +88,15 @@ int uev_watcher_start(uev_t *w)
 	if (w->active)
 		return 0;
 
-	ev.events   = w->events;
+	ev.events   = w->events | EPOLLRDHUP;
 	ev.data.ptr = w;
 	if (epoll_ctl(w->ctx->fd, EPOLL_CTL_ADD, w->fd, &ev) < 0)
 		return -1;
 
 	w->active = 1;
+
+	/* Add to internal list for bookkeeping */
+	LIST_INSERT_HEAD(&w->ctx->watchers, w, link);
 
 	return 0;
 }
@@ -88,9 +112,14 @@ int uev_watcher_stop(uev_t *w)
 	if (!w->active)
 		return 0;
 
-	/* Remove from kernel */
-	epoll_ctl(w->ctx->fd, EPOLL_CTL_DEL, w->fd, NULL);
 	w->active = 0;
+
+	/* Remove from internal list */
+	LIST_REMOVE(w, link);
+
+	/* Remove from kernel */
+	if (epoll_ctl(w->ctx->fd, EPOLL_CTL_DEL, w->fd, NULL) < 0)
+		return -1;
 
 	return 0;
 }
@@ -103,17 +132,15 @@ int uev_watcher_stop(uev_t *w)
  */
 int uev_init(uev_ctx_t *ctx)
 {
-	int fd;
-
-	fd = epoll_create(1);
-	if (fd < 0)
+	if (!ctx) {
+		errno = EINVAL;
 		return -1;
+	}
 
 	memset(ctx, 0, sizeof(*ctx));
-	ctx->fd = fd;
 	LIST_INIT(&ctx->watchers);
 
-	return 0;
+	return _init(ctx, 0);
 }
 
 /**
@@ -206,20 +233,54 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 			if (EINTR == errno)
 				continue; /* Signalled, try again */
-		exit:
-			result = -1;
-			ctx->running = 0;
-			break;
+
+			/* Unrecoverable error, cleanup and exit with error. */
+			uev_exit(ctx);
+			return -1;
 		}
 
 		for (i = 0; ctx->running && i < nfds; i++) {
 			w = (uev_t *)events[i].data.ptr;
 
+			if (events[i].events & (EPOLLHUP | EPOLLERR)) {
+				ctx->errors++;
+
+				if (ctx->errors >= 42) {
+					uev_t *tmp, *retry = w;;
+
+					/* If not valid anymore, try to remove, ignore any errors. */
+					if (!is_valid_fd(w->fd))
+						uev_watcher_stop(w);
+
+					/* Must recreate epoll fd now ... */
+					if (_init(ctx, 1)) {
+						uev_exit(ctx);
+						return -2;
+					}
+
+					/* Restart watchers in new efd */
+					LIST_FOREACH_SAFE(w, &ctx->watchers, link, tmp) {
+						if (w->active) {
+							w->active = 0;
+							LIST_REMOVE(w, link);
+							uev_watcher_start(w);
+						}
+					}
+					uev_watcher_start(retry);
+
+					/* New efd, restart everything! */
+					ctx->errors = 0;
+					continue;
+				}
+			}
+
 			if (UEV_TIMER_TYPE == w->type) {
 				uint64_t exp;
 
-				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp))
-					goto exit;
+				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
+					uev_exit(ctx);
+					return -3;
+				}
 
 				if (!w->period)
 					w->timeout = 0;
@@ -229,8 +290,10 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				struct signalfd_siginfo fdsi;
 				ssize_t sz = sizeof(fdsi);
 
-				if (read(w->fd, &fdsi, sz) != sz)
-					goto exit;
+				if (read(w->fd, &fdsi, sz) != sz) {
+					uev_exit(ctx);
+					return -4;
+				}
 			}
 
 			if (w->cb)

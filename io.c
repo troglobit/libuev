@@ -62,11 +62,8 @@ int uev_io_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int e
  */
 int uev_io_set(uev_t *w, int fd, int events)
 {
-	if (uev_io_stop(w))
-		return -1;
-
-	/* Remove from internal list */
-	LIST_REMOVE(w, link);
+	/* Ignore any errors, only to clean up anything lingering ... */
+	uev_io_stop(w);
 
 	return uev_io_init(w->ctx, w, (uev_cb_t *)w->cb, w->arg, fd, events);
 }
@@ -90,9 +87,7 @@ int uev_io_start(uev_t *w)
  */
 int uev_io_stop(uev_t *w)
 {
-	int status = uev_watcher_stop(w);
-
-	return status;
+	return uev_watcher_stop(w);
 }
 
 /**

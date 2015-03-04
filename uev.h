@@ -57,6 +57,7 @@ struct uev;
 typedef struct {
 	int             running;
 	int             fd;	/* For epoll() */
+	uint32_t        errors;
 	LIST_HEAD(,uev) watchers;
 } uev_ctx_t;
 

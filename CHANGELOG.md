@@ -7,10 +7,16 @@ All notable changes to the project are documented in this file.
 [UNRELEASED]
 ------------
 
-Minor fixes.
+Massively improved error handling.
 
 ### Changes
+- Handle case when user closes a descriptor *before* stopping a watcher.
+- Handle EPOLLHUP and EPOLLERR.  Restart `epoll(7)` descriptor and all
+  watchers when an error count reaches a MAX value -- this handles stale
+  descriptors or cases when kernel does not notice updated descriptors.
+- Return error when stopping a watcher fails.
 - Update [README.md] with new `uev_*_start()` functions.
+- Bump dev version to 1.1 due to the number of significant changes.
 
 ### Fixes
 - Remove `test.c` from `DISTFILES` in `Makefile`.  You need the

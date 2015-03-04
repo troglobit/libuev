@@ -4,15 +4,15 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
-[UNRELEASED]
+[v1.1.0]
 ------------
 
 Massively improved error handling.
 
 ### Changes
 - Handle case when user closes a descriptor *before* stopping a watcher.
-- Handle EPOLLHUP and EPOLLERR.  Restart `epoll(7)` descriptor and all
-  watchers when an error count reaches a MAX value -- this handles stale
+- Handle `EPOLLHUP` and `EPOLLERR`.  Restart `epoll(7)` descriptor and
+  all watchers when an error count reaches a MAX value -- handles stale
   descriptors or cases when kernel does not notice updated descriptors.
 - Return error when stopping a watcher fails.
 - Update [README.md] with new `uev_*_start()` functions.
@@ -107,7 +107,8 @@ v0.0.1 - 2012-03-17
 [Initial announcement] of [libuevent] by [Flemming Madsen] to the Lua
 users mailing list.
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.0.5...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.1,0...HEAD
+[v1.1.0]: https://github.com/troglobit/libuev/compare/v1.0.5...v1.1.0
 [v1.0.5]: https://github.com/troglobit/libuev/compare/v1.0.4...v1.0.5
 [v1.0.4]: https://github.com/troglobit/libuev/compare/v1.0.3...v1.0.4
 [v1.0.3]: https://github.com/troglobit/libuev/compare/v1.0.2...v1.0.3

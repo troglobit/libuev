@@ -5,7 +5,7 @@ All notable changes to the project are documented in this file.
 
 
 [v1.1.0]
-------------
+--------
 
 Massively improved error handling.
 

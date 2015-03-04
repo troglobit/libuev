@@ -24,14 +24,14 @@ often swing without consideration.  Event loops and non-blocking I/O is
 often a far easier approach, as well as less error prone.
 
 The purpose of many applications is, with a little logic sprinkled on
-top, to act upon: network packets entering an interface, timeouts
-expiring, mouse clicks, or other types of events.  Such applications are
-often very well suited to use an event loop.
+top, to act on network packets entering an interface, timeouts expiring,
+mouse clicks, or other types of events.  Such applications are often
+very well suited to use an event loop.
 
 Applications that need to churn massively parallel algorithms are more
 suitable for running multiple (independent) threads on several CPU
 cores.  However, threaded applications must deal with the side effects
-of concurrency, like: race conditions, deadlocks, live locks, etc.
+of concurrency, like race conditions, deadlocks, live locks, etc.
 Writing error free threaded applications is hard, debugging them can be
 even harder.
 
@@ -111,6 +111,10 @@ With `flags` set to `UEV_ONCE` the event loop returns after having
 served the first event.  If `flags` is set to `UEV_ONCE | UEV_NONBLOCK`
 the event loop returns immediately if no event is available.
 
+In the case of errors, stream close, or peer shutdown libuEv handles
+much internally, but also lets the callback run.  This is useful for
+stateful connections to be able to detect EOF.
+
 Summary:
 
 1. Prepare an event context with `uev_init()`
@@ -123,7 +127,11 @@ Summary:
 bugs in event driven applications are due to sockets and files being
 opened in blocking mode.  Be careful out there!
 
-**Note 2:** As mentioned above, a certain amount of care is needed when
+**Note 2:** When closing a descriptor or socket, make sure to first stop
+  your watcher, if possible.  This will help prevent any nasty side
+  effects on your program.
+
+**Note 3:** As mentioned above, a certain amount of care is needed when
 dealing with signalfd.  This means that if your application, for
 instance, uses `system()` you must redesign that to use `fork()`, and
 then in the child, unblock all signals blocked by your parent process,

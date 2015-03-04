@@ -1,6 +1,6 @@
 bench
 test
-.*.d
+*.d
 *.o
 *~
 libuev.a

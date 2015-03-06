@@ -33,7 +33,11 @@ ARCHIVE     = $(PKG).tar.xz
 CC         ?= $(CROSS)gcc
 AR         ?= $(CROSS)ar
 STRIP      ?= $(CROSS)strip
-CFLAGS     += -fPIC -Os
+
+ifneq ($(STATIC), 1)
+CFLAGS     += -fPIC
+endif
+CFLAGS     += -Os
 CPPFLAGS   += -W -Wall -Werror
 ARFLAGS     = crus
 JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.* *.html
@@ -56,7 +60,11 @@ VER         = 1
 SOLIB       = $(LIBNAME).so.$(VER)
 SYMLIB      = $(LIBNAME).so
 STATICLIB   = $(LIBNAME).a
+ifeq ($(STATIC), 1)
+TARGET      = $(STATICLIB)
+else
 TARGET      = $(STATICLIB) $(SOLIB)
+endif
 
 export STATICLIB JUNK ROOTDIR CFLAGS CPPFLAGS
 
@@ -77,9 +85,10 @@ $(STATICLIB): Makefile $(OBJS)
 
 install: strip
 	@install -d $(DESTDIR)$(libdir)
-	@install $(SOLIB) $(DESTDIR)$(prefix)/lib/$(SOLIB)
-	@install $(STATICLIB) $(DESTDIR)$(prefix)/lib/$(STATICLIB)
-	@ln -sf $(SOLIB) $(DESTDIR)$(prefix)/lib/$(SYMLIB)
+	@printf "  INSTALL $(DESTDIR)$(libdir)/$(TARGET)\n"
+	@install $(SOLIB) $(DESTDIR)$(libdir)/$(SOLIB)
+	@install $(STATICLIB) $(DESTDIR)$(libdir)/$(STATICLIB)
+	@ln -sf $(SOLIB) $(DESTDIR)$(libdir)/$(SYMLIB)
 	@install -d $(DESTDIR)$(incdir)
 	@install -m 0644 $(HEADER) $(DESTDIR)$(incdir)/$(HEADER)
 	@install -d $(DESTDIR)$(datadir)

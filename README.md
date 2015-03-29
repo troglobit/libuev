@@ -95,25 +95,47 @@ events: I/O (files, sockets, message queues, etc.), timers, and signals.
     int uev_signal_stop (uev_t *w);                          /* Stop signal watcher */
 ```
 
-To be able to set up callbacks to events the developer first need to
-create an *event context*, achieved by calling `uev_init()` with a
-pointer to a local `uev_ctx_t` variable.
+To monitor events the developer first creates an *event context*, this
+is achieved by calling `uev_init()` with a pointer to a (thread) local
+`uev_ctx_t` variable.
 
-Events are monitored by watchers in [libuEv].  A watcher is nothing more
-than a mechnism that polls a file descriptor.  Register a watcher with a
-callback to the event context by passing the `uev_ctx_t` variable, along
-with an `uev_t` variable to each event's `_init()` function.
+```C
+    uev_ctx_t ctx;
 
-When all watchers are registered call the event loop with `uev_run()`
-and the argument to the event context.  The `flags` parameter is slightly
-mysterious, but can be used to integrate [libuEv] into another event loop.
-With `flags` set to `UEV_ONCE` the event loop returns after having
-served the first event.  If `flags` is set to `UEV_ONCE | UEV_NONBLOCK`
-the event loop returns immediately if no event is available.
+    uev_init(&ctx);
+```
 
-In the case of errors, stream close, or peer shutdown libuEv handles
-much internally, but also lets the callback run.  This is useful for
-stateful connections to be able to detect EOF.
+Then, for each event to be monitored, a *watcher* is registered with the
+event context.  The watcher, an `uev_t`, is initialized with the proper
+file descriptor to monitor, and an event callback function, by calling
+the event type's `_init()` function with the `uev_ctx_t` context.
+
+```C
+    void cleanup_exit(uev_ctx_t *ctx, uev_t *w, void *arg, int events)
+    {
+        /* Graceful exit, with optional cleanup ... */
+        uev_exit(ctx);
+    }
+    
+    uev_t termw;
+
+    uev_signal_init(&ctx, &term, cleanup_exit, NULL, SIGTERM);
+```
+
+When all watchers are registered, call the *event loop* with `uev_run()`
+and the argument to the event context.  The `flags` parameter can be
+used to integrate [libuEv] into another event loop.  With `flags` set to
+`UEV_ONCE` the event loop returns after having served the first event.
+If `flags` is set to `UEV_ONCE | UEV_NONBLOCK` the event loop returns
+immediately if no event is available.
+
+```C
+    uev_run(&ctx, UEV_NONE);
+```
+
+In case of errors, stream close, or peer shutdown, libuEv handles much
+internally, but also lets the callback run.  This is useful for stateful
+connections to be able to detect EOF.
 
 Summary:
 
@@ -271,3 +293,9 @@ used for inspiration is the very small [Picoev][9] by [Oku Kazuho].
 [Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8
 
 [libuEv] is developed and maintained by [Joachim Nilsson]
+
+<!--
+  -- Local Variables:
+  --  mode: markdown
+  -- End:
+  -->

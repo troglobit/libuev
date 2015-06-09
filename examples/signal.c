@@ -69,13 +69,13 @@ static int callback(arg_t *arg, int event, void *foo)
         return 42;
 }
 
-static void sigsegv_cb(uev_ctx_t *UNUSED(ctx), uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))
+static void sigsegv_cb(uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))
 {
 	warnx("PID %d caused segfault.", getpid());
 	exit(-1);
 }
 
-static void sigchld_cb(uev_ctx_t *UNUSED(ctx), uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))
+static void sigchld_cb(uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))
 {
         pid_t pid = waitpid(-1, NULL, WNOHANG);
 
@@ -83,7 +83,7 @@ static void sigchld_cb(uev_ctx_t *UNUSED(ctx), uev_t *UNUSED(w), void *UNUSED(ar
                 warnx("PID %d exited, bye.", pid);
 }
 
-static void work_cb(uev_ctx_t *UNUSED(ctx), uev_t *UNUSED(w), void *arg, int UNUSED(events))
+static void work_cb(uev_t *UNUSED(w), void *arg, int UNUSED(events))
 {
 	int    status = 0;
         pid_t  pid;
@@ -102,15 +102,17 @@ static void work_cb(uev_ctx_t *UNUSED(ctx), uev_t *UNUSED(w), void *arg, int UNU
 	if (WIFEXITED(status))
 		printf("Child exited normally => %d\n", WEXITSTATUS(status));
 	else if (WCOREDUMP(status))
-		printf("Child crashed!\n");
+		printf("Child crashed! %s\n", DO_SEGFAULT
+		       ? "As expected, everything is OK."
+		       : "This should not happen!");
 	else
 		printf("Child did not exit normally!\n");
 }
 
-static void exit_cb(uev_ctx_t *ctx, uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))
+static void exit_cb(uev_t *w, void *UNUSED(arg), int UNUSED(events))
 {
         printf("Process deadline reached, exiting!\n");
-	uev_exit(ctx);
+	uev_exit(w->ctx);
 }
 
 int main(void)
@@ -120,6 +122,8 @@ int main(void)
 
 	/* Initialize libuEv */
 	uev_init(&ctx);
+
+	/* Setup callbacks */
 	uev_signal_init(&ctx, &sigsegv_watcher, sigsegv_cb, NULL, SIGSEGV);
 	uev_signal_init(&ctx, &sigchld_watcher, sigchld_cb, NULL, SIGCHLD);
 	uev_timer_init(&ctx, &timeout_watcher, work_cb, &arg, 400, 0);

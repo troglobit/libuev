@@ -38,6 +38,7 @@
 #define UEV_NONE        0
 #define UEV_READ        EPOLLIN
 #define UEV_WRITE       EPOLLOUT
+#define UEV_EVENT_MASK  (UEV_READ | UEV_WRITE)
 
 /* Run flags */
 #define UEV_ONCE        1
@@ -73,7 +74,7 @@ typedef struct uev {
 	int             events;
 
 	/* Watcher callback with optional argument */
-	void          (*cb)(struct uev *, struct uev *, void *);
+	void          (*cb)(struct uev *, void *, int);
 	void           *arg;
 
 	/* Timer watchers, time in milliseconds */
@@ -85,7 +86,7 @@ typedef struct uev {
 } uev_t;
 
 /* Generic callback for watchers */
-typedef void (uev_cb_t)(uev_ctx_t *ctx, uev_t *w, void *arg, int events);
+typedef void (uev_cb_t)(uev_t *w, void *arg, int events);
 
 /* Private methods, do not use directly! */
 int uev_watcher_init   (uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events);

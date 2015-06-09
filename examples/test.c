@@ -40,33 +40,33 @@ static int in, out;
 static int period = 0;
 static uev_t *watchdog;
 
-static void lifetime_cb(uev_ctx_t *ctx, uev_t UNUSED(*w), void *arg, int UNUSED(events))
+static void lifetime_cb(uev_t *w, void *arg, int UNUSED(events))
 {
 	fprintf(stderr, "\nLifetime exceeded, program completed successfully! (arg:%p)\n", arg);
-	uev_exit(ctx);
+	uev_exit(w->ctx);
 }
 
 /* The pipe watchdog, if it triggers we haven't received data in time. */
-static void timeout_cb(uev_ctx_t *ctx, uev_t *UNUSED(w), void *arg, int UNUSED(events))
+static void timeout_cb(uev_t *w, void *arg, int UNUSED(events))
 {
 	watchdog = NULL;
 	fprintf(stderr, "\nTimeout exceeded %p\n", arg);
 
 	// uev_timer_stop(w); <-- No need to stop timers with period=0 :)
-	uev_exit(ctx);
+	uev_exit(w->ctx);
 }
 
-static void periodic_task(uev_ctx_t UNUSED(*ctx), uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events))
+static void periodic_task(uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events))
 {
 	fprintf(stderr, "|");
 }
 
-static void signal_cb(uev_ctx_t *UNUSED(ctx), uev_t *w, void *UNUSED(arg), int UNUSED(events))
+static void signal_cb(uev_t *w, void *UNUSED(arg), int UNUSED(events))
 {
 	fprintf(stderr, w->signo == SIGINT ? "^Cv" : "^\v");
 }
 
-static void pipe_read_cb(uev_ctx_t *UNUSED(ctx), uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events))
+static void pipe_read_cb(uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events))
 {
 	int cnt;
 	char msg[50];
@@ -80,7 +80,7 @@ static void pipe_read_cb(uev_ctx_t *UNUSED(ctx), uev_t UNUSED(*w), void UNUSED(*
 	fprintf(stderr, "%.*s.%d ", cnt, msg, cnt);
 }
 
-static void pipe_write_cb(uev_ctx_t UNUSED(*ctx), uev_t *w, void *arg, int UNUSED(events))
+static void pipe_write_cb(uev_t *w, void *arg, int UNUSED(events))
 {
 	my_t *my  = arg;
 	char *msg = "TESTING";

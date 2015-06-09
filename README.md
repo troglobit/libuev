@@ -61,15 +61,16 @@ details, see [this article][4] at [lwn.net](http://lwn.net).
 API
 ---
 
-Here is the interface to [libuEv].  It handles three different types of
-events: I/O (files, sockets, message queues, etc.), timers, and signals.
+The C interface to [libuEv] is very simple.  It handles three different
+types of events: I/O (files, sockets, message queues, etc.), timers, and
+signals.  With a slight caveat on signals
 
 ```C
     /* Callback example, arg is passed from watcher's *_init()
      * w->fd holds the file descriptor, events is set by libuEv
      * to indicate if any of UEV_READ and/or UEV_WRITE is ready.
      */
-    void callback       (uev_ctx_t *ctx, uev_t *w, void *arg, int events);
+    void callback       (uev_t *w, void *arg, int events);
 
     /* Event loop functions, notice use of flags! */
     int uev_init        (uev_ctx_t *ctx);
@@ -111,10 +112,10 @@ file descriptor to monitor, and an event callback function, by calling
 the event type's `_init()` function with the `uev_ctx_t` context.
 
 ```C
-    void cleanup_exit(uev_ctx_t *ctx, uev_t *w, void *arg, int events)
+    void cleanup_exit(uev_t *w, void *arg, int events)
     {
         /* Graceful exit, with optional cleanup ... */
-        uev_exit(ctx);
+        uev_exit(w->ctx);
     }
     
     uev_t termw;
@@ -186,7 +187,7 @@ struct js_event {
 	uint8_t  number;	/* axis/button number */
 } e;
 
-static void joystick_cb(uev_ctx_t *ctx, uev_t *w, void *arg, int events)
+static void joystick_cb(uev_t *w, void *arg, int events)
 {
 	read (w->fd, &e, sizeof(e));
 

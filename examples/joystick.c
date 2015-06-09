@@ -40,7 +40,7 @@ struct js_event {
 	uint8_t  number;	/* axis/button number */
 } e;
 
-static void joystick_cb(uev_ctx_t *UNUSED(ctx), uev_t *w, void *UNUSED(arg), int UNUSED(events))
+static void joystick_cb(uev_t *w, void *UNUSED(arg), int UNUSED(events))
 {
 	if (read (w->fd, &e, sizeof(e)) < 0)
 		errx(errno, "Failed reading joystick event");

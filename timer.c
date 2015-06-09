@@ -123,11 +123,9 @@ int uev_timer_set(uev_t *w, int timeout, int period)
 		msec2tspec(timeout, &time.it_value);
 		msec2tspec(period, &time.it_interval);
 		timerfd_settime(w->fd, 0, &time, NULL);
-
-		return uev_watcher_start(w);
 	}
 
-	return 0;
+	return uev_watcher_start(w);
 }
 
 /**

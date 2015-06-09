@@ -4,8 +4,22 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
-[v1.1.0]
---------
+[v1.2.0] - 2015-06-09
+---------------------
+
+API change in event callbacks and fix timers that never start.
+
+### Changes
+- Remove first `uev_ctx_t *` argument in callbacks, incompatible API
+  change!  Please update all your callbacks if you upgrade.
+
+### Fixes
+- Fix timers that accidentally broke in [v1.1.0].
+- Fixes to `bench.c`, it now actually listens to the pipe/socket.
+
+
+[v1.1.0] - 2015-03-04
+---------------------
 
 Massively improved error handling.
 
@@ -25,8 +39,8 @@ Massively improved error handling.
 - Fix broken link to [v1.0.5] in this file.
 
 
-[v1.0.5]
---------
+[v1.0.5] - 2015-02-15
+---------------------
 
 ### Changes
 - Add `uev_*_start()` functions.
@@ -107,7 +121,8 @@ v0.0.1 - 2012-03-17
 [Initial announcement] of [libuevent] by [Flemming Madsen] to the Lua
 users mailing list.
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.1,0...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.2.0...HEAD
+[v1.2.0]: https://github.com/troglobit/libuev/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/troglobit/libuev/compare/v1.0.5...v1.1.0
 [v1.0.5]: https://github.com/troglobit/libuev/compare/v1.0.4...v1.0.5
 [v1.0.4]: https://github.com/troglobit/libuev/compare/v1.0.3...v1.0.4

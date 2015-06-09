@@ -70,7 +70,7 @@ static int *pipes;
 static uev_t *evio;
 static uev_t *evto;
 
-static void read_cb(uev_ctx_t *UNUSED(ctx), uev_t *w, void *arg, int UNUSED(events))
+static void read_cb(uev_t *w, void *arg, int UNUSED(events))
 {
 	int idx, widx;
 	u_char ch;
@@ -96,7 +96,7 @@ static void read_cb(uev_ctx_t *UNUSED(ctx), uev_t *w, void *arg, int UNUSED(even
 	}
 }
 
-static void timer_cb(uev_ctx_t UNUSED(*ctx), uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events))
+static void timer_cb(uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events))
 {
 	/* nop */
 }
@@ -208,16 +208,17 @@ int main(int argc, char **argv)
 		if (timers)
 			uev_timer_init(&ctx, &evto[i], timer_cb, NULL, 0, 0);
 		args[i].index = i;
-		uev_io_init(&ctx, &evio[i], read_cb, &args[i], -1, UEV_READ);
 
 #ifdef USE_PIPES
-		if (pipe(cp) == -1) {
+		if (pipe2(cp, O_NONBLOCK) == -1) {
 #else
-		if (socketpair(AF_UNIX, SOCK_STREAM, 0, cp) == -1) {
+		if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, cp) == -1) {
 #endif
 			perror("pipe");
 			exit(1);
 		}
+
+		uev_io_init(&ctx, &evio[i], read_cb, &args[i], cp[0], UEV_READ);
 	}
 
 	for (i = 0; i < 2; i++)

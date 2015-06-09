@@ -22,7 +22,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-.PHONY: all test clean joystick test examples
+.PHONY: all test clean joystick test examples bench
 
 #VERSION    = $(shell git tag -l | tail -1)
 VERSION    ?= 1.1.0
@@ -106,9 +106,9 @@ strip: $(TARGET)
 	@$(STRIP) --strip-unneeded $(TARGET)
 	@size $(TARGET)
 
-bench: Makefile bench.o $(STATICLIB)
-	@printf "  BENCH   %s\n" $(STATICLIB)
-	@$(CC) $(CPPFLAGS) -g -o bench bench.c $(STATICLIB) && ./bench
+bench: Makefile $(STATICLIB)
+	@printf "  RUN     %s\n" $@
+	@$(CC) $(CPPFLAGS) -D_GNU_SOURCE -g -o bench bench.c $(STATICLIB) && ./bench
 
 examples: all
 	@$(MAKE) -C examples

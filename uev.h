@@ -26,10 +26,7 @@
 #ifndef LIBUEV_UEV_H_
 #define LIBUEV_UEV_H_
 
-#include <stdio.h>
-#include <sys/epoll.h>
-
-#include "queue.h"	       /* OpenBSD queue.h > old GLIBC version */
+#include "private.h"
 
 /* Max. number of simulateneous events */
 #define UEV_MAX_EVENTS  10
@@ -38,60 +35,21 @@
 #define UEV_NONE        0
 #define UEV_READ        EPOLLIN
 #define UEV_WRITE       EPOLLOUT
-#define UEV_EVENT_MASK  (UEV_READ | UEV_WRITE)
 
 /* Run flags */
 #define UEV_ONCE        1
 #define UEV_NONBLOCK    2
 
-/* I/O, timer, or signal watcher */
-typedef enum {
-	UEV_IO_TYPE = 1,
-	UEV_TIMER_TYPE,
-	UEV_SIGNAL_TYPE,
-} uev_type_t;
-
-/* Forward declare due to dependencys, don't try this at home kids. */
-struct uev;
-
-/* Main libuEv context type */
-typedef struct {
-	int             running;
-	int             fd;	/* For epoll() */
-	uint32_t        errors;
-	LIST_HEAD(,uev) watchers;
-} uev_ctx_t;
-
-/* I/O event watcher */
+/* Event watcher */
 typedef struct uev {
-	LIST_ENTRY(uev) link;	/* For queue.h linked list */
-
-	/* Common to all watchers */
-	uev_ctx_t      *ctx;
-	uev_type_t      type;
-	int             active;
 	int             fd;
-	int             events;
+	uev_ctx_t      *ctx;
 
-	/* Watcher callback with optional argument */
-	void          (*cb)(struct uev *, void *, int);
-	void           *arg;
-
-	/* Timer watchers, time in milliseconds */
-	int             timeout;
-	int             period;
-
-	/* Signal watchers */
-	int             signo;
+	uev_private_t  type;
 } uev_t;
 
 /* Generic callback for watchers */
 typedef void (uev_cb_t)(uev_t *w, void *arg, int events);
-
-/* Private methods, do not use directly! */
-int uev_watcher_init   (uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events);
-int uev_watcher_start  (uev_t *w);
-int uev_watcher_stop   (uev_t *w);
 
 /* Public interface */
 int uev_init           (uev_ctx_t *ctx);

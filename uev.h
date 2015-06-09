@@ -45,7 +45,7 @@ typedef struct uev {
 	int             fd;
 	uev_ctx_t      *ctx;
 
-	uev_private_t  type;
+	uev_private_t   type;
 } uev_t;
 
 /* Generic callback for watchers */

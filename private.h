@@ -43,7 +43,7 @@ typedef enum {
 /* Main libuEv context type */
 typedef struct {
 	int             running;
-	int             fd;	/* For epoll() */
+	int             fd;     /* For epoll() */
 	uint32_t        errors;
 	LIST_HEAD(,uev) watchers;
 } uev_ctx_t;
@@ -53,23 +53,23 @@ struct uev;
 
 /* This is used to hide all private data members in uev_t */
 #define uev_private_t                                           \
-	LIST_ENTRY(uev) link;	/* For queue.h linked list */   \
-                                                                \
+	LIST_ENTRY(uev) link;   /* For queue.h linked list */   \
+								\
 	int             active;                                 \
 	int             events;                                 \
-                                                                \
+								\
 	/* Watcher callback with optional argument */           \
 	void          (*cb)(struct uev *, void *, int);         \
 	void           *arg;                                    \
-                                                                \
-	/* Timer watchers, time in milliseconds */              \
+								\
+	/* Timer watchers, time in milliseconds */		\
 	int             timeout;                                \
 	int             period;                                 \
-                                                                \
+								\
 	/* Signal watchers */                                   \
 	int             signo;                                  \
-                                                                \
-	/* Watcher type */                                      \
+								\
+	/* Watcher type */					\
 	uev_type_t
 
 /* Internal API for dealing with generic watchers */

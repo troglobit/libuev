@@ -45,39 +45,19 @@ typedef struct {
 	int             running;
 	int             fd;     /* For epoll() */
 	uint32_t        errors;
-	LIST_HEAD(,uev) watchers;
+	LIST_HEAD(,uev_private) watchers;
 } uev_ctx_t;
 
 /* Forward declare due to dependencys, don't try this at home kids. */
 struct uev;
-
-/* This is used to hide all private data members in uev_t */
-#define uev_private_t                                           \
-	LIST_ENTRY(uev) link;   /* For queue.h linked list */   \
-								\
-	int             active;                                 \
-	int             events;                                 \
-								\
-	/* Watcher callback with optional argument */           \
-	void          (*cb)(struct uev *, void *, int);         \
-	void           *arg;                                    \
-								\
-	/* Timer watchers, time in milliseconds */		\
-	int             timeout;                                \
-	int             period;                                 \
-								\
-	/* Signal watchers */                                   \
-	int             signo;                                  \
-								\
-	/* Watcher type */					\
-	uev_type_t
+struct uev_private;
 
 /* Internal API for dealing with generic watchers */
-int uev_watcher_init (uev_ctx_t *ctx, struct uev *w, uev_type_t type,
+int uev_watcher_init (uev_ctx_t *ctx, struct uev_private *w, uev_type_t type,
 		      void (*cb)(struct uev *, void *, int), void *arg,
 		      int fd, int events);
-int uev_watcher_start(struct uev *w);
-int uev_watcher_stop (struct uev *w);
+int uev_watcher_start(struct uev_private *w);
+int uev_watcher_stop (struct uev_private *w);
 
 #endif /* LIBUEV_PRIVATE_H_ */
 

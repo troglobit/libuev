@@ -24,7 +24,7 @@
  */
 
 #include <errno.h>
-#include <fcntl.h>		/* O_CLOEXEC */
+#include <fcntl.h>		/* EPOLL_CLOEXEC */
 #include <string.h>		/* memset() */
 #include <sys/epoll.h>
 #include <sys/signalfd.h>	/* struct signalfd_siginfo */
@@ -37,7 +37,7 @@
 
 static int _init(uev_ctx_t *ctx, int close_old)
 {
-	int fd = epoll_create1(O_CLOEXEC);
+	int fd = epoll_create1(EPOLL_CLOEXEC);
 
 	if (fd < 0)
 		return -1;
@@ -57,7 +57,7 @@ static int is_valid_fd(int fd)
 }
 
 /* Private to libuEv, do not use directly! */
-int uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events)
+int uev_watcher_init(uev_ctx_t *ctx, uev_private_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events)
 {
 	if (!ctx || !w) {
 		errno = EINVAL;
@@ -76,7 +76,7 @@ int uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, vo
 }
 
 /* Private to libuEv, do not use directly! */
-int uev_watcher_start(uev_t *w)
+int uev_watcher_start(uev_private_t *w)
 {
 	struct epoll_event ev;
 
@@ -102,7 +102,7 @@ int uev_watcher_start(uev_t *w)
 }
 
 /* Private to libuEv, do not use directly! */
-int uev_watcher_stop(uev_t *w)
+int uev_watcher_stop(uev_private_t *w)
 {
 	if (!w) {
 		errno = EINVAL;
@@ -157,7 +157,7 @@ int uev_exit(uev_ctx_t *ctx)
 	}
 
 	while (!LIST_EMPTY(&ctx->watchers)) {
-		uev_t *w = LIST_FIRST(&ctx->watchers);
+		uev_private_t *w = LIST_FIRST(&ctx->watchers);
 
 		/* Remove from internal list */
 		LIST_REMOVE(w, link);
@@ -167,15 +167,15 @@ int uev_exit(uev_ctx_t *ctx)
 
 		switch (w->type) {
 		case UEV_TIMER_TYPE:
-			uev_timer_stop(w);
+			uev_timer_stop((uev_t*)w);
 			break;
 
 		case UEV_SIGNAL_TYPE:
-			uev_signal_stop(w);
+			uev_signal_stop((uev_t*)w);
 			break;
 
 		case UEV_IO_TYPE:
-			uev_io_stop(w);
+			uev_io_stop((uev_t*)w);
 			break;
 		}
 	}
@@ -204,7 +204,7 @@ int uev_exit(uev_ctx_t *ctx)
 int uev_run(uev_ctx_t *ctx, int flags)
 {
 	int result = 0, timeout = -1;
-	uev_t *w;
+	uev_private_t *w;
 
         if (!ctx || ctx->fd < 0) {
 		errno = EINVAL;
@@ -220,7 +220,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 	/* Start all dormant timers */
 	LIST_FOREACH(w, &ctx->watchers, link) {
 		if (UEV_TIMER_TYPE == w->type)
-			uev_timer_set(w, w->timeout, w->period);
+			uev_timer_set((uev_t*)w, w->timeout, w->period);
 	}
 
 	while (ctx->running) {
@@ -240,13 +240,13 @@ int uev_run(uev_ctx_t *ctx, int flags)
 		}
 
 		for (i = 0; ctx->running && i < nfds; i++) {
-			w = (uev_t *)events[i].data.ptr;
+			w = (uev_private_t *)events[i].data.ptr;
 
 			if (events[i].events & (EPOLLHUP | EPOLLERR)) {
 				ctx->errors++;
 
 				if (ctx->errors >= 42) {
-					uev_t *tmp, *retry = w;;
+					uev_private_t *tmp, *retry = w;
 
 					/* If not valid anymore, try to remove, ignore any errors. */
 					if (!is_valid_fd(w->fd))
@@ -297,11 +297,11 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			}
 
 			if (w->cb)
-				w->cb(w, w->arg, events[i].events & UEV_EVENT_MASK);
+				w->cb((uev_t*)w, w->arg, events[i].events & UEV_EVENT_MASK);
 
 			if (UEV_TIMER_TYPE == w->type) {
 				if (!w->timeout)
-					uev_timer_stop(w);
+					uev_timer_stop((uev_t*)w);
 			}
 		}
 

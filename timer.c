@@ -67,16 +67,17 @@ static void msec2tspec(int msec, struct timespec *ts)
 int uev_timer_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeout, int period)
 {
 	int fd;
+        uev_private_t *_w = (uev_private_t*)w;
 
 	fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 	if (fd < 0)
 		return -1;
 
-	if (uev_watcher_init(ctx, w, UEV_TIMER_TYPE, cb, arg, fd, UEV_READ))
+	if (uev_watcher_init(ctx, _w, UEV_TIMER_TYPE, cb, arg, fd, UEV_READ))
 		goto exit;
 
 	if (uev_timer_set(w, timeout, period)) {
-		uev_watcher_stop(w);
+		uev_watcher_stop((uev_private_t*)w);
 	exit:
 		close(fd);
 		return -1;
@@ -95,37 +96,39 @@ int uev_timer_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeou
  */
 int uev_timer_set(uev_t *w, int timeout, int period)
 {
+        uev_private_t *_w = (uev_private_t*)w;
+
 	/* Every watcher must be registered to a context */
-	if (!w || !w->ctx) {
+	if (!_w || !_w->ctx) {
 		errno = EINVAL;
 		return -1;
 	}
 
 	/* Handle stopped timers */
-	if (w->fd < 0) {
+	if (_w->fd < 0) {
 		/* Timer already stopped */
 		if (!timeout && !period)
 			return 0;
 
 		/* Remove from internal list */
-		LIST_REMOVE(w, link);
+		LIST_REMOVE(_w, link);
 
-		if (uev_timer_init(w->ctx, w, (uev_cb_t *)w->cb, w->arg, timeout, period))
+		if (uev_timer_init(w->ctx, w, (uev_cb_t *)_w->cb, _w->arg, timeout, period))
 			return -1;
 	}
 
-	w->timeout = timeout;
-	w->period  = period;
+	_w->timeout = timeout;
+	_w->period  = period;
 
-	if (w->ctx->running) {
+	if (_w->ctx->running) {
 		struct itimerspec time;
 
 		msec2tspec(timeout, &time.it_value);
 		msec2tspec(period, &time.it_interval);
-		timerfd_settime(w->fd, 0, &time, NULL);
+		timerfd_settime(_w->fd, 0, &time, NULL);
 	}
 
-	return uev_watcher_start(w);
+	return uev_watcher_start((uev_private_t*)w);
 }
 
 /**
@@ -136,15 +139,17 @@ int uev_timer_set(uev_t *w, int timeout, int period)
  */
 int uev_timer_start(uev_t *w)
 {
-	if (!w) {
+        uev_private_t *_w = (uev_private_t*)w;
+
+	if (!_w) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	if (-1 != w->fd)
-		uev_watcher_stop(w);
+	if (-1 != _w->fd)
+		uev_watcher_stop(_w);
 
-	return uev_timer_set(w, w->timeout, w->period);
+	return uev_timer_set(w, _w->timeout, _w->period);
 }
 
 /**
@@ -155,15 +160,16 @@ int uev_timer_start(uev_t *w)
  */
 int uev_timer_stop(uev_t *w)
 {
-	if (uev_watcher_stop(w))
+        uev_private_t *_w = (uev_private_t*)w;
+	if (uev_watcher_stop(_w))
 		return -1;
 
 	/* Stop kernel timer */
 	uev_timer_set(w, 0, 0);
 
 	/* Close timerfd, will have to be reopened again on reset */
-	close(w->fd);
-	w->fd = -1;
+	close(_w->fd);
+	_w->fd = -1;
 
 	return 0;
 }

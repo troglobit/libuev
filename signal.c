@@ -57,11 +57,11 @@ int uev_signal_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo
 	if (fd < 0)
 		return -1;
 
-	if (uev_watcher_init(ctx, w, UEV_SIGNAL_TYPE, cb, arg, fd, UEV_READ))
+	if (uev_watcher_init(ctx, (uev_private_t*)w, UEV_SIGNAL_TYPE, cb, arg, fd, UEV_READ))
 		goto exit;
 
 	if (uev_signal_set(w, signo)) {
-		uev_watcher_stop(w);
+		uev_watcher_stop((uev_private_t*)w);
 	exit:
 		close(fd);
 		return -1;
@@ -80,22 +80,23 @@ int uev_signal_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo
 int uev_signal_set(uev_t *w, int signo)
 {
 	sigset_t mask;
+        uev_private_t *_w = (uev_private_t*)w;
 
 	/* Every watcher must be registered to a context */
-	if (!w || !w->ctx) {
+	if (!_w || !_w->ctx) {
 		errno = EINVAL;
 		return -1;
 	}
 
 	/* Remember for callbacks and start/stop */
-	w->signo = signo;
+	_w->signo = signo;
 
 	/* Handle stopped signal watchers */
-	if (w->fd < 0) {
+	if (_w->fd < 0) {
 		/* Remove from internal list */
-		LIST_REMOVE(w, link);
+		LIST_REMOVE(_w, link);
 
-		if (uev_signal_init(w->ctx, w, (uev_cb_t *)w->cb, w->arg, signo))
+		if (uev_signal_init(_w->ctx, w, _w->cb, _w->arg, signo))
 			return -1;
 	}
 
@@ -110,7 +111,7 @@ int uev_signal_set(uev_t *w, int signo)
 	if (signalfd(w->fd, &mask, SFD_NONBLOCK) < 0)
 		return -1;
 
-	return uev_watcher_start(w);
+	return uev_watcher_start(_w);
 }
 
 
@@ -130,7 +131,7 @@ int uev_signal_start(uev_t *w)
 	if (-1 != w->fd)
 		uev_signal_stop(w);
 
-	return uev_signal_set(w, w->signo);
+	return uev_signal_set(w, ((uev_private_t*)w)->signo);
 }
 
 /**
@@ -141,7 +142,7 @@ int uev_signal_start(uev_t *w)
  */
 int uev_signal_stop(uev_t *w)
 {
-	if (uev_watcher_stop(w))
+	if (uev_watcher_stop((uev_private_t*)w))
 		return -1;
 
 	close(w->fd);

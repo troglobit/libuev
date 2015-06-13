@@ -46,10 +46,10 @@ int uev_io_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int e
 		return -1;
 	}
 
-	if (uev_watcher_init(ctx, w, UEV_IO_TYPE, cb, arg, fd, events))
+	if (uev_watcher_init(ctx, (uev_private_t*)w, UEV_IO_TYPE, cb, arg, fd, events))
 		return -1;
 
-	return uev_watcher_start(w);
+	return uev_watcher_start((uev_private_t*)w);
 }
 
 /**
@@ -62,10 +62,11 @@ int uev_io_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int e
  */
 int uev_io_set(uev_t *w, int fd, int events)
 {
+        uev_private_t *_w = (uev_private_t*)w;
 	/* Ignore any errors, only to clean up anything lingering ... */
 	uev_io_stop(w);
 
-	return uev_io_init(w->ctx, w, (uev_cb_t *)w->cb, w->arg, fd, events);
+	return uev_io_init(w->ctx, w, (uev_cb_t *)_w->cb, _w->arg, fd, events);
 }
 
 /**
@@ -76,7 +77,7 @@ int uev_io_set(uev_t *w, int fd, int events)
  */
 int uev_io_start(uev_t *w)
 {
-	return uev_io_set(w, w->fd, w->events);
+	return uev_io_set(w, w->fd, ((uev_private_t*)w)->events);
 }
 
 /**
@@ -87,7 +88,7 @@ int uev_io_start(uev_t *w)
  */
 int uev_io_stop(uev_t *w)
 {
-	return uev_watcher_stop(w);
+	return uev_watcher_stop((uev_private_t*)w);
 }
 
 /**

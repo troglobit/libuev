@@ -25,6 +25,9 @@
 
 #include <errno.h>
 #include <fcntl.h>		/* O_CLOEXEC */
+#ifndef O_CLOEXEC
+#define O_CLOEXEC 0             /* Fallback to nothing if O_CLOEXEC does not exist */
+#endif
 #include <string.h>		/* memset() */
 #include <sys/epoll.h>
 #include <sys/signalfd.h>	/* struct signalfd_siginfo */

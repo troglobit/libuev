@@ -63,7 +63,7 @@ static void periodic_task(uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events
 
 static void signal_cb(uev_t *w, void *UNUSED(arg), int UNUSED(events))
 {
-	fprintf(stderr, w->signo == SIGINT ? "^Cv" : "^\v");
+	fprintf(stderr, ((uev_private_t*)w)->signo == SIGINT ? "^Cv" : "^\v");
 }
 
 static void pipe_read_cb(uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events))

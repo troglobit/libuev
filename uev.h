@@ -41,11 +41,36 @@
 #define UEV_NONBLOCK    2
 
 /* Event watcher */
-typedef struct uev {
+
+
+typedef struct uev_private {
 	int             fd;
 	uev_ctx_t      *ctx;
 
-	uev_private_t   type;
+/* This is used to hide all private data members in uev_t */
+        LIST_ENTRY(uev_private) link;   /* For queue.h linked list */
+
+        int             active;
+        int             events;
+
+        /* Watcher callback with optional argument */
+        void          (*cb)(struct uev *, void *, int);
+        void           *arg;
+
+        /* Timer watchers, time in milliseconds */     
+        int             timeout;
+        int             period;
+
+        /* Signal watchers */
+        int             signo;
+
+        uev_type_t      type;
+} uev_private_t;
+
+typedef struct uev {
+        int             fd;
+        uev_ctx_t      *ctx;
+        char            filler[sizeof (uev_private_t) - sizeof (int) - sizeof (uev_ctx_t*)];
 } uev_t;
 
 /* Generic callback for watchers */

@@ -1,4 +1,4 @@
-# libuEv main build file
+# libuEv -- Simple event loop for Linux
 #
 # Copyright (c) 2012       Flemming Madsen <flemming!madsen()madsensoft!dk>
 # Copyright (c) 2013-2015  Joachim Nilsson <troglobit()gmail!com>
@@ -23,6 +23,9 @@
 #
 .PHONY: all test clean joystick test examples bench
 
+# Figure out root of library, unless used as submodule
+ROOTDIR    ?= $(shell pwd)
+
 #VERSION    = $(shell git tag -l | tail -1)
 VERSION    ?= 1.2.0
 NAME        = libuev
@@ -32,38 +35,41 @@ ARCHIVE     = $(PKG).tar.xz
 CC         ?= $(CROSS)gcc
 AR         ?= $(CROSS)ar
 STRIP      ?= $(CROSS)strip
+MAKE       := @$(MAKE)
+INSTALL    := install --backup=off
+STRIPINST  := $(INSTALL) -s --strip-program=$(CROSS)strip -m 0755
 
-ifneq ($(STATIC), 1)
+ifndef STATIC
 CFLAGS     += -fPIC
 endif
 CFLAGS     += -Os
 CPPFLAGS   += -W -Wall -Werror
 ARFLAGS     = crus
+MAKEFLAGS   = --no-print-directory --silent
+
+DISTFILES   = README CHANGELOG TODO LICENSE
+HEADER      = uev.h
+OBJS       := uev.o io.o timer.o signal.o
+SRCS       := $(OBJS:.o=.c)
+DEPS       := $(SRCS:.c=.d)
 JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.* *.html
 
-MAKEFLAGS   = --no-print-directory
-
-ROOTDIR    ?= $(shell pwd)
+VER         = 1
 LIBNAME     = $(NAME)
+SOLIB       = $(LIBNAME).so.$(VER)
+SYMLIB      = $(LIBNAME).so
+STATICLIB   = $(LIBNAME).a
+ifdef STATIC
+TARGET      = $(STATICLIB)
+else
+TARGET      = $(SOLIB)
+endif
+
+# Default install paths
 prefix     ?= /usr/local
 libdir     ?= $(prefix)/lib
 datadir    ?= $(prefix)/share/doc/$(LIBNAME)
 incdir     ?= $(prefix)/include
-DISTFILES   = README CHANGELOG TODO LICENSE
-HEADER      = uev.h
-
-OBJS       := uev.o io.o timer.o signal.o
-SRCS       := $(OBJS:.o=.c)
-DEPS       := $(SRCS:.c=.d)
-VER         = 1
-SOLIB       = $(LIBNAME).so.$(VER)
-SYMLIB      = $(LIBNAME).so
-STATICLIB   = $(LIBNAME).a
-ifeq ($(STATIC), 1)
-TARGET      = $(STATICLIB)
-else
-TARGET      = $(STATICLIB) $(SOLIB)
-endif
 
 export STATICLIB JUNK ROOTDIR CFLAGS CPPFLAGS
 
@@ -74,6 +80,8 @@ include rules.mk
 # Build rules
 all: $(TARGET)
 
+$(OBJS): Makefile
+
 $(SOLIB): Makefile $(OBJS)
 	@printf "  LINK    $@\n"
 	@$(CC) $(LDFLAGS) -shared -Wl,-soname=$@ -o $@ $(OBJS)
@@ -82,23 +90,37 @@ $(STATICLIB): Makefile $(OBJS)
 	@printf "  ARCHIVE $@\n"
 	@$(AR) $(ARFLAGS) $@ $(OBJS)
 
-install: strip
+install-exec: all
+ifndef STATIC
+	@printf "  INSTALL $(DESTDIR)$(libdir)/$(SOLIB)\n"
 	@install -d $(DESTDIR)$(libdir)
-	@printf "  INSTALL $(DESTDIR)$(libdir)/$(TARGET)\n"
 	@install $(SOLIB) $(DESTDIR)$(libdir)/$(SOLIB)
-	@install $(STATICLIB) $(DESTDIR)$(libdir)/$(STATICLIB)
 	@ln -sf $(SOLIB) $(DESTDIR)$(libdir)/$(SYMLIB)
-	@install -d $(DESTDIR)$(incdir)
-	@install -m 0644 $(HEADER) $(DESTDIR)$(incdir)/$(HEADER)
+endif
+
+install-dev:
+	@install -d $(DESTDIR)$(incdir)/$(LIBNAME)
+	@printf "  INSTALL $(DESTDIR)$(incdir)/$(LIBNAME)/$(HEADER)\n"
+	@install -m 0644 $(HEADER) $(DESTDIR)$(incdir)/$(LIBNAME)/$(HEADER)
+ifdef STATIC
+	@printf "  INSTALL $(DESTDIR)$(libdir)/$(STATICLIB)\n"
+	@install -d $(DESTDIR)$(libdir)
+	@install $(STATICLIB) $(DESTDIR)$(libdir)/$(STATICLIB)
+endif
 	@install -d $(DESTDIR)$(datadir)
-	@for file in $(DISTFILES); do \
-		install -m 0644 $$file $(DESTDIR)$(datadir)/$$file; \
+	@for file in $(DISTFILES); do					\
+		printf "  INSTALL $(DESTDIR)$(datadir)/$$file\n";	\
+		install -m 0644 $$file $(DESTDIR)$(datadir)/$$file;	\
 	done
+
+install: install-exec install-dev
 
 uninstall:
 	-@$(RM) -r $(DESTDIR)$(datadir)
-	-@$(RM) -r $(DESTDIR)$(incdir)
-	-@$(RM) $(DESTDIR)$(prefix)/lib/$(LIBNAME)*
+	-@$(RM) -r $(DESTDIR)$(incdir)/$(LIBNAME)
+	-@$(RM) $(DESTDIR)$(libdir)/$(SOLIB)
+	-@$(RM) $(DESTDIR)$(libdir)/$(SYMLIB)
+	-@$(RM) $(DESTDIR)$(libdir)/$(STATICLIB)
 
 strip: $(TARGET)
 	@printf "  STRIP   %s\n" $(TARGET)

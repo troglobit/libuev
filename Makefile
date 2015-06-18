@@ -46,7 +46,7 @@ ARFLAGS     = crus
 MAKEFLAGS   = --no-print-directory --silent
 
 DISTFILES   = README CHANGELOG TODO LICENSE
-HEADERS     = uev.h private.h
+HEADERS     = uev.h private.h queue.h
 OBJS       := uev.o io.o timer.o signal.o
 SRCS       := $(OBJS:.o=.c)
 DEPS       := $(SRCS:.c=.d)

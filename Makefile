@@ -39,9 +39,7 @@ MAKE       := @$(MAKE)
 INSTALL    := install --backup=off
 STRIPINST  := $(INSTALL) -s --strip-program=$(CROSS)strip -m 0755
 
-ifndef STATIC
 CFLAGS     += -fPIC
-endif
 CFLAGS     += -Os
 CPPFLAGS   += -W -Wall -Werror
 ARFLAGS     = crus

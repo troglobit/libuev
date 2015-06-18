@@ -46,7 +46,7 @@ ARFLAGS     = crus
 MAKEFLAGS   = --no-print-directory --silent
 
 DISTFILES   = README CHANGELOG TODO LICENSE
-HEADER      = uev.h
+HEADERS     = uev.h private.h
 OBJS       := uev.o io.o timer.o signal.o
 SRCS       := $(OBJS:.o=.c)
 DEPS       := $(SRCS:.c=.d)
@@ -98,8 +98,10 @@ endif
 
 install-dev:
 	@install -d $(DESTDIR)$(incdir)/$(LIBNAME)
-	@printf "  INSTALL $(DESTDIR)$(incdir)/$(LIBNAME)/$(HEADER)\n"
-	@install -m 0644 $(HEADER) $(DESTDIR)$(incdir)/$(LIBNAME)/$(HEADER)
+	@for file in $(HEADERS); do						\
+		printf "  INSTALL $(DESTDIR)$(incdir)/$(LIBNAME)/$$file\n";	\
+		install -m 0644 $$file $(DESTDIR)$(incdir)/$(LIBNAME)/$$file;	\
+	done
 ifdef STATIC
 	@printf "  INSTALL $(DESTDIR)$(libdir)/$(STATICLIB)\n"
 	@install -d $(DESTDIR)$(libdir)

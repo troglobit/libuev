@@ -141,7 +141,7 @@ v0.0.1 - 2012-03-17
 users mailing list.
 
 [UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.2.1...HEAD
-[v1.2.0]: https://github.com/troglobit/libuev/compare/v1.2.0...v1.2.1
+[v1.2.1]: https://github.com/troglobit/libuev/compare/v1.2.0...v1.2.1
 [v1.2.0]: https://github.com/troglobit/libuev/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/troglobit/libuev/compare/v1.0.5...v1.1.0
 [v1.0.5]: https://github.com/troglobit/libuev/compare/v1.0.4...v1.0.5

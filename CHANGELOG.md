@@ -3,6 +3,25 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+[v1.2.1] - 2015-07-02
+---------------------
+
+### Changes
+- Private data members in `uev.h` have now been moved to a new file
+  called `private.h`.  This will hopefully make it easier to understand
+  what a user of libuEv is allowed to play around with.  Thanks to @vonj
+  for the discussions around this!
+- All builds of libuEv now default to use -fPIC, this bloats the code
+  slightly, but ensures that linking works for all use cases, withouth
+  introducing unnecessary complexity.
+
+### Fixes
+- Fix install/uninstall Makefile recipes so they work for both static
+  and dynamic builds.  Also, make sure to install all required headers.
+- Jakob Eriksson noticed that `O_CLOEXEC` does not exist in the Debian 6
+  EGLIBC, but `EPOLL_CLOEXEC` does, and is also what `epoll_create1()`
+  should use.  Thank you @vonj!
+
 
 [v1.2.0] - 2015-06-09
 ---------------------
@@ -121,7 +140,8 @@ v0.0.1 - 2012-03-17
 [Initial announcement] of [libuevent] by [Flemming Madsen] to the Lua
 users mailing list.
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.2.0...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.2.1...HEAD
+[v1.2.0]: https://github.com/troglobit/libuev/compare/v1.2.0...v1.2.1
 [v1.2.0]: https://github.com/troglobit/libuev/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/troglobit/libuev/compare/v1.0.5...v1.1.0
 [v1.0.5]: https://github.com/troglobit/libuev/compare/v1.0.4...v1.0.5

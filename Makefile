@@ -50,18 +50,14 @@ HEADERS     = uev.h private.h queue.h
 OBJS       := uev.o io.o timer.o signal.o
 SRCS       := $(OBJS:.o=.c)
 DEPS       := $(SRCS:.c=.d)
-JUNK        = *~ *.bak *.map .*.d DEADJOE *.gdb *.elf core core.* *.html
+JUNK        = *~ *.bak *.map .*.d *.so* *.a DEADJOE *.gdb *.elf core core.* *.html
 
 VER         = 1
 LIBNAME     = $(NAME)
 SOLIB       = $(LIBNAME).so.$(VER)
 SYMLIB      = $(LIBNAME).so
 STATICLIB   = $(LIBNAME).a
-ifdef STATIC
-TARGET      = $(STATICLIB)
-else
-TARGET      = $(SOLIB)
-endif
+TARGET      = $(STATICLIB) $(SOLIB)
 
 # Default install paths
 prefix     ?= /usr/local
@@ -89,12 +85,10 @@ $(STATICLIB): Makefile $(OBJS)
 	@$(AR) $(ARFLAGS) $@ $(OBJS)
 
 install-exec: all
-ifndef STATIC
 	@printf "  INSTALL $(DESTDIR)$(libdir)/$(SOLIB)\n"
 	@install -d $(DESTDIR)$(libdir)
 	@install $(SOLIB) $(DESTDIR)$(libdir)/$(SOLIB)
 	@ln -sf $(SOLIB) $(DESTDIR)$(libdir)/$(SYMLIB)
-endif
 
 install-dev:
 	@install -d $(DESTDIR)$(incdir)/$(LIBNAME)
@@ -102,11 +96,9 @@ install-dev:
 		printf "  INSTALL $(DESTDIR)$(incdir)/$(LIBNAME)/$$file\n";	\
 		install -m 0644 $$file $(DESTDIR)$(incdir)/$(LIBNAME)/$$file;	\
 	done
-ifdef STATIC
 	@printf "  INSTALL $(DESTDIR)$(libdir)/$(STATICLIB)\n"
 	@install -d $(DESTDIR)$(libdir)
 	@install $(STATICLIB) $(DESTDIR)$(libdir)/$(STATICLIB)
-endif
 	@install -d $(DESTDIR)$(datadir)
 	@for file in $(DISTFILES); do					\
 		printf "  INSTALL $(DESTDIR)$(datadir)/$$file\n";	\

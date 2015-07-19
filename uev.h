@@ -41,10 +41,12 @@
 
 /* Event watcher */
 typedef struct uev {
+	/* Private data for libuEv internal engine */
+	uev_private_t   type;
+
+	/* Public data for users to reference  */
 	int             fd;
 	uev_ctx_t      *ctx;
-
-	uev_private_t   type;
 } uev_t;
 
 /* Generic callback for watchers */

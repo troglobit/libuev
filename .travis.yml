@@ -1,7 +1,9 @@
 # Travis CI integration -- https://travis-ci.org/troglobit/libuev
+# Defaults to GNU GCC and autotools: ./configure && make && make test
 language: c
-compiler:
-  - gcc
+
+# We don't need to install packages, use dockerized build, quicker
+sudo: false
 
 env:
   global:

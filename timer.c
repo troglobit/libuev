@@ -154,11 +154,11 @@ int uev_timer_start(uev_t *w)
  */
 int uev_timer_stop(uev_t *w)
 {
-	if (uev_watcher_stop(w))
-		return -1;
-
 	/* Stop kernel timer */
 	uev_timer_set(w, 0, 0);
+
+	if (uev_watcher_stop(w))
+		return -1;
 
 	/* Close timerfd, will have to be reopened again on reset */
 	close(w->fd);

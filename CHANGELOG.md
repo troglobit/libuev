@@ -3,6 +3,22 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+[v1.2.2] - 2015-08-30
+---------------------
+
+Minor bugfix release.
+
+### Changes
+- The `ifdef STATIC` in the Makefile has been removed.  Now both the
+  .a and .so libraries are built.  The user may then select what to
+  install.  This is a change for convenience when using libuEv from
+  a GNU Configure & Build based project.
+
+### Fixes
+- Fix odd data ordering issue on Debian Jessie in new `uev_private_t`
+- Fix issue #6: Segfault when stopping timer before calling `uev_exit()`
+
+
 [v1.2.1] - 2015-07-02
 ---------------------
 

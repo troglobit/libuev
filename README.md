@@ -293,7 +293,7 @@ used for inspiration is the very small [Picoev][9] by [Oku Kazuho].
 [Flemming Madsen]: http://www.madsensoft.dk
 [Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8
 
-[libuEv] is developed and maintained by [Joachim Nilsson]
+[libuEv] is developed and maintained by [Joachim Nilsson].
 
 <!--
   -- Local Variables:

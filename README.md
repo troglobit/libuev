@@ -278,10 +278,11 @@ Size of [libuEv][]:
 Origin & References
 --------------------
 
-[libuEv] was originally based on [LibUEvent][8] by [Flemming Madsen] but
-has been completely rewritten with a much clearer API.  Now more similar
-to the famous [libev][2] by [Mark Lehmann].  Another small event library
-used for inspiration is the very small [Picoev][9] by [Oku Kazuho].
+[libuEv][] was originally based on [LibUEvent][8] by [Flemming Madsen]
+but has been completely rewritten with a much clearer API.  Now more
+similar to the famous [libev][2] by [Mark Lehmann][].  Another small
+event library used for inspiration is the very small [Picoev][9] by
+[Oku Kazuho][].
 
 [libuEv][] is developed and maintained by [Joachim Nilsson][].
 

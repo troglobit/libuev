@@ -167,10 +167,11 @@ to `system()`, which sucks anyawy :)
 Example
 -------
 
-Here follows a very brief example to illustrate how one can use [libuEv]
-to act upon joystick input.
+Here follows a very brief example to illustrate how one can use
+[libuEv][] to act upon joystick input.
 
 ```C
+
     #include <err.h>
     #include <errno.h>
     #include <stdio.h>
@@ -219,6 +220,7 @@ to act upon joystick input.
     
     	return uev_run(&ctx, 0);
     }
+
 ```
 
 To compile the program, save the code as `joystick.c` and call GCC with

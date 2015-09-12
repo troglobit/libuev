@@ -61,11 +61,12 @@ details, see [this article][4] at [lwn.net](http://lwn.net).
 API
 ---
 
-The C interface to [libuEv] is very simple.  It handles three different
+The C interface to [libuEv][] is very simple.  It handles three different
 types of events: I/O (files, sockets, message queues, etc.), timers, and
 signals.  With a slight caveat on signals
 
 ```C
+
     /* Callback example, arg is passed from watcher's *_init()
      * w->fd holds the file descriptor, events is set by libuEv
      * to indicate if any of UEV_READ and/or UEV_WRITE is ready.
@@ -94,6 +95,7 @@ signals.  With a slight caveat on signals
     int uev_signal_set  (uev_t *w, int signo);               /* Change signal to wait for */
     int uev_signal_start(uev_t *w);                          /* Restart a stopped signal watcher */
     int uev_signal_stop (uev_t *w);                          /* Stop signal watcher */
+
 ```
 
 To monitor events the developer first creates an *event context*, this
@@ -101,9 +103,11 @@ is achieved by calling `uev_init()` with a pointer to a (thread) local
 `uev_ctx_t` variable.
 
 ```C
-    uev_ctx_t ctx;
 
+    uev_ctx_t ctx;
+    
     uev_init(&ctx);
+
 ```
 
 Then, for each event to be monitored, a *watcher* is registered with the
@@ -112,6 +116,7 @@ file descriptor to monitor, and an event callback function, by calling
 the event type's `_init()` function with the `uev_ctx_t` context.
 
 ```C
+
     void cleanup_exit(uev_t *w, void *arg, int events)
     {
         /* Graceful exit, with optional cleanup ... */
@@ -119,8 +124,9 @@ the event type's `_init()` function with the `uev_ctx_t` context.
     }
     
     uev_t termw;
-
+    
     uev_signal_init(&ctx, &term, cleanup_exit, NULL, SIGTERM);
+
 ```
 
 When all watchers are registered, call the *event loop* with `uev_run()`
@@ -131,7 +137,9 @@ If `flags` is set to `UEV_ONCE | UEV_NONBLOCK` the event loop returns
 immediately if no event is available.
 
 ```C
+
     uev_run(&ctx, UEV_NONE);
+
 ```
 
 In case of errors, stream close, or peer shutdown, libuEv handles much

@@ -1,6 +1,6 @@
 libuEv | Simple event loop for Linux
 ====================================
-[![Travis Status]][Travis] [![Coverity Status]][Coverity Scan]
+[![Travis Status][]][Travis] [![Coverity Status][]][Coverity Scan]
 
 
 Table of Contents

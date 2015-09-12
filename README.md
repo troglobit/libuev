@@ -44,13 +44,13 @@ core, even though they run Linux, with multiple threads a program may
 actually run slower!  Always profile your program, and if possible, test
 it on different architectures.
 
-[libuEv] is a simple event loop in the style of the more established
+[libuEv][] is a simple event loop in the style of the more established
 [libevent][1], [libev][2] and the venerable [Xt(3)][3] event loop.  The
 *u* (micro) in the name refers to both the small feature set and the
 small size overhead impact of the library.  The primary target of
-[libuEv] is a modern Linux system.
+[libuEv][] is a modern Linux system.
 
-Experienced developers may appreciate that [libuEv] is built on top of
+Experienced developers may appreciate that [libuEv][] is built on top of
 modern Linux APIs: epoll, timerfd and signalfd.  Note, a certain amount
 of care is needed when dealing with APIs that employ signalfd.  For
 details, see [this article][4] at [lwn.net](http://lwn.net).
@@ -171,54 +171,54 @@ Here follows a very brief example to illustrate how one can use [libuEv]
 to act upon joystick input.
 
 ```C
-#include <err.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <fcntl.h>
-#include <unistd.h>
-
-#include "uev.h"
-
-struct js_event {
-	uint32_t time;		/* event timestamp in milliseconds */
-	int16_t  value;		/* value */
-	uint8_t  type;		/* event type */
-	uint8_t  number;	/* axis/button number */
-} e;
-
-static void joystick_cb(uev_t *w, void *arg, int events)
-{
-	read (w->fd, &e, sizeof(e));
-
-	switch (e.type) {
-	case 1:
-		if (e.value) printf("Button %d pressed\n", e.number);
-		else 	     printf("Button %d released\n", e.number);
-		break;
-
-	case 2:
-		printf("Joystick axis %d moved, value %d!\n", e.number, e.value);
-		break;
-	}
-}
-
-int main(void)
-{
-	int       fd = open("/dev/input/js1", O_RDONLY, O_NONBLOCK);
-	uev_t     js1_watcher;
-	uev_ctx_t ctx;
-
-	if (fd < 0)
-		errx(errno, "Cannot find a joystick attached.");
-
-	uev_init(&ctx);
-	uev_io_init(&ctx, &js1_watcher, joystick_cb, NULL, fd, UEV_READ);
-
-	puts("Starting, press Ctrl-C to exit.");
-
-	return uev_run(&ctx, 0);
-}
+    #include <err.h>
+    #include <errno.h>
+    #include <stdio.h>
+    #include <stdint.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+    
+    #include "uev.h"
+    
+    struct js_event {
+    	uint32_t time;		/* event timestamp in milliseconds */
+    	int16_t  value;		/* value */
+    	uint8_t  type;		/* event type */
+    	uint8_t  number;	/* axis/button number */
+    } e;
+    
+    static void joystick_cb(uev_t *w, void *arg, int events)
+    {
+    	read (w->fd, &e, sizeof(e));
+    
+    	switch (e.type) {
+    	case 1:
+    		if (e.value) printf("Button %d pressed\n", e.number);
+    		else 	     printf("Button %d released\n", e.number);
+    		break;
+    
+    	case 2:
+    		printf("Joystick axis %d moved, value %d!\n", e.number, e.value);
+    		break;
+    	}
+    }
+    
+    int main(void)
+    {
+    	int       fd = open("/dev/input/js1", O_RDONLY, O_NONBLOCK);
+    	uev_t     js1_watcher;
+    	uev_ctx_t ctx;
+    
+    	if (fd < 0)
+    		errx(errno, "Cannot find a joystick attached.");
+    
+    	uev_init(&ctx);
+    	uev_io_init(&ctx, &js1_watcher, joystick_cb, NULL, fd, UEV_READ);
+    
+    	puts("Starting, press Ctrl-C to exit.");
+    
+    	return uev_run(&ctx, 0);
+    }
 ```
 
 To compile the program, save the code as `joystick.c` and call GCC with
@@ -228,7 +228,7 @@ directory, skips using a Makefile altogether.  Alternatively, call the
 
 More complete and relevant example uses of [libuEv] is the TFTP/FTP
 server [uftpd][5], and the Linux `/sbin/init` replacement [finit][6].
-Both use [libuEv] as a GIT submodule.
+Both use [libuEv][] as a GIT submodule.
 
 Also, see the `bench.c` program (<kbd>make bench</kbd> from within the
 library) for [reference benchmarks][7] against libevent and libev.
@@ -246,7 +246,7 @@ patches to support *BSD and its kqueue interface.
 * <kbd>make test</kbd>: Test and showcase
 * <kbd>make install</kbd>: Honors `$prefix` and `$DESTDIR` environment variables
 
-Size of [libuEv]:
+Size of [libuEv][]:
 
     $ make strip
     CC      main.o
@@ -273,6 +273,8 @@ has been completely rewritten with a much clearer API.  Now more similar
 to the famous [libev][2] by [Mark Lehmann].  Another small event library
 used for inspiration is the very small [Picoev][9] by [Oku Kazuho].
 
+[libuEv][] is developed and maintained by [Joachim Nilsson][].
+
 [1]: http://libevent.org
 [2]: http://software.schmorp.de/pkg/libev.html
 [3]: http://unix.com/man-page/All/3x/XtDispatchEvent
@@ -286,14 +288,13 @@ used for inspiration is the very small [Picoev][9] by [Oku Kazuho].
 [Travis Status]:   https://travis-ci.org/troglobit/libuev.png?branch=master
 [Coverity Scan]:   https://scan.coverity.com/projects/3846
 [Coverity Status]: https://scan.coverity.com/projects/3846/badge.svg
-[LibuEV]:          https://github.com/troglobit/libuev
+[LibuEv]:          https://github.com/troglobit/libuev
 [Oku Kazuho]:      https://github.com/kazuho
 [Mark Lehmann]:    http://software.schmorp.de
 [Joachim Nilsson]: http://troglobit.com
 [Flemming Madsen]: http://www.madsensoft.dk
 [Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8
 
-[libuEv] is developed and maintained by [Joachim Nilsson].
 
 <!--
   -- Local Variables:

@@ -20,4 +20,9 @@ addons:
     build_command: "make"
     branch_pattern: dev
 
-script: make
+# We don't use configure, so we must define our own build script.
+script:
+  - make distclean
+  - make -j5
+  - make test
+  - ./examples/test

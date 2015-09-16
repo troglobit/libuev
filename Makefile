@@ -45,7 +45,7 @@ CPPFLAGS   += -W -Wall -Werror
 ARFLAGS     = crus
 MAKEFLAGS   = --no-print-directory --silent
 
-DISTFILES   = README CHANGELOG TODO LICENSE
+DISTFILES   = README ChangeLog LICENSE
 HEADERS     = uev.h private.h queue.h
 OBJS       := uev.o io.o timer.o signal.o
 SRCS       := $(OBJS:.o=.c)

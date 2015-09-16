@@ -123,18 +123,18 @@ the event type's `_init()` function with the `uev_ctx_t` context.
         uev_exit(w->ctx);
     }
     
-    uev_t termw;
+    uev_t sigterm_watcher;
     
-    uev_signal_init(&ctx, &term, cleanup_exit, NULL, SIGTERM);
+    uev_signal_init(&ctx, &sigterm_watcher, cleanup_exit, NULL, SIGTERM);
 
 ```
 
 When all watchers are registered, call the *event loop* with `uev_run()`
 and the argument to the event context.  The `flags` parameter can be
-used to integrate [libuEv] into another event loop.  With `flags` set to
-`UEV_ONCE` the event loop returns after having served the first event.
-If `flags` is set to `UEV_ONCE | UEV_NONBLOCK` the event loop returns
-immediately if no event is available.
+used to integrate [libuEv][] into another event loop.  With `flags` set
+to `UEV_ONCE` the event loop returns after having served the first
+event.  If `flags` is set to `UEV_ONCE | UEV_NONBLOCK` the event loop
+returns immediately if no event is available.
 
 ```C
 

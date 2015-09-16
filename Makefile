@@ -82,7 +82,7 @@ $(SOLIB): Makefile $(OBJS)
 
 $(STATICLIB): Makefile $(OBJS)
 	@printf "  ARCHIVE $@\n"
-	@$(AR) $(ARFLAGS) $@ $(OBJS)
+	@$(AR) $(ARFLAGS) $@ $(OBJS) 2>/dev/null
 
 install-exec: all
 	@printf "  INSTALL $(DESTDIR)$(libdir)/$(SOLIB)\n"

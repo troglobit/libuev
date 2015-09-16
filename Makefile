@@ -126,8 +126,9 @@ bench: Makefile $(STATICLIB)
 examples: all
 	@$(MAKE) -C examples
 
-test joystick:
+test joystick: all
 	@$(MAKE) -C examples $@
+	@./examples/$@
 
 # Runs Clang scan-build on the whole tree
 check: clean

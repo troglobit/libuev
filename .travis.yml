@@ -25,4 +25,3 @@ script:
   - make distclean
   - make -j5
   - make test
-  - ./examples/test

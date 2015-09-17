@@ -8,7 +8,11 @@ Table of Contents
 
 * [Introduction](#introduction)
 * [API](#api)
-* [Example](#example)
+  * [Create an Event Context](#create-an-event-context)
+  * [Register Event Watcher with Event Context](#register-event-watcher-with-event-context)
+  * [Start Event Loop](#start-event-loop)
+  * [Summary](#summary)
+* [Joystick Example](#joystick-example)
 * [Build & Install](#build--install)
 * [Origin & References](#origin--references)
 
@@ -98,6 +102,8 @@ signals.  With a slight caveat on signals
 
 ```
 
+### Create an Event Context
+
 To monitor events the developer first creates an *event context*, this
 is achieved by calling `uev_init()` with a pointer to a (thread) local
 `uev_ctx_t` variable.
@@ -109,6 +115,8 @@ is achieved by calling `uev_init()` with a pointer to a (thread) local
     uev_init(&ctx);
 
 ```
+
+### Register Event Watcher with Event Context
 
 Then, for each event to be monitored, a *watcher* is registered with the
 event context.  The watcher, an `uev_t`, is initialized with the proper
@@ -123,11 +131,21 @@ the event type's `_init()` function with the `uev_ctx_t` context.
         uev_exit(w->ctx);
     }
     
-    uev_t sigterm_watcher;
-    
-    uev_signal_init(&ctx, &sigterm_watcher, cleanup_exit, NULL, SIGTERM);
+    int main(void)
+	{
+	    uev_t sigterm_watcher;
+        .
+		.
+		.
+        uev_signal_init(&ctx, &sigterm_watcher, cleanup_exit, NULL, SIGTERM);
+		.
+		.
+		.
+	}
 
 ```
+
+### Start Event Loop
 
 When all watchers are registered, call the *event loop* with `uev_run()`
 and the argument to the event context.  The `flags` parameter can be
@@ -146,7 +164,7 @@ In case of errors, stream close, or peer shutdown, libuEv handles much
 internally, but also lets the callback run.  This is useful for stateful
 connections to be able to detect EOF.
 
-Summary:
+### Summary
 
 1. Prepare an event context with `uev_init()`
 2. Register event callbacks with `uev_io_init()`, `uev_signal_init()`
@@ -172,8 +190,8 @@ of this, from [finit][6], implementing `run()` as a better replacement
 to `system()`, which sucks anyawy :)
 
 
-Example
--------
+Joystick Example
+----------------
 
 Here follows a very brief example to illustrate how one can use
 [libuEv][] to act upon joystick input.
@@ -236,12 +254,13 @@ To compile the program, save the code as `joystick.c` and call GCC with
 directory, skips using a Makefile altogether.  Alternatively, call the
 `Makefile` with <kbd>make joystick</kbd> from this directory.
 
-More complete and relevant example uses of [libuEv] is the TFTP/FTP
+More complete and relevant example uses of [libuEv][] is the TFTP/FTP
 server [uftpd][5], and the Linux `/sbin/init` replacement [finit][6].
 Both use [libuEv][] as a GIT submodule.
 
-Also, see the `bench.c` program (<kbd>make bench</kbd> from within the
-library) for [reference benchmarks][7] against libevent and libev.
+Also see the `bench.c` program (<kbd>make bench</kbd> from within the
+library) for [reference benchmarks][7] against [libevent][1] and
+[libev][2].
 
 
 Build & Install
@@ -305,7 +324,6 @@ event library used for inspiration is the very small [Picoev][9] by
 [Joachim Nilsson]: http://troglobit.com
 [Flemming Madsen]: http://www.madsensoft.dk
 [Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8
-
 
 <!--
   -- Local Variables:

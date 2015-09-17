@@ -27,7 +27,7 @@
 ROOTDIR    ?= $(shell pwd)
 
 #VERSION    = $(shell git tag -l | tail -1)
-VERSION    ?= 1.2.3-beta1
+VERSION    ?= 1.2.3
 NAME        = libuev
 PKG         = $(NAME)-$(VERSION)
 ARCHIVE     = $(PKG).tar.xz

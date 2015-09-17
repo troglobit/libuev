@@ -3,6 +3,22 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+[v1.2.3] - 2015-09-17
+---------------------
+
+Very minor release.
+
+### Changes
+- [README.md][] updates, mostly cleanup and readability improvements
+- `make test` now runs the test case, on behalf of Travis-CI
+- Renamed CHANGELOG.md to [ChangeLog.md][]
+- Dropped [TODO.md][] from distribution archives, only for devs
+
+### Fixes
+- Lots of Markdown syntax fixes in both README and ChangeLog
+- Silence annoying warning from newer GNU ar in Ubuntu 15.10
+
+
 [v1.2.2] - 2015-08-30
 ---------------------
 
@@ -64,7 +80,7 @@ Massively improved error handling.
   all watchers when an error count reaches a MAX value -- handles stale
   descriptors or cases when kernel does not notice updated descriptors.
 - Return error when stopping a watcher fails.
-- Update [README.md] with new `uev_*_start()` functions.
+- Update [README.md][] with new `uev_*_start()` functions.
 - Bump dev version to 1.1 due to the number of significant changes.
 
 ### Fixes
@@ -84,9 +100,9 @@ Massively improved error handling.
 - Renamed `main.c` to `uev.c`
 - Move examples to `examples/` subdirectory
 - Simplify automatic dependency calculation
-- Add [TODO.md] for wishlist items
-- Add [CHANGELOG.md], attempt to align with http://keepachangelog.com
-- Further updates to [README.md]
+- Add [TODO.md][] for wishlist items
+- Add [CHANGELOG.md][ChangeLog.md], to align with http://keepachangelog.com
+- Further updates to [README.md][]
 
 
 [v1.0.4] - 2015-01-24
@@ -98,7 +114,7 @@ Release mainly targeted for [Finit development](https://github.com/troglobit/fin
 
 ### Changes
 * `test.c` has been simplified/clarified
-* Further updates to [README.md]
+* Further updates to [README.md][]
 * Minor update to Makefile, change how build progress is echoed
 
 
@@ -108,7 +124,7 @@ Release mainly targeted for [Finit development](https://github.com/troglobit/fin
 This is a very minor release, with a strong focus on documentation. 
 
 ### Changes
-- [README.md], massively updated
+- [README.md][], massively updated
 - API documentation, updated
 - Travis CI integration added, https://travis-ci.org/troglobit/libuev
 - Coverity Scan integration, https://scan.coverity.com/projects/3846
@@ -126,8 +142,8 @@ This is a very minor release, with a strong focus on documentation.
 ---------------------
 
 ### Changes
-- Cleanup and rewrite of [README.md] after first audit by @vonj
-- Added API and example section to [README.md]
+- Cleanup and rewrite of [README.md][] after first audit by @vonj
+- Added API and example section to [README.md][]
 - New [joystick.c] example added
 - `main.c:uev_run()`: Document mysterious flags parameter
 
@@ -146,17 +162,20 @@ First release in the new guise and API.
 - Reindent to use Linux KNF
 - Change library name to libuev
 - Lua support removed
-- Make sure to state the [MIT license] correctly in all files
-- Import [Niels Provos]' `bench.c`, the [libev version]
+- Make sure to state the [MIT license][] correctly in all files
+- Import [Niels Provos][]' `bench.c`, the [libev version][]
 
 
 v0.0.1 - 2012-03-17
 -------------------
 
-[Initial announcement] of [libuevent] by [Flemming Madsen] to the Lua
-users mailing list.
+[Initial announcement][] of [libuevent][] by [Flemming Madsen][] to the
+Lua users mailing list.
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.2.1...HEAD
+
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.2.3...HEAD
+[v1.2.3]: https://github.com/troglobit/libuev/compare/v1.2.2...v1.2.3
+[v1.2.2]: https://github.com/troglobit/libuev/compare/v1.2.1...v1.2.2
 [v1.2.1]: https://github.com/troglobit/libuev/compare/v1.2.0...v1.2.1
 [v1.2.0]: https://github.com/troglobit/libuev/compare/v1.1.0...v1.2.0
 [v1.1.0]: https://github.com/troglobit/libuev/compare/v1.0.5...v1.1.0
@@ -168,7 +187,7 @@ users mailing list.
 [v1.0.0]: https://github.com/troglobit/libuev/compare/v0.0.1...v1.0.0
 [TODO.md]: https://github.com/troglobit/libuev/blob/master/TODO.md
 [README.md]: https://github.com/troglobit/libuev/blob/master/README.md
-[CHANGLOG.md]: https://github.com/troglobit/libuev/blob/master/CHANGELOG.md
+[ChangeLog.md][]: https://github.com/troglobit/libuev/blob/master/ChangeLog.md
 [joystick.c]: https://github.com/troglobit/libuev/blob/master/joystick.c
 [Niels Provos]: http://en.wikipedia.org/wiki/Niels_Provos
 [MIT license]: http://en.wikipedia.org/wiki/MIT_License

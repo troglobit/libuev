@@ -187,7 +187,7 @@ Lua users mailing list.
 [v1.0.0]: https://github.com/troglobit/libuev/compare/v0.0.1...v1.0.0
 [TODO.md]: https://github.com/troglobit/libuev/blob/master/TODO.md
 [README.md]: https://github.com/troglobit/libuev/blob/master/README.md
-[ChangeLog.md][]: https://github.com/troglobit/libuev/blob/master/ChangeLog.md
+[ChangeLog.md]: https://github.com/troglobit/libuev/blob/master/ChangeLog.md
 [joystick.c]: https://github.com/troglobit/libuev/blob/master/joystick.c
 [Niels Provos]: http://en.wikipedia.org/wiki/Niels_Provos
 [MIT license]: http://en.wikipedia.org/wiki/MIT_License

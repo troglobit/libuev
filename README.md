@@ -9,7 +9,7 @@ Table of Contents
 * [Introduction](#introduction)
 * [API](#api)
   * [Create an Event Context](#create-an-event-context)
-  * [Register Event Watcher with Event Context](#register-event-watcher-with-event-context)
+  * [Register an Event Watcher](#register-an-event-watcher)
   * [Start Event Loop](#start-event-loop)
   * [Summary](#summary)
 * [Joystick Example](#joystick-example)
@@ -77,7 +77,7 @@ signals.  With a slight caveat on signals
      */
     void callback       (uev_t *w, void *arg, int events);
 
-    /* Event loop functions, notice use of flags! */
+    /* Event loop:      Notice the use of flags! */
     int uev_init        (uev_ctx_t *ctx);
     int uev_exit        (uev_ctx_t *ctx);
     int uev_run         (uev_ctx_t *ctx, int flags);         /* UEV_NONE, UEV_ONCE, and/or UEV_NONBLOCK */
@@ -116,12 +116,15 @@ is achieved by calling `uev_init()` with a pointer to a (thread) local
 
 ```
 
-### Register Event Watcher with Event Context
+### Register an Event Watcher
 
-Then, for each event to be monitored, a *watcher* is registered with the
-event context.  The watcher, an `uev_t`, is initialized with the proper
-file descriptor to monitor, and an event callback function, by calling
-the event type's `_init()` function with the `uev_ctx_t` context.
+For each event to be monitored, be it a signal, timer or a file
+descriptor, a *watcher* must be registered with the event context.  The
+watcher, an `uev_t`, is registered by calling the event type's `_init()`
+function with the `uev_ctx_t` context, the callback, and an optional
+argument.
+
+Here is a signal example:
 
 ```C
 
@@ -149,10 +152,9 @@ the event type's `_init()` function with the `uev_ctx_t` context.
 
 When all watchers are registered, call the *event loop* with `uev_run()`
 and the argument to the event context.  The `flags` parameter can be
-used to integrate [libuEv][] into another event loop.  With `flags` set
-to `UEV_ONCE` the event loop returns after having served the first
-event.  If `flags` is set to `UEV_ONCE | UEV_NONBLOCK` the event loop
-returns immediately if no event is available.
+used to integrate [libuEv][] into another event loop.
+
+In this example we set `flags` to none:
 
 ```C
 
@@ -160,17 +162,21 @@ returns immediately if no event is available.
 
 ```
 
-In case of errors, stream close, or peer shutdown, libuEv handles much
-internally, but also lets the callback run.  This is useful for stateful
-connections to be able to detect EOF.
+With `flags` set to `UEV_ONCE` the event loop returns as soon as it has
+served the first event.  If `flags` is set to `UEV_ONCE | UEV_NONBLOCK`
+the event loop returns immediately if no event is available.
+
+**Note:** libuEv handles many types of errors, stream close, or peer
+shutdowns internally, but also lets the callback run.  This is useful
+for stateful connections to be able to detect EOF.
 
 ### Summary
 
-1. Prepare an event context with `uev_init()`
-2. Register event callbacks with `uev_io_init()`, `uev_signal_init()`
-   or `uev_timer_init()`
-3. Enter the event loop with `uev_run()`
-4. Leave the event loop with `uev_exit()`, possibly from a callback
+1. Set up an event context with `uev_init()`
+2. Register event callbacks with the event context using
+   `uev_io_init()`, `uev_signal_init()` or `uev_timer_init()`
+3. Start the event loop with `uev_run()`
+4. Exit the event loop with `uev_exit()`, possibly from a callback
 
 **Note 1:** Make sure to use non-blocking stream I/O!  Most hard to find
 bugs in event driven applications are due to sockets and files being

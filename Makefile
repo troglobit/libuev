@@ -27,7 +27,7 @@
 ROOTDIR    ?= $(shell pwd)
 
 #VERSION    = $(shell git tag -l | tail -1)
-VERSION     = 1.2.3
+VERSION     = 1.2.4-pre
 NAME        = libuev
 PKG         = $(NAME)-$(VERSION)
 ARCHIVE     = $(PKG).tar.xz
@@ -42,6 +42,7 @@ STRIPINST  := $(INSTALL) -s --strip-program=$(CROSS)strip -m 0755
 CFLAGS     += -fPIC
 CFLAGS     += -Os
 CPPFLAGS   += -W -Wall -Werror
+LDFLAGS     = $(EXTRA_LDFLAGS)
 ARFLAGS     = crus
 MAKEFLAGS   = --no-print-directory --silent
 

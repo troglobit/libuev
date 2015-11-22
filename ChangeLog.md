@@ -3,6 +3,15 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+[v1.2.4] - 2015-11-23
+---------------------
+
+### Fixes
+
+- Do not allow `VERSION` to be overloaded by build system.
+- Make sure we don't inherit `LDFLAGS` from environment.
+
+
 [v1.2.3] - 2015-09-17
 ---------------------
 

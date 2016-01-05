@@ -3,8 +3,8 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
-[v1.2.4] - 2015-11-23
----------------------
+[v1.2.4][] - 2015-11-23
+-----------------------
 
 ### Fixes
 
@@ -12,8 +12,8 @@ All notable changes to the project are documented in this file.
 - Make sure we don't inherit `LDFLAGS` from environment.
 
 
-[v1.2.3] - 2015-09-17
----------------------
+[v1.2.3][] - 2015-09-17
+-----------------------
 
 Very minor release.
 
@@ -28,8 +28,8 @@ Very minor release.
 - Silence annoying warning from newer GNU ar in Ubuntu 15.10
 
 
-[v1.2.2] - 2015-08-30
----------------------
+[v1.2.2][] - 2015-08-30
+-----------------------
 
 Minor bugfix release.
 
@@ -44,8 +44,8 @@ Minor bugfix release.
 - Fix issue #6: Segfault when stopping timer before calling `uev_exit()`
 
 
-[v1.2.1] - 2015-07-02
----------------------
+[v1.2.1][] - 2015-07-02
+-----------------------
 
 ### Changes
 - Private data members in `uev.h` have now been moved to a new file
@@ -64,8 +64,8 @@ Minor bugfix release.
   should use.  Thank you @vonj!
 
 
-[v1.2.0] - 2015-06-09
----------------------
+[v1.2.0][] - 2015-06-09
+-----------------------
 
 API change in event callbacks and fix timers that never start.
 
@@ -74,12 +74,12 @@ API change in event callbacks and fix timers that never start.
   change!  Please update all your callbacks if you upgrade.
 
 ### Fixes
-- Fix timers that accidentally broke in [v1.1.0].
+- Fix timers that accidentally broke in [v1.1.0][].
 - Fixes to `bench.c`, it now actually listens to the pipe/socket.
 
 
-[v1.1.0] - 2015-03-04
----------------------
+[v1.1.0][] - 2015-03-04
+-----------------------
 
 Massively improved error handling.
 
@@ -96,11 +96,11 @@ Massively improved error handling.
 - Remove `test.c` from `DISTFILES` in `Makefile`.  You need the
   comeplete sources to build the examples now.  Thanks to @karasz for
   the heads up on this and the musl libc issue with missing `queue.h`!
-- Fix broken link to [v1.0.5] in this file.
+- Fix broken link to [v1.0.5][] in this file.
 
 
-[v1.0.5] - 2015-02-15
----------------------
+[v1.0.5][] - 2015-02-15
+-----------------------
 
 ### Changes
 - Add `uev_*_start()` functions.
@@ -114,8 +114,8 @@ Massively improved error handling.
 - Further updates to [README.md][]
 
 
-[v1.0.4] - 2015-01-24
----------------------
+[v1.0.4][] - 2015-01-24
+-----------------------
 
 Minor documentation and build fixes.
 
@@ -127,8 +127,8 @@ Release mainly targeted for [Finit development](https://github.com/troglobit/fin
 * Minor update to Makefile, change how build progress is echoed
 
 
-[v1.0.3] - 2015-01-24
----------------------
+[v1.0.3][] - 2015-01-24
+-----------------------
 
 This is a very minor release, with a strong focus on documentation. 
 
@@ -140,25 +140,25 @@ This is a very minor release, with a strong focus on documentation.
 - Clang scan-build support added
 
 
-[v1.0.2] - 2015-01-07
----------------------
+[v1.0.2][] - 2015-01-07
+-----------------------
 
 ### Fixes
-- Fix broken `make dist` target in [v1.0.1].
+- Fix broken `make dist` target in [v1.0.1][].
 
 
-[v1.0.1] - 2015-01-07
----------------------
+[v1.0.1][] - 2015-01-07
+-----------------------
 
 ### Changes
 - Cleanup and rewrite of [README.md][] after first audit by @vonj
 - Added API and example section to [README.md][]
-- New [joystick.c] example added
+- New [joystick.c][] example added
 - `main.c:uev_run()`: Document mysterious flags parameter
 
 
-[v1.0.0] - 2013-08-06
----------------------
+[v1.0.0][] - 2013-08-06
+-----------------------
 
 First release in the new guise and API.
 

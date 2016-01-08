@@ -40,8 +40,7 @@ INSTALL    := install --backup=off
 STRIPINST  := $(INSTALL) -s --strip-program=$(CROSS)strip -m 0755
 
 CFLAGS     += -fPIC
-CFLAGS     += -Os
-CPPFLAGS   += -W -Wall -Werror
+CPPFLAGS   += -W -Wall -Werror -Wextra
 LDFLAGS     = $(EXTRA_LDFLAGS)
 ARFLAGS     = crus
 MAKEFLAGS   = --no-print-directory --silent

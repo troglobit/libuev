@@ -17,11 +17,14 @@ addons:
       name: "troglobit/libuev"
       description: "libuEv | Simple event loop for Linux"
     notification_email: troglobit@gmail.com
-    build_command: "make"
+    build_command_prepend: "./autogen && ./configure --enable-examples"
+    build_command: "make clean all"
     branch_pattern: dev
 
 # We don't use configure, so we must define our own build script.
 script:
-  - make distclean
-  - make -j5
+  - [ -f Makefile ] && make distclean
+  - ./autogen.sh
+  - ./configure --disable-silent-rules --enable-examples
+  - make -j5 clean all
   - make test

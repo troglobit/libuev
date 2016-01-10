@@ -23,7 +23,6 @@ addons:
 
 # We don't use configure, so we must define our own build script.
 script:
-  - test -f Makefile && make distclean
   - ./autogen.sh
   - ./configure --disable-silent-rules --enable-examples
   - make -j5 clean all

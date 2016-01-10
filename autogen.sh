@@ -1,3 +1,3 @@
 #!/bin/sh
 
-autoreconf -W portability -visfm >/dev/null
+autoreconf -W portability -visfm

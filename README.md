@@ -272,14 +272,16 @@ library) for [reference benchmarks][7] against [libevent][1] and
 Build & Install
 ---------------
 
-The library is built for and developed on GNU/Linux systems, so it may
-use GCC and GNU Make specific extensions here and there.  This is not on
-purpose and patches to correct this are most welcome.  Particularly
-patches to support *BSD and its kqueue interface.
+The library is built for and developed on GNU/Linux systems, patches to
+support *BSD and its kqueue interface are most welcome.
 
-* <kbd>make all</kbd>: The library
-* <kbd>make test</kbd>: Test and showcase
-* <kbd>make install</kbd>: Honors `$prefix` and `$DESTDIR` environment variables
+libuEv use standard GNU configure script, try `--enable-examples` to
+test the bundled examples, disabled by default.
+
+* <kbd>./configure</kbd>
+* <kbd>make all</kbd>
+* <kbd>make test</kbd>
+* <kbd>make install</kbd>
 
 Size of [libuEv][]:
 

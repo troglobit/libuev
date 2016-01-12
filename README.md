@@ -260,9 +260,9 @@ To compile the program, save the code as `joystick.c` and call GCC with
 directory, skips using a Makefile altogether.  Alternatively, call the
 `Makefile` with <kbd>make joystick</kbd> from this directory.
 
-More complete and relevant example uses of [libuEv][] is the TFTP/FTP
+More complete and relevant example uses of [libuEv][] is the FTP/TFTP
 server [uftpd][5], and the Linux `/sbin/init` replacement [finit][6].
-Both use [libuEv][] as a GIT submodule.
+Both successfully employ [libuEv][].
 
 Also see the `bench.c` program (<kbd>make bench</kbd> from within the
 library) for [reference benchmarks][7] against [libevent][1] and
@@ -275,13 +275,14 @@ Build & Install
 The library is built for and developed on GNU/Linux systems, patches to
 support *BSD and its kqueue interface are most welcome.
 
-libuEv use standard GNU configure script, try `--enable-examples` to
-test the bundled examples, disabled by default.
+libuEv use the de facto standard GNU configure and build system.  Use
+the `--enable-examples` switch to to the `configure` to test the bundled
+examples, which are disabled by default.
 
-* <kbd>./configure</kbd>
-* <kbd>make all</kbd>
-* <kbd>make test</kbd>
-* <kbd>make install</kbd>
+    ./configure
+    make all
+    make test
+    make install
 
 Size of [libuEv][]:
 

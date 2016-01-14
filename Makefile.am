@@ -15,6 +15,7 @@ libuev_la_LDFLAGS   = $(AM_LDFLAGS) -version-info 1:0:0
 doc_DATA            = README LICENSE
 #EXTRA_DIST          = README.md AUTHORS LICENSE ChangeLog.md
 
+DIST_SUBDIRS        = examples
 SUBDIRS             = .
 if ENABLE_EXAMPLES
   SUBDIRS          += examples

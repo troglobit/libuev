@@ -116,13 +116,13 @@ is achieved by calling `uev_init()` with a pointer to a (thread) local
 
 ```
 
+
 ### Register an Event Watcher
 
-For each event to be monitored, be it a signal, timer or a file
-descriptor, a *watcher* must be registered with the event context.  The
-watcher, an `uev_t`, is registered by calling the event type's `_init()`
-function with the `uev_ctx_t` context, the callback, and an optional
-argument.
+For each event to monitor, be it a signal, timer or file descriptor, a
+*watcher* must be registered with the event context.  The watcher, an
+`uev_t`, is registered by calling the event type's `_init()` function
+with the `uev_ctx_t` context, the callback, and an optional argument.
 
 Here is a signal example:
 
@@ -147,6 +147,7 @@ Here is a signal example:
 	}
 
 ```
+
 
 ### Start Event Loop
 
@@ -275,38 +276,21 @@ Build & Install
 The library is built for and developed on GNU/Linux systems, patches to
 support *BSD and its kqueue interface are most welcome.
 
-libuEv use the de facto standard GNU configure and build system.  Use
-the `--enable-examples` switch to to the `configure` to test the bundled
-examples, which are disabled by default.
+libuEv use the GNU configure and build system.  To try out the bundled
+examples, use the `--enable-examples` switch to the `configure` script.
 
     ./configure
     make all
     make test
     make install
 
-Size of [libuEv][]:
-
-    $ make strip
-    CC      main.o
-    CC      io.o
-    CC      timer.o
-    CC      signal.o
-    ARCHIVE libuev.a
-    LINK    libuev.so.1
-    STRIP   libuev.a
-    STRIP   libuev.so.1
-    text	   data	    bss	    dec	    hex	filename
-    1177	      0	      0	   1177	    499	main.o     (ex libuev.a)
-     308	      0	      0	    308	    134	io.o       (ex libuev.a)
-     682	      0	      0	    682	    2aa	timer.o    (ex libuev.a)
-     563	      0	      0	    563	    233	signal.o   (ex libuev.a)
-    6306	    768	      8	   7082	   1baa	libuev.so.1
+The resulting .so file is ~14 kiB when stripped (`make install-strip`).
 
 
 Origin & References
---------------------
+-------------------
 
-[libuEv][] was originally based on [LibUEvent][8] by [Flemming Madsen]
+[libuEv][] was originally based on [LibUEvent][8] by [Flemming Madsen][]
 but has been completely rewritten with a much clearer API.  Now more
 similar to the famous [libev][2] by [Mark Lehmann][].  Another small
 event library used for inspiration is the very small [Picoev][9] by

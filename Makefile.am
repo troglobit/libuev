@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS     = -I m4
 
 lib_LTLIBRARIES     = libuev.la
-include_HEADERS     = uev.h private.h queue.h
+pkginclude_HEADERS  = uev.h private.h queue.h
 libuev_la_SOURCES   = uev.c io.c timer.c signal.c
 
 check_PROGRAMS      = bench

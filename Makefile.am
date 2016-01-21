@@ -9,7 +9,7 @@ bench_CPPFLAGS      = -D_GNU_SOURCE
 bench_LDADD         = $(top_srcdir)/libuev.la
 
 libuev_la_CPPFLAGS  = -D_GNU_SOURCE
-libuev_la_CFLAGS    = -W -Wall -Werror -Wextra
+libuev_la_CFLAGS    = -W -Wall -Wextra
 libuev_la_LDFLAGS   = $(AM_LDFLAGS) -version-info 1:0:0
 
 doc_DATA            = README LICENSE

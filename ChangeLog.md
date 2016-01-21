@@ -3,6 +3,19 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+
+[v1.3.0][] - 2016-01-22
+-----------------------
+
+### Changes
+- Change to GNU configure and build system
+- Default optimization is now -O2, not -Os, which can be a bit
+  unpredictable with some cross compiler toolchains.  -O2 is
+  the tried and tested path, and default in autotools
+- Added `-Wextra` to the previous `-W -Wall`, drop `-Werror`
+  which is supposed to be used by maintainer(s) only.
+
+
 [v1.2.4][] - 2015-11-23
 -----------------------
 

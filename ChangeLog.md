@@ -4,7 +4,7 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
-v1.3.1 - [UNRELEASED][]
+[v1.3.1][] - 2016-02-02
 -----------------------
 
 ### Fixes
@@ -203,7 +203,7 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.3.0...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.3.1...HEAD
 [v1.3.1]: https://github.com/troglobit/libuev/compare/v1.3.0...v1.3.1
 [v1.3.0]: https://github.com/troglobit/libuev/compare/v1.2.3...v1.3.0
 [v1.2.3]: https://github.com/troglobit/libuev/compare/v1.2.2...v1.2.3

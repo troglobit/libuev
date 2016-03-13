@@ -1,6 +1,6 @@
 /* Simple example of how to use libuEv with Linux joystick API
  *
- * Copyright (c) 2014-2015  Joachim Nilsson <troglobit()gmail!com>
+ * Copyright (c) 2014-2016  Joachim Nilsson <troglobit()gmail!com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,6 @@
 
 #include "uev.h"
 
-#define UNUSED(arg) arg __attribute__ ((unused))
-
 struct js_event {
 	uint32_t time;		/* event timestamp in milliseconds */
 	int16_t  value;		/* value */
@@ -39,15 +37,14 @@ struct js_event {
 	uint8_t  number;	/* axis/button number */
 } e;
 
-static void joystick_cb(uev_t *w, void *UNUSED(arg), int UNUSED(events))
+static void joystick_cb(uev_t *w, void *arg, int events)
 {
-	if (read (w->fd, &e, sizeof(e)) < 0)
+	if (read(w->fd, &e, sizeof(e)) < 0)
 		errx(errno, "Failed reading joystick event");
 
 	switch (e.type) {
 	case 1:
-		if (e.value) printf("Button %d pressed\n", e.number);
-		else 	     printf("Button %d released\n", e.number);
+		printf("Button %d %s\n", e.number, e.value ? "pressed" : "released");
 		break;
 
 	case 2:
@@ -58,10 +55,11 @@ static void joystick_cb(uev_t *w, void *UNUSED(arg), int UNUSED(events))
 
 int main(void)
 {
-	int       fd = open("/dev/input/js1", O_RDONLY, O_NONBLOCK);
-	uev_t     js1_watcher;
+	int fd;
+	uev_t js1_watcher;
 	uev_ctx_t ctx;
 
+	fd = open("/dev/input/js1", O_RDONLY, O_NONBLOCK);
 	if (fd < 0)
 		errx(errno, "Cannot find a joystick attached.");
 
@@ -75,7 +73,7 @@ int main(void)
 
 /**
  * Local Variables:
- *  compile-command: "gcc -o joystick joystick.c io.o timer.o signal.o main.o"
+ *  compile-command: "make joystick"
  *  version-control: t
  *  indent-tabs-mode: t
  *  c-file-style: "linux"

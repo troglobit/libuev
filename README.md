@@ -234,43 +234,43 @@ to act upon joystick input.
     #include <uev/uev.h>
     
     struct js_event {
-    	uint32_t time;		/* event timestamp in milliseconds */
-    	int16_t  value;		/* value */
-    	uint8_t  type;		/* event type */
-    	uint8_t  number;	/* axis/button number */
+        uint32_t time;      /* event timestamp in milliseconds */
+        int16_t  value;     /* value */
+        uint8_t  type;      /* event type */
+        uint8_t  number;    /* axis/button number */
     } e;
     
     static void joystick_cb(uev_t *w, void *arg, int events)
     {
-    	read (w->fd, &e, sizeof(e));
+        read(w->fd, &e, sizeof(e));
     
-    	switch (e.type) {
-    	case 1:
-    		if (e.value) printf("Button %d pressed\n", e.number);
-    		else 	     printf("Button %d released\n", e.number);
-    		break;
+        switch (e.type) {
+        case 1:
+            printf("Button %d %s\n", e.number, e.value ? "pressed" : "released");
+            break;
     
-    	case 2:
-    		printf("Joystick axis %d moved, value %d!\n", e.number, e.value);
-    		break;
-    	}
+        case 2:
+            printf("Joystick axis %d moved, value %d!\n", e.number, e.value);
+            break;
+        }
     }
     
     int main(void)
     {
-    	int       fd = open("/dev/input/js1", O_RDONLY, O_NONBLOCK);
-    	uev_t     js1_watcher;
-    	uev_ctx_t ctx;
+        int fd;
+        uev_t watcher;
+        uev_ctx_t ctx;
     
-    	if (fd < 0)
-    		errx(errno, "Cannot find a joystick attached.");
+        fd = open("/dev/input/js1", O_RDONLY, O_NONBLOCK);
+        if (fd < 0)
+            errx(errno, "Cannot find a joystick attached.");
     
-    	uev_init(&ctx);
-    	uev_io_init(&ctx, &js1_watcher, joystick_cb, NULL, fd, UEV_READ);
+        uev_init(&ctx);
+        uev_io_init(&ctx, &watcher, joystick_cb, NULL, fd, UEV_READ);
     
-    	puts("Starting, press Ctrl-C to exit.");
+        puts("Starting, press Ctrl-C to exit.");
     
-    	return uev_run(&ctx, 0);
+        return uev_run(&ctx, 0);
     }
 
 ```

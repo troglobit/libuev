@@ -4,11 +4,11 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
-[v1.4.0][UNRELEASED] - 2016-03-NN
+[v1.4.0][UNRELEASED] - 2016-03-XX
 ---------------------------------
 
-This release only changes the header file namespace.  Apologies for any
-problems this may cause!
+This release changes the header file namespace, which was silently
+introduced in [v1.2.1][].  Apologies for any problems this may cause!
 
 ### Changes
 
@@ -85,7 +85,7 @@ Minor bugfix release.
   called `private.h`.  This will hopefully make it easier to understand
   what a user of libuEv is allowed to play around with.  Thanks to @vonj
   for the discussions around this!
-- All builds of libuEv now default to use -fPIC, this bloats the code
+- All builds of libuEv now default to use `-fPIC`, this bloats the code
   slightly, but ensures that linking works for all use cases, withouth
   introducing unnecessary complexity.
 

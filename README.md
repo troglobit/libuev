@@ -68,7 +68,8 @@ API
 
 The C interface to [libuEv][] is listed in `uev.h`.  It handles three
 different types of events: I/O (files, sockets, message queues, etc.),
-timers, and signals.  With a slight caveat on signals detailed below.
+timers, and signals.  With a slight caveat on signals detailed below
+in the [Summary](#summary).
 
 ```C
 
@@ -103,6 +104,7 @@ timers, and signals.  With a slight caveat on signals detailed below.
     int uev_signal_stop (uev_t *w);                          /* Stop signal watcher */
 
 ```
+
 
 ### Create an Event Context
 
@@ -304,7 +306,7 @@ examples, use the `--enable-examples` switch to the `configure` script.
     make test
     make install
 
-The resulting .so file is ~14 kiB when stripped (`make install-strip`).
+The resulting .so file is ~14 kiB (<kbd>make install-strip</kbd>).
 
 
 Origin & References

@@ -270,6 +270,22 @@ library) for [reference benchmarks][7] against [libevent][1] and
 [libev][2].
 
 
+Using -luev
+-----------
+
+LibuEv is by default installed as a library with a single include file.
+
+    #include <libuev/uev.h>
+
+The output from the `pkg-config` tool holds no surprises:
+
+    $ pkg-config --libs --static --cflags libuev
+    -I/usr/local/include -L/usr/local/lib -luev
+
+The prefix path `/usr/local/` used here is only the default.  Use the
+`configure` script to select a different path when installing libuEv.
+
+
 Build & Install
 ---------------
 

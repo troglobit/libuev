@@ -4,6 +4,8 @@
 *.so
 *.so.*
 *.a
+*.la
+*.lo
 .deps
 .libs
 compile
@@ -22,4 +24,6 @@ ar-lib
 autom4te.cache
 bench
 test
-libuev*
+libuev*.tar.*
+libuev.pc
+!libuev.pc.in

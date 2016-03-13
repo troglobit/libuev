@@ -6,7 +6,7 @@ AM_SILENT_RULES([yes])
 
 AC_CONFIG_SRCDIR(uev.c)
 AM_CONFIG_HEADER(config.h)
-AC_CONFIG_FILES([Makefile examples/Makefile])
+AC_CONFIG_FILES([Makefile libuev.pc examples/Makefile])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_PROG_CC

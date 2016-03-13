@@ -12,6 +12,7 @@ Table of Contents
   * [Register an Event Watcher](#register-an-event-watcher)
   * [Start Event Loop](#start-event-loop)
   * [Summary](#summary)
+* [Using -luev](#using--luev)
 * [Joystick Example](#joystick-example)
 * [Build & Install](#build--install)
 * [Origin & References](#origin--references)
@@ -59,19 +60,20 @@ modern Linux APIs: epoll, timerfd and signalfd.  Note, a certain amount
 of care is needed when dealing with APIs that employ signalfd.  For
 details, see [this article][4] at [lwn.net](http://lwn.net).
 
-> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple]
+> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
 
 
 API
 ---
 
-The C interface to [libuEv][] is very simple.  It handles three different
-types of events: I/O (files, sockets, message queues, etc.), timers, and
-signals.  With a slight caveat on signals
+The C interface to [libuEv][] is listed in `uev.h`.  It handles three
+different types of events: I/O (files, sockets, message queues, etc.),
+timers, and signals.  With a slight caveat on signals detailed below.
 
 ```C
 
-    /* Callback example, arg is passed from watcher's *_init()
+    /*
+     * Callback example, arg is passed from watcher's *_init()
      * w->fd holds the file descriptor, events is set by libuEv
      * to indicate if any of UEV_READ and/or UEV_WRITE is ready.
      */
@@ -188,13 +190,28 @@ opened in blocking mode.  Be careful out there!
   effects on your program.
 
 **Note 3:** As mentioned above, a certain amount of care is needed when
-dealing with signalfd.  This means that if your application, for
-instance, uses `system()` you must redesign that to use `fork()`, and
-then in the child, unblock all signals blocked by your parent process,
-before you run `exec()`.  This because Linux does not unblock signals
-for your children, and neither does most (all?) C-libraries.  An example
-of this, from [finit][6], implementing `run()` as a better replacement
-to `system()`, which sucks anyawy :)
+dealing with signalfd.  If your application use `system()` you replace
+that with `fork()`, and then in the child, unblock all signals blocked
+by your parent process, before you run `exec()`.  This because Linux
+does not unblock signals for your children, and neither does most (all?)
+C-libraries.  See the [finit][6] project's implementation of `run()` for
+an example of this.
+
+
+Using -luev
+-----------
+
+LibuEv is by default installed as a library with a single include file.
+
+    #include <uev/uev.h>
+
+The output from the `pkg-config` tool holds no surprises:
+
+    $ pkg-config --libs --static --cflags libuev
+    -I/usr/local/include -L/usr/local/lib -luev
+
+The prefix path `/usr/local/` used here is only the default.  Use the
+`configure` script to select a different path when installing libuEv.
 
 
 Joystick Example
@@ -211,8 +228,7 @@ Here follows a very brief example to illustrate how one can use
     #include <stdint.h>
     #include <fcntl.h>
     #include <unistd.h>
-    
-    #include "uev.h"
+    #include <uev/uev.h>
     
     struct js_event {
     	uint32_t time;		/* event timestamp in milliseconds */
@@ -256,10 +272,13 @@ Here follows a very brief example to illustrate how one can use
 
 ```
 
-To compile the program, save the code as `joystick.c` and call GCC with
-`gcc -o joystick joystick.c io.c timer.c signal.c main.c` from this
-directory, skips using a Makefile altogether.  Alternatively, call the
-`Makefile` with <kbd>make joystick</kbd> from this directory.
+To build the example, follow installation instructions below, then save
+the code as `joystick.c` and call GCC
+
+    gcc `pkg-config --libs --static --cflags libuev` -o joystick joystick.c
+
+Alternatively, call the `Makefile` with <kbd>make joystick</kbd> from
+the unpacked [libuEv][] distribution.
 
 More complete and relevant example uses of [libuEv][] is the FTP/TFTP
 server [uftpd][5], and the Linux `/sbin/init` replacement [finit][6].
@@ -268,22 +287,6 @@ Both successfully employ [libuEv][].
 Also see the `bench.c` program (<kbd>make bench</kbd> from within the
 library) for [reference benchmarks][7] against [libevent][1] and
 [libev][2].
-
-
-Using -luev
------------
-
-LibuEv is by default installed as a library with a single include file.
-
-    #include <uev/uev.h>
-
-The output from the `pkg-config` tool holds no surprises:
-
-    $ pkg-config --libs --static --cflags libuev
-    -I/usr/local/include -L/usr/local/lib -luev
-
-The prefix path `/usr/local/` used here is only the default.  Use the
-`configure` script to select a different path when installing libuEv.
 
 
 Build & Install

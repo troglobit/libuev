@@ -201,7 +201,8 @@ an example of this.
 Using -luev
 -----------
 
-LibuEv is by default installed as a library with a single include file.
+LibuEv is by default installed as a library with a few header files, you
+should only ever need to include one:
 
     #include <uev/uev.h>
 
@@ -210,15 +211,15 @@ The output from the `pkg-config` tool holds no surprises:
     $ pkg-config --libs --static --cflags libuev
     -I/usr/local/include -L/usr/local/lib -luev
 
-The prefix path `/usr/local/` used here is only the default.  Use the
-`configure` script to select a different path when installing libuEv.
+The prefix path `/usr/local/` shown here is only the default.  Use the
+`configure` script to select a different prefix when installing libuEv.
 
 
 Joystick Example
 ----------------
 
-Here follows a very brief example to illustrate how one can use
-[libuEv][] to act upon joystick input.
+Here follows a very brief example to illustrate how one can use libuEv
+to act upon joystick input.
 
 ```C
 

@@ -4,6 +4,18 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
+[v1.4.0][UNRELEASED] - 2016-03-NN
+---------------------------------
+
+This release only changes the header file namespace.  Apologies for any
+problems this may cause!
+
+### Changes
+
+- Change namespace for header files: `libuev/` to `uev/`, e.g. using
+  `pkg-config` your C program must now `#include <uev/uev.h>`
+
+
 [v1.3.1][] - 2016-02-02
 -----------------------
 
@@ -204,6 +216,7 @@ Lua users mailing list.
 
 
 [UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.3.1...HEAD
+[v1.4.0]: https://github.com/troglobit/libuev/compare/v1.3.1...v1.4.0
 [v1.3.1]: https://github.com/troglobit/libuev/compare/v1.3.0...v1.3.1
 [v1.3.0]: https://github.com/troglobit/libuev/compare/v1.2.3...v1.3.0
 [v1.2.3]: https://github.com/troglobit/libuev/compare/v1.2.2...v1.2.3

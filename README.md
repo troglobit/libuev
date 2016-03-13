@@ -275,7 +275,7 @@ Using -luev
 
 LibuEv is by default installed as a library with a single include file.
 
-    #include <libuev/uev.h>
+    #include <uev/uev.h>
 
 The output from the `pkg-config` tool holds no surprises:
 

@@ -37,7 +37,7 @@ typedef enum {
 } uev_type_t;
 
 /* Event mask, used internally only. */
-#define UEV_EVENT_MASK  (UEV_READ | UEV_WRITE)
+#define UEV_EVENT_MASK  (UEV_READ | UEV_WRITE | UEV_PRI)
 
 /* Main libuEv context type */
 typedef struct {

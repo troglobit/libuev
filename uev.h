@@ -34,6 +34,7 @@
 #define UEV_NONE        0
 #define UEV_READ        EPOLLIN
 #define UEV_WRITE       EPOLLOUT
+#define UEV_PRI         EPOLLPRI
 
 /* Run flags */
 #define UEV_ONCE        1

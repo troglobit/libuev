@@ -4,8 +4,8 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
-[v1.4.0][UNRELEASED] - 2016-03-XX
----------------------------------
+[v1.4.0][] - 2016-03-22
+-----------------------
 
 This release changes the header file namespace, which was silently
 introduced in [v1.2.1][].  Apologies for any problems this may cause!
@@ -14,6 +14,9 @@ introduced in [v1.2.1][].  Apologies for any problems this may cause!
 
 - Change namespace for header files: `libuev/` to `uev/`, e.g. using
   `pkg-config` your C program must now `#include <uev/uev.h>`
+- Support for EPOLLPRI events for I/O watchers, thanks to Markus Svilans
+- Simplified joystick example
+- Updated README slightly
 
 
 [v1.3.1][] - 2016-02-02
@@ -215,7 +218,7 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.3.1...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.4.0...HEAD
 [v1.4.0]: https://github.com/troglobit/libuev/compare/v1.3.1...v1.4.0
 [v1.3.1]: https://github.com/troglobit/libuev/compare/v1.3.0...v1.3.1
 [v1.3.0]: https://github.com/troglobit/libuev/compare/v1.2.3...v1.3.0

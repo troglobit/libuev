@@ -16,7 +16,4 @@ AC_ARG_ENABLE([examples],
 	[enable_examples=yes], [])
 AM_CONDITIONAL([ENABLE_EXAMPLES], [test "$enable_examples" = yes])
 
-AC_HEADER_STDC
-AC_C_CONST
-
 AC_OUTPUT

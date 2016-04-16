@@ -216,6 +216,16 @@ The output from the `pkg-config` tool holds no surprises:
 The prefix path `/usr/local/` shown here is only the default.  Use the
 `configure` script to select a different prefix when installing libuEv.
 
+For GNU autotools based projects, use the following in `configure.ac`:
+
+    # Check for required libraries
+    PKG_CHECK_MODULES([uev],  [libuev >= 1.4.0])
+
+and in your `Makefile.am`:
+
+    proggy_CFLAGS = $(uev_CFLAGS)
+    proggy_LDADD  = $(uev_LIBS)
+
 
 Joystick Example
 ----------------

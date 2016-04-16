@@ -219,7 +219,7 @@ The prefix path `/usr/local/` shown here is only the default.  Use the
 For GNU autotools based projects, use the following in `configure.ac`:
 
     # Check for required libraries
-    PKG_CHECK_MODULES([uev],  [libuev >= 1.4.0])
+    PKG_CHECK_MODULES([uev], [libuev >= 1.4.0])
 
 and in your `Makefile.am`:
 

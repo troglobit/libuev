@@ -36,8 +36,9 @@
 
 static int _init(uev_ctx_t *ctx, int close_old)
 {
-	int fd = epoll_create1(EPOLL_CLOEXEC);
+	int fd;
 
+	fd = epoll_create1(EPOLL_CLOEXEC);
 	if (fd < 0)
 		return -1;
 

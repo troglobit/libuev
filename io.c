@@ -23,7 +23,6 @@
  */
 
 #include <errno.h>
-
 #include "uev.h"
 
 

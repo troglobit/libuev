@@ -4,6 +4,22 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
+[v1.4.1][] - 2016-04-22
+-----------------------
+
+### Changes
+- Add some `pkg-config` integration tips for developers using libuEv
+  with GNU autotools in their projects.
+
+### Fixes
+- Add missing `SFD_CLOEXEC` and `TFD_CLOEXEC` to signal and timer file
+  descriptors.  This prevents these file descriptors from "leaking" into
+  sub-processes of the parent thread.  The kernel will atomically close
+  these descriptors for forked-off children calling the exec*() family
+  of syscalls.
+- Minor coding style fixes and simplification of build scripts.
+
+
 [v1.4.0][] - 2016-03-22
 -----------------------
 
@@ -11,7 +27,6 @@ This release changes the header file namespace, which was silently
 introduced in [v1.2.1][].  Apologies for any problems this may cause!
 
 ### Changes
-
 - Change namespace for header files: `libuev/` to `uev/`, e.g. using
   `pkg-config` your C program must now `#include <uev/uev.h>`
 - Support for `EPOLLPRI` events for I/O watchers, thanks to Markus Svilans

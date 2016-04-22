@@ -74,7 +74,6 @@ int main(void)
 /**
  * Local Variables:
  *  compile-command: "make joystick"
- *  version-control: t
  *  indent-tabs-mode: t
  *  c-file-style: "linux"
  * End:

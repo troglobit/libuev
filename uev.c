@@ -311,10 +311,8 @@ int uev_run(uev_ctx_t *ctx, int flags)
 	return result;
 }
 
-
 /**
  * Local Variables:
- *  version-control: t
  *  indent-tabs-mode: t
  *  c-file-style: "linux"
  * End:

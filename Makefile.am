@@ -11,7 +11,7 @@ bench_LDADD         = $(top_srcdir)/libuev.la
 
 libuev_la_CPPFLAGS  = -D_GNU_SOURCE
 libuev_la_CFLAGS    = -W -Wall -Wextra
-libuev_la_LDFLAGS   = $(AM_LDFLAGS) -version-info 1:0:0
+libuev_la_LDFLAGS   = $(AM_LDFLAGS) -version-info 1:1:0
 
 pkgconfigdir        = $(libdir)/pkgconfig
 pkgconfig_DATA      = libuev.pc

@@ -67,7 +67,7 @@ int uev_timer_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeou
 {
 	int fd;
 
-	fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+	fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
 	if (fd < 0)
 		return -1;
 

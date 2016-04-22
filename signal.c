@@ -52,7 +52,7 @@ int uev_signal_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo
 	w->fd = -1;
 
 	sigemptyset(&mask);
-	fd = signalfd(-1, &mask, SFD_NONBLOCK);
+	fd = signalfd(-1, &mask, SFD_NONBLOCK | SFD_CLOEXEC);
 	if (fd < 0)
 		return -1;
 

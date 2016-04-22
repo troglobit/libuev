@@ -14,9 +14,9 @@ introduced in [v1.2.1][].  Apologies for any problems this may cause!
 
 - Change namespace for header files: `libuev/` to `uev/`, e.g. using
   `pkg-config` your C program must now `#include <uev/uev.h>`
-- Support for EPOLLPRI events for I/O watchers, thanks to Markus Svilans
+- Support for `EPOLLPRI` events for I/O watchers, thanks to Markus Svilans
 - Simplified joystick example
-- Updated README slightly
+- Updated `README` slightly
 
 
 [v1.3.1][] - 2016-02-02

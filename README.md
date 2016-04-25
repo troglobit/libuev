@@ -3,9 +3,6 @@ libuEv | Simple event loop for Linux
 [![Travis Status][]][Travis] [![Coverity Status][]][Coverity Scan]
 
 
-Table of Contents
------------------
-
 * [Introduction](#introduction)
 * [API](#api)
   * [Create an Event Context](#create-an-event-context)
@@ -22,8 +19,6 @@ Table of Contents
 Introduction
 ------------
 
-> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
-
 [libuEv][] is a simple event loop in the style of the more established
 [libevent][1], [libev][2] and the venerable [Xt(3)][3] event loop.  The
 *u* (micro) in the name refers to both the small feature set and the
@@ -33,6 +28,8 @@ Experienced developers may appreciate that [libuEv][] is built on top of
 modern Linux APIs: epoll, timerfd and signalfd.  Note however, a certain
 amount of care is needed when dealing with APIs that employ signalfd.
 For details, see [this article][4] at [lwn.net](http://lwn.net).
+
+> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
 
 
 API

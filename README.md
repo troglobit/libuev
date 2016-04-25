@@ -15,52 +15,24 @@ Table of Contents
 * [Using -luev](#using--luev)
 * [Joystick Example](#joystick-example)
 * [Build & Install](#build--install)
+* [Background](#background)
 * [Origin & References](#origin--references)
 
 
 Introduction
 ------------
 
-> “Why an event loop, why not use threads?”
-
-With the advent of light-weight processes (threads) programmers these
-days have a [golden hammer](http://c2.com/cgi/wiki?GoldenHammer) they
-often swing without consideration.  Event loops and non-blocking I/O is
-often a far easier approach, as well as less error prone.
-
-The purpose of many applications is, with a little logic sprinkled on
-top, to act on network packets entering an interface, timeouts expiring,
-mouse clicks, or other types of events.  Such applications are often
-very well suited to use an event loop.
-
-Applications that need to churn massively parallel algorithms are more
-suitable for running multiple (independent) threads on several CPU
-cores.  However, threaded applications must deal with the side effects
-of concurrency, like race conditions, deadlocks, live locks, etc.
-Writing error free threaded applications is hard, debugging them can be
-even harder.
-
-Sometimes the combination of multiple threads *and* an event loop per
-thread can be the best approach, but each application of course needs to
-be broken down individually to find the most optimal approach.  Do keep
-in mind, however, that not all systems your application will run on have
-multiple CPU cores -- some small embedded systems still use a single CPU
-core, even though they run Linux, with multiple threads a program may
-actually run slower!  Always profile your program, and if possible, test
-it on different architectures.
+> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
 
 [libuEv][] is a simple event loop in the style of the more established
 [libevent][1], [libev][2] and the venerable [Xt(3)][3] event loop.  The
 *u* (micro) in the name refers to both the small feature set and the
-small size overhead impact of the library.  The primary target of
-[libuEv][] is a modern Linux system.
+small size overhead impact of the library.
 
 Experienced developers may appreciate that [libuEv][] is built on top of
-modern Linux APIs: epoll, timerfd and signalfd.  Note, a certain amount
-of care is needed when dealing with APIs that employ signalfd.  For
-details, see [this article][4] at [lwn.net](http://lwn.net).
-
-> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
+modern Linux APIs: epoll, timerfd and signalfd.  Note however, a certain
+amount of care is needed when dealing with APIs that employ signalfd.
+For details, see [this article][4] at [lwn.net](http://lwn.net).
 
 
 API
@@ -317,6 +289,38 @@ examples, use the `--enable-examples` switch to the `configure` script.
     make install
 
 The resulting .so file is ~14 kiB (<kbd>make install-strip</kbd>).
+
+
+Background
+----------
+
+> “Why an event loop, why not use threads?”
+
+With the advent of light-weight processes (threads) programmers these
+days have a [golden hammer](http://c2.com/cgi/wiki?GoldenHammer) they
+often swing without consideration.  Event loops and non-blocking I/O is
+often a far easier approach, as well as less error prone.
+
+The purpose of many applications is, with a little logic sprinkled on
+top, to act on network packets entering an interface, timeouts expiring,
+mouse clicks, or other types of events.  Such applications are often
+very well suited to use an event loop.
+
+Applications that need to churn massively parallel algorithms are more
+suitable for running multiple (independent) threads on several CPU
+cores.  However, threaded applications must deal with the side effects
+of concurrency, like race conditions, deadlocks, live locks, etc.
+Writing error free threaded applications is hard, debugging them can be
+even harder.
+
+Sometimes the combination of multiple threads *and* an event loop per
+thread can be the best approach, but each application of course needs to
+be broken down individually to find the most optimal approach.  Do keep
+in mind, however, that not all systems your application will run on have
+multiple CPU cores -- some small embedded systems still use a single CPU
+core, even though they run Linux, with multiple threads a program may
+actually run slower!  Always profile your program, and if possible, test
+it on different architectures.
 
 
 Origin & References

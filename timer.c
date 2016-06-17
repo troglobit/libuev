@@ -67,6 +67,11 @@ int uev_timer_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeou
 {
 	int fd;
 
+	if (timeout < 0 || period < 0) {
+		errno = ERANGE;
+		return -1;
+	}
+
 	fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
 	if (fd < 0)
 		return -1;
@@ -97,6 +102,11 @@ int uev_timer_set(uev_t *w, int timeout, int period)
 	/* Every watcher must be registered to a context */
 	if (!w || !w->ctx) {
 		errno = EINVAL;
+		return -1;
+	}
+
+	if (timeout < 0 || period < 0) {
+		errno = ERANGE;
 		return -1;
 	}
 

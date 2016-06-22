@@ -275,7 +275,7 @@ Build & Install
 ---------------
 
 The library is built for and developed on GNU/Linux systems, patches to
-support *BSD and its kqueue interface are most welcome.
+support *BSD and its [kqueue][] interface are most welcome.
 
 libuEv use the GNU configure and build system.  To try out the bundled
 examples, use the `--enable-examples` switch to the `configure` script.
@@ -345,6 +345,7 @@ event library used for inspiration is the very small [Picoev][9] by
 [Coverity Scan]:   https://scan.coverity.com/projects/3846
 [Coverity Status]: https://scan.coverity.com/projects/3846/badge.svg
 [LibuEv]:          https://github.com/troglobit/libuev
+[kqueue]:          https://github.com/mheily/libkqueue
 [Oku Kazuho]:      https://github.com/kazuho
 [Mark Lehmann]:    http://software.schmorp.de
 [Joachim Nilsson]: http://troglobit.com

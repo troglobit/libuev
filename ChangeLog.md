@@ -4,6 +4,14 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
+[v1.4.2][] - 2016-06-25
+-----------------------
+
+### Changes
+- Add range checks for `period` and `timeout` to `uev_timer_init()` and
+  `uev_timer_set()`.  If either on is `< 0` libuEv now return `ERANGE`.
+
+
 [v1.4.1][] - 2016-04-22
 -----------------------
 
@@ -233,7 +241,8 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.4.1...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.4.2...HEAD
+[v1.4.2]: https://github.com/troglobit/libuev/compare/v1.4.1...v1.4.2
 [v1.4.1]: https://github.com/troglobit/libuev/compare/v1.4.0...v1.4.1
 [v1.4.0]: https://github.com/troglobit/libuev/compare/v1.3.1...v1.4.0
 [v1.3.1]: https://github.com/troglobit/libuev/compare/v1.3.0...v1.3.1

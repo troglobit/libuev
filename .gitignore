@@ -6,8 +6,11 @@
 *.a
 *.la
 *.lo
+*.html
 .deps
 .libs
+examples/joystick
+examples/signal
 compile
 config.*
 configure

@@ -281,9 +281,10 @@ libuEv use the GNU configure and build system.  To try out the bundled
 examples, use the `--enable-examples` switch to the `configure` script.
 
     ./configure
-    make all
+    make -j5
     make test
-    make install
+    make install-strip
+    ldconfig
 
 The resulting .so file is ~14 kiB (<kbd>make install-strip</kbd>).
 

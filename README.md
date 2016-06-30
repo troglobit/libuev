@@ -283,8 +283,8 @@ examples, use the `--enable-examples` switch to the `configure` script.
     ./configure
     make -j5
     make test
-    make install-strip
-    ldconfig
+    sudo make install-strip
+    sudo ldconfig
 
 The resulting .so file is ~14 kiB (<kbd>make install-strip</kbd>).
 

@@ -68,7 +68,7 @@ int uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, vo
 	w->type   = type;
 	w->active = 0;
 	w->fd     = fd;
-	w->cb     = (void *)cb;
+	w->cb     = cb;
 	w->arg    = arg;
 	w->events = events;
 

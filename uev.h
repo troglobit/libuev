@@ -46,6 +46,7 @@ typedef struct uev {
 	uev_private_t   type;
 
 	/* Public data for users to reference  */
+	int             signo;
 	int             fd;
 	uev_ctx_t      *ctx;
 } uev_t;

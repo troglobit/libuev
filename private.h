@@ -68,11 +68,6 @@ struct uev;
 			int timeout;				\
 			int period;				\
 		} t;						\
-								\
-		/* Signal watchers */				\
-		struct {					\
-			int signo;				\
-		} s;						\
 	} u;							\
 								\
 	/* Watcher type */					\

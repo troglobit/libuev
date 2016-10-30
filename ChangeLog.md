@@ -4,6 +4,18 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
+[v1.5.0][] - 2016-10-30
+-----------------------
+
+### Changes
+- Add support for absolute timers with the `uev_cron_*()` API.
+- Update build & install instructions in README
+
+### Fixes
+- Fix `uev_timer_set()` so that it returns error in case the underlying
+  Linux timerfd API fails.
+
+
 [v1.4.2][] - 2016-06-25
 -----------------------
 

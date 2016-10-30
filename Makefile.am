@@ -3,7 +3,7 @@ ACLOCAL_AMFLAGS     = -I m4
 lib_LTLIBRARIES     = libuev.la
 pkgincludedir       = $(includedir)/uev
 pkginclude_HEADERS  = uev.h private.h queue.h
-libuev_la_SOURCES   = uev.c io.c timer.c signal.c
+libuev_la_SOURCES   = uev.c io.c timer.c signal.c cron.c
 
 check_PROGRAMS      = bench
 bench_CPPFLAGS      = -D_GNU_SOURCE

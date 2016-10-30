@@ -1,4 +1,4 @@
-noinst_PROGRAMS = signal test joystick
+noinst_PROGRAMS = signal test joystick cronrun
 AM_CPPFLAGS     = -I$(top_srcdir)
 AM_LDFLAGS      = -L$(top_srcdir)
 LIBS            = $(LTLIBINTL)

@@ -35,17 +35,25 @@ For details, see [this article][4] at [lwn.net](http://lwn.net).
 API
 ---
 
-The C interface to [libuEv][] is listed in `uev.h`.  It handles three
-different types of events: I/O (files, sockets, message queues, etc.),
-timers, and signals.  With a slight caveat on signals detailed below
-in the [Summary](#summary).
+The C API to [libuEv][], listed in `uev/uev.h`, handles three different
+types of events: I/O (files, sockets, message queues, etc.), timers, and
+signals.  The [Summary](#summary) details a slight caveat on signals.
+
+Timers can be either relative, timeout in milliseconds, or absolute with
+a time given in `time_t`, see `mktime()` et al.  Absolute timers are
+called cron timers and their callbacks get an `UEV_HUP` error event if
+the wall clock changes, either via NTP or user input.
+
+**NOTE:** On some systems, embedded systems in particular, `time_t` is a
+32-bit integer that wraps around in the year 2038.  [libuEv][] cannot
+protect you against this problem, unfortunately.
 
 ```C
 
     /*
-     * Callback example, arg is passed from watcher's *_init()
-     * w->fd holds the file descriptor, events is set by libuEv
-     * to indicate if any of UEV_READ and/or UEV_WRITE is ready.
+     * Callback example, arg comes from the watcher's *_init() function,
+	 * w->fd holds the file descriptor or socket, and events is set by
+	 * libuEv to indicate status: UEV_HUP, UEV_READ and/or UEV_WRITE
      */
     void callback       (uev_t *w, void *arg, int events);
 
@@ -60,11 +68,17 @@ in the [Summary](#summary).
     int uev_io_start    (uev_t *w);
     int uev_io_stop     (uev_t *w);
     
-    /* Timer watcher:   timeout and period in milliseconds */
+    /* Timer watcher:   schedule a relative timer, timeout and period in milliseconds */
     int uev_timer_init  (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeout, int period);
     int uev_timer_set   (uev_t *w, int timeout, int period); /* Change timeout or period */
     int uev_timer_start (uev_t *w);                          /* Restart a stopped timer */
     int uev_timer_stop  (uev_t *w);                          /* Stop a timer */
+    
+    /* Cron watcher:    schedule an absolute timer, when and period in time_t seconds */
+    int uev_cron_init   (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, time_t when, time_t period);
+    int uev_cron_set    (uev_t *w, int when, time_t period); /* Change when or period */
+    int uev_cron_start  (uev_t *w);                          /* Restart a stopped cron */
+    int uev_cron_stop   (uev_t *w);                          /* Stop a cron */
     
     /* Signal watcher:  signo is the signal to wait for, e.g., SIGTERM */
     int uev_signal_init (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo);

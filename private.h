@@ -31,13 +31,14 @@
 
 /* I/O, timer, or signal watcher */
 typedef enum {
-	UEV_IO_TYPE = 1,
-	UEV_TIMER_TYPE,
+	UEV_CRON_TYPE = 1,
+	UEV_IO_TYPE,
 	UEV_SIGNAL_TYPE,
+	UEV_TIMER_TYPE,
 } uev_type_t;
 
 /* Event mask, used internally only. */
-#define UEV_EVENT_MASK  (UEV_READ | UEV_WRITE | UEV_PRI)
+#define UEV_EVENT_MASK  (UEV_READ | UEV_WRITE | UEV_PRI | UEV_HUP)
 
 /* Main libuEv context type */
 typedef struct {
@@ -63,6 +64,12 @@ struct uev;
 								\
 	/* Arguments for different watchers */			\
 	union {							\
+		/* Cron watchers */				\
+		struct {					\
+			time_t when;				\
+			time_t interval;			\
+		} c;						\
+								\
 		/* Timer watchers, time in milliseconds */	\
 		struct {					\
 			int timeout;				\

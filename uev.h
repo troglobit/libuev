@@ -35,6 +35,7 @@
 #define UEV_READ        EPOLLIN
 #define UEV_WRITE       EPOLLOUT
 #define UEV_PRI         EPOLLPRI
+#define UEV_HUP         EPOLLHUP
 
 /* Run flags */
 #define UEV_ONCE        1
@@ -68,6 +69,11 @@ int uev_timer_init     (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int t
 int uev_timer_set      (uev_t *w, int timeout, int period);
 int uev_timer_start    (uev_t *w);
 int uev_timer_stop     (uev_t *w);
+
+int uev_cron_init      (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, time_t when, time_t interval);
+int uev_cron_set       (uev_t *w, time_t when, time_t interval);
+int uev_cron_start     (uev_t *w);
+int uev_cron_stop      (uev_t *w);
 
 int uev_signal_init    (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo);
 int uev_signal_set     (uev_t *w, int signo);

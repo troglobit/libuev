@@ -9,8 +9,6 @@
 *.html
 .deps
 .libs
-examples/joystick
-examples/signal
 compile
 config.*
 configure
@@ -26,7 +24,6 @@ aclocal.m4
 ar-lib
 autom4te.cache
 bench
-test
 libuev*.tar.*
 libuev.pc
 !libuev.pc.in

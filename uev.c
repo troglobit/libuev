@@ -166,6 +166,7 @@ int uev_exit(uev_ctx_t *ctx)
 			continue;
 
 		switch (w->type) {
+		case UEV_CRON_TYPE:
 		case UEV_TIMER_TYPE:
 			uev_timer_stop(w);
 			break;
@@ -219,6 +220,8 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 	/* Start all dormant timers */
 	LIST_FOREACH(w, &ctx->watchers, link) {
+		if (UEV_CRON_TYPE == w->type)
+			uev_cron_set(w, w->u.c.when, w->u.c.interval);
 		if (UEV_TIMER_TYPE == w->type)
 			uev_timer_set(w, w->u.t.timeout, w->u.t.period);
 	}
@@ -274,6 +277,24 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				}
 			}
 
+			if (UEV_CRON_TYPE == w->type) {
+				uint64_t exp;
+
+				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
+					if (errno != ECANCELED) {
+						uev_exit(ctx);
+						return -3;
+					}
+
+					events[i].events = UEV_HUP;
+				}
+
+				if (!w->u.c.interval)
+					w->u.c.when = 0;
+				else
+					w->u.c.when += w->u.c.interval;
+			}
+
 			if (UEV_TIMER_TYPE == w->type) {
 				uint64_t exp;
 
@@ -299,6 +320,10 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			if (w->cb)
 				w->cb(w, w->arg, events[i].events & UEV_EVENT_MASK);
 
+			if (UEV_CRON_TYPE == w->type) {
+				if (!w->u.c.when)
+					uev_timer_stop(w);
+			}
 			if (UEV_TIMER_TYPE == w->type) {
 				if (!w->u.t.timeout)
 					uev_timer_stop(w);

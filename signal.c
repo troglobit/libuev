@@ -87,7 +87,7 @@ int uev_signal_set(uev_t *w, int signo)
 	}
 
 	/* Remember for callbacks and start/stop */
-	w->signo = signo;
+	w->u.s.signo = signo;
 
 	/* Handle stopped signal watchers */
 	if (w->fd < 0) {
@@ -129,7 +129,7 @@ int uev_signal_start(uev_t *w)
 	if (-1 != w->fd)
 		uev_signal_stop(w);
 
-	return uev_signal_set(w, w->signo);
+	return uev_signal_set(w, w->u.s.signo);
 }
 
 /**

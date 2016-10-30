@@ -220,7 +220,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 	/* Start all dormant timers */
 	LIST_FOREACH(w, &ctx->watchers, link) {
 		if (UEV_TIMER_TYPE == w->type)
-			uev_timer_set(w, w->timeout, w->period);
+			uev_timer_set(w, w->u.t.timeout, w->u.t.period);
 	}
 
 	while (ctx->running) {
@@ -282,8 +282,8 @@ int uev_run(uev_ctx_t *ctx, int flags)
 					return -3;
 				}
 
-				if (!w->period)
-					w->timeout = 0;
+				if (!w->u.t.period)
+					w->u.t.timeout = 0;
 			}
 
 			if (UEV_SIGNAL_TYPE == w->type) {
@@ -300,7 +300,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				w->cb(w, w->arg, events[i].events & UEV_EVENT_MASK);
 
 			if (UEV_TIMER_TYPE == w->type) {
-				if (!w->timeout)
+				if (!w->u.t.timeout)
 					uev_timer_stop(w);
 			}
 		}

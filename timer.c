@@ -123,8 +123,8 @@ int uev_timer_set(uev_t *w, int timeout, int period)
 			return -1;
 	}
 
-	w->timeout = timeout;
-	w->period  = period;
+	w->u.t.timeout = timeout;
+	w->u.t.period  = period;
 
 	if (w->ctx->running) {
 		struct itimerspec time;
@@ -153,7 +153,7 @@ int uev_timer_start(uev_t *w)
 	if (-1 != w->fd)
 		uev_watcher_stop(w);
 
-	return uev_timer_set(w, w->timeout, w->period);
+	return uev_timer_set(w, w->u.t.timeout, w->u.t.period);
 }
 
 /**

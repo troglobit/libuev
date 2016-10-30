@@ -61,12 +61,19 @@ struct uev;
 	void          (*cb)(struct uev *, void *, int);         \
 	void           *arg;                                    \
 								\
-	/* Timer watchers, time in milliseconds */		\
-	int             timeout;                                \
-	int             period;                                 \
+	/* Arguments for different watchers */			\
+	union {							\
+		/* Timer watchers, time in milliseconds */	\
+		struct {					\
+			int timeout;				\
+			int period;				\
+		} t;						\
 								\
-	/* Signal watchers */                                   \
-	int             signo;                                  \
+		/* Signal watchers */				\
+		struct {					\
+			int signo;				\
+		} s;						\
+	} u;							\
 								\
 	/* Watcher type */					\
 	uev_type_t

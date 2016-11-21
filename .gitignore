@@ -27,3 +27,4 @@ bench
 libuev*.tar.*
 libuev.pc
 !libuev.pc.in
+test-driver

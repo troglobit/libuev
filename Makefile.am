@@ -19,7 +19,7 @@ doc_DATA            = README.md LICENSE
 EXTRA_DIST          = README.md LICENSE AUTHORS ChangeLog.md
 
 DIST_SUBDIRS        = examples
-SUBDIRS             = .
+SUBDIRS             = tests
 if ENABLE_EXAMPLES
   SUBDIRS          += examples
 endif

@@ -1,4 +1,5 @@
 *.trs
 *.log
+cronrun
 signal
 timer

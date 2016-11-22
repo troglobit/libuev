@@ -2,6 +2,7 @@ EXTRA_DIST      = check.h
 CLEANFILES      = *~ *.trs *.log
 
 TESTS           =
+TESTS          += signal
 TESTS          += timer
 
 check_PROGRAMS  = $(TESTS)

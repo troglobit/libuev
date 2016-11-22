@@ -21,7 +21,6 @@
  * THE SOFTWARE.
  */
 
-#define _GNU_SOURCE
 #include <err.h>
 #include <sched.h>
 #include <signal.h>

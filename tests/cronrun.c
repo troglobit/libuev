@@ -21,20 +21,29 @@
  * THE SOFTWARE.
  */
 
-#include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
-#include "uev.h"
+#include "check.h"
 
-#define UNUSED(arg) arg __attribute__ ((unused))
+#define TIMEOUT  2
+#define INTERVAL 2
 
+struct timeval tv;
 
-static void cron_job(uev_t *w, void *arg, int events)
+static void cron_job(uev_t *w, void *UNUSED(arg), int UNUSED(events))
 {
-	struct timeval tv;
+	static int laps = 3;
+	struct timeval now;
 
-	gettimeofday(&tv, NULL);
-	printf("Cron job HELO %s", ctime(&tv.tv_sec));
+	/* Update timer every lap */
+	tv.tv_sec += TIMEOUT;
+
+	gettimeofday(&now, NULL);
+	printf("Cron job HELO %s", ctime(&now.tv_sec));
+	fail_unless(now.tv_sec == tv.tv_sec);
+
+	if (!laps--)
+		uev_exit(w->ctx);
 }
 
 int main(void)
@@ -42,20 +51,16 @@ int main(void)
 	uev_t cron_watcher;
 	uev_ctx_t ctx;
 	time_t when, interval;
-	struct timeval tv;
 
-	/* Initialize libuEv */
 	uev_init(&ctx);
 
-	/* Cron job */
 	gettimeofday(&tv, NULL);
-	when     = tv.tv_sec + 30;
-	interval = 30;
-	uev_cron_init(&ctx, &cron_watcher, cron_job, NULL, when, interval);
-
-	/* Start event loop */
 	printf("Start of test %s", ctime(&tv.tv_sec));
 	printf("Expected cron %s", ctime(&when));
+	
+	when     = tv.tv_sec + TIMEOUT;
+	interval = INTERVAL;
+	uev_cron_init(&ctx, &cron_watcher, cron_job, NULL, when, interval);
 
 	return uev_run(&ctx, 0);
 }

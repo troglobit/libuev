@@ -4,14 +4,13 @@ lib_LTLIBRARIES     = libuev.la
 pkgincludedir       = $(includedir)/uev
 pkginclude_HEADERS  = uev.h private.h queue.h
 libuev_la_SOURCES   = uev.c io.c timer.c signal.c cron.c
-
-check_PROGRAMS      = bench
-bench_CPPFLAGS      = -D_GNU_SOURCE
-bench_LDADD         = $(top_srcdir)/libuev.la
-
 libuev_la_CPPFLAGS  = -D_GNU_SOURCE
 libuev_la_CFLAGS    = -W -Wall -Wextra
 libuev_la_LDFLAGS   = $(AM_LDFLAGS) -version-info 1:2:0
+
+noinst_PROGRAMS     = bench
+bench_CPPFLAGS      = -D_GNU_SOURCE
+bench_LDADD         = $(top_srcdir)/libuev.la
 
 pkgconfigdir        = $(libdir)/pkgconfig
 pkgconfig_DATA      = libuev.pc
@@ -27,13 +26,6 @@ endif
 test joystick: all-recursive
 	./examples/$@
 
-check-local:
-	@echo "  BENCH    $(PACKAGE)"
-	@./bench
-if ENABLE_EXAMPLES
-	@echo "  TEST     $(PACKAGE)"
-	@./examples/test
-endif
 
 ## Generate MD5 checksum file
 MD5 = md5sum

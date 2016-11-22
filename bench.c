@@ -140,7 +140,8 @@ static struct timeval *run_once(uev_ctx_t *ctx)
 
 		gettimeofday(&te, NULL);
 
-//		if (xcount != count) fprintf(stderr, "Xcount: %d, Rcount: %d\n", xcount, count);
+		if (xcount != count)
+			fprintf(stderr, "Xcount: %d, Rcount: %d\n", xcount, count);
 	}
 
 	timersub(&te, &ta, &ta);

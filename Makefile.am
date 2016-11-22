@@ -19,13 +19,6 @@ EXTRA_DIST          = README.md LICENSE AUTHORS ChangeLog.md
 
 DIST_SUBDIRS        = examples
 SUBDIRS             = tests
-if ENABLE_EXAMPLES
-  SUBDIRS          += examples
-endif
-
-test joystick: all-recursive
-	./examples/$@
-
 
 ## Generate MD5 checksum file
 MD5 = md5sum

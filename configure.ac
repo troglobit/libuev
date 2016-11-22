@@ -11,9 +11,4 @@ AC_PROG_CC
 AM_PROG_AR
 LT_INIT
 
-AC_ARG_ENABLE([examples],
-	[AS_HELP_STRING([--enable-examples], [build examples])],
-	[enable_examples=yes], [])
-AM_CONDITIONAL([ENABLE_EXAMPLES], [test "$enable_examples" = yes])
-
 AC_OUTPUT

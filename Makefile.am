@@ -1,8 +1,6 @@
 ACLOCAL_AMFLAGS     = -I m4
 
 lib_LTLIBRARIES     = libuev.la
-pkgincludedir       = $(includedir)/uev
-pkginclude_HEADERS  = uev.h private.h queue.h
 libuev_la_SOURCES   = uev.c io.c timer.c signal.c cron.c
 libuev_la_CPPFLAGS  = -D_GNU_SOURCE
 libuev_la_CFLAGS    = -W -Wall -Wextra
@@ -13,7 +11,9 @@ bench_CPPFLAGS      = -D_GNU_SOURCE
 bench_LDADD         = $(top_srcdir)/libuev.la
 
 pkgconfigdir        = $(libdir)/pkgconfig
+pkgincludedir       = $(includedir)/uev
 pkgconfig_DATA      = libuev.pc
+pkginclude_HEADERS  = uev.h private.h queue.h
 doc_DATA            = README.md LICENSE
 EXTRA_DIST          = README.md LICENSE AUTHORS ChangeLog.md
 

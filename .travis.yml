@@ -2,7 +2,7 @@
 # Defaults to GNU GCC and autotools: ./configure && make && make test
 language: c
 
-# We don't need to install packages, use dockerized build, quicker
+# Use docker for quicker builds, it now allows https://docs.travis-ci.com/user/apt/
 sudo: false
 
 env:
@@ -21,7 +21,6 @@ addons:
     build_command: "make clean all"
     branch_pattern: dev
 
-# We don't use configure, so we must define our own build script.
 script:
   - ./autogen.sh
   - ./configure --disable-silent-rules --enable-examples

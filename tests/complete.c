@@ -23,13 +23,7 @@
  */
 
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>		/* intptr_t */
-
-#include "uev.h"
-
-#define UNUSED(arg) arg __attribute__ ((unused))
+#include "check.h"
 
 typedef struct {
 	int counter;
@@ -138,8 +132,7 @@ int main(void)
 	uev_run(&ctx, 0);
 
 	fprintf(stderr, "Period is %d must be 10: %s\n", period, 10 == period ? "OK" : "ERROR!");
-	if (10 != period)
-		return 1;
+	fail_unless(10 == period);
 
 	return 0;
 }

@@ -124,6 +124,15 @@ int uev_watcher_stop(uev_t *w)
 	return 0;
 }
 
+/* Private to libuEv, do not use directly! */
+int uev_watcher_active(uev_t *w)
+{
+	if (!w)
+		return 0;
+
+	return w->active;
+}
+
 /**
  * Create an event loop context
  * @param ctx  Pointer to an uev_ctx_t context to be initialized

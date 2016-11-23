@@ -2,6 +2,7 @@ EXTRA_DIST      = check.h
 CLEANFILES      = *~ *.trs *.log
 
 TESTS           =
+TESTS          += active
 TESTS          += complete
 TESTS          += cronrun
 TESTS          += signal

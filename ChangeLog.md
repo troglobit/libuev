@@ -3,6 +3,11 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+[v1.5.2][] - 2016-11-27
+-----------------------
+
+### Fixes
+- Fix build regression in v1.5.1
 
 
 [v1.5.1][] - 2016-11-27

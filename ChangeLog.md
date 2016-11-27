@@ -4,6 +4,15 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
+
+[v1.5.1][] - 2016-11-27
+-----------------------
+
+### Changes
+- Add support for checking if a watcher is active.
+- Refactor unit testing framework
+
+
 [v1.5.0][] - 2016-10-30
 -----------------------
 

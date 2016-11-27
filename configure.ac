@@ -1,4 +1,4 @@
-AC_INIT(libuev, 1.5.0, https://github.com/troglobit/libuev/issues)
+AC_INIT(libuev, 1.5.1, https://github.com/troglobit/libuev/issues)
 AM_INIT_AUTOMAKE([1.11 foreign no-dist-gzip dist-xz])
 AM_SILENT_RULES([yes])
 

@@ -21,9 +21,9 @@
  * THE SOFTWARE.
  */
 
+#include "check.h"
 #include <time.h>
 #include <sys/time.h>
-#include "check.h"
 
 #define TIMEOUT  2
 #define INTERVAL 2

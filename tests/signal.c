@@ -21,6 +21,7 @@
  * THE SOFTWARE.
  */
 
+#include "check.h"
 #include <err.h>
 #include <sched.h>
 #include <signal.h>
@@ -31,8 +32,6 @@
 #include <sys/user.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
-#include "uev.h"
 
 #define UNUSED(arg) arg __attribute__ ((unused))
 #define DO_SEGFAULT 1

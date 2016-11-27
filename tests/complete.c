@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#include <signal.h>
 #include "check.h"
+#include <signal.h>
 
 typedef struct {
 	int counter;

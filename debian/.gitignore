@@ -1,0 +1,6 @@
+tmp/*
+libuev/*
+libuev*
+autoreconf*
+debhelper*
+files

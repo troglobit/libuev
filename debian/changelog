@@ -1,0 +1,5 @@
+libuev (1.5.2-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Joachim Nilsson <troglobit@gmail.com>  Mon, 28 Nov 2016 22:53:35 +0100

@@ -4,3 +4,5 @@ libuev*
 autoreconf*
 debhelper*
 files
+!*.dirs
+!*.install

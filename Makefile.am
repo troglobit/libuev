@@ -19,6 +19,10 @@ EXTRA_DIST          = README.md LICENSE AUTHORS ChangeLog.md
 DIST_SUBDIRS        = examples tests
 SUBDIRS             = tests
 
+## Generate .deb package
+package:
+	@dpkg-buildpackage -uc -us -B
+
 ## Generate MD5 checksum file
 MD5 = md5sum
 md5-dist:

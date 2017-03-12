@@ -1,3 +1,9 @@
+libuev (1.5.2-2) unstable; urgency=low
+
+  * Minor packaging fixes.
+
+ -- Joachim Nilsson <troglobit@gmail.com>  Sun, 12 Mar 2017 17:48:00 +0100
+
 libuev (1.5.2-1) unstable; urgency=low
 
   * Initial release.

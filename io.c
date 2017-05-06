@@ -61,10 +61,9 @@ int uev_io_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int e
 int uev_io_set(uev_t *w, int fd, int events)
 {
 
-  if( events & UEV_ONESHOT 
-      && 1 == w->active ) {
-    return uev_watcher_rearm(w);
-  }
+	if( (events & UEV_ONESHOT) && w->active ) {
+  	return uev_watcher_rearm(w);
+	}
 
 	/* Ignore any errors, only to clean up anything lingering ... */
 	uev_io_stop(w);

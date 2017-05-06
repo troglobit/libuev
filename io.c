@@ -62,7 +62,7 @@ int uev_io_set(uev_t *w, int fd, int events)
 {
 
 	if ((events & UEV_ONESHOT) && w->active) {
-    return uev_watcher_rearm(w);
+		return uev_watcher_rearm(w);
 	}
 
 	/* Ignore any errors, only to clean up anything lingering ... */

@@ -133,6 +133,24 @@ int uev_watcher_active(uev_t *w)
 	return w->active;
 }
 
+/* Private to libuEv, do not use directly! */
+int uev_watcher_rearm(uev_t *w)
+{
+	struct epoll_event ev;
+
+	if (!w || w->fd < 0) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	ev.events   = w->events | EPOLLRDHUP;
+	ev.data.ptr = w;
+	if (epoll_ctl(w->ctx->fd, EPOLL_CTL_MOD, w->fd, &ev) < 0)
+		return -1;
+
+	return 0;
+}
+
 /**
  * Create an event loop context
  * @param ctx  Pointer to an uev_ctx_t context to be initialized

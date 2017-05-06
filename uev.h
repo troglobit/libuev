@@ -36,6 +36,9 @@
 #define UEV_WRITE       EPOLLOUT
 #define UEV_PRI         EPOLLPRI
 #define UEV_HUP         EPOLLHUP
+#define UEV_RDHUP       EPOLLRDHUP
+#define UEV_ET          EPOLLET
+#define UEV_ONESHOT     EPOLLONESHOT
 
 /* Run flags */
 #define UEV_ONCE        1

@@ -38,7 +38,7 @@ typedef enum {
 } uev_type_t;
 
 /* Event mask, used internally only. */
-#define UEV_EVENT_MASK  (UEV_READ | UEV_WRITE | UEV_PRI | UEV_HUP)
+#define UEV_EVENT_MASK  (UEV_READ | UEV_WRITE | UEV_PRI | UEV_HUP | UEV_RDHUP | UEV_ET | UEV_ONESHOT)
 
 /* Main libuEv context type */
 typedef struct {
@@ -87,6 +87,7 @@ int uev_watcher_init  (uev_ctx_t *ctx, struct uev *w, uev_type_t type,
 int uev_watcher_start (struct uev *w);
 int uev_watcher_stop  (struct uev *w);
 int uev_watcher_active(struct uev *w);
+int uev_watcher_rearm (struct uev *w);
 
 #endif /* LIBUEV_PRIVATE_H_ */
 

@@ -46,7 +46,7 @@ the wall clock changes, either via NTP or user input.
 
 **NOTE:** On some systems, embedded systems in particular, `time_t` is a
 32-bit integer that wraps around in the year 2038.  [libuEv][] cannot
-protect you against this problem, unfortunately.
+protect you against this problem, unless you stick to relative timers.
 
 ```C
 

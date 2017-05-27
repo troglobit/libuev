@@ -181,25 +181,33 @@ Using -luev
 LibuEv is by default installed as a library with a few header files, you
 should only ever need to include one:
 
+```C
     #include <uev/uev.h>
+```
 
 The output from the `pkg-config` tool holds no surprises:
 
+```shell
     $ pkg-config --libs --static --cflags libuev
     -I/usr/local/include -L/usr/local/lib -luev
+```
 
 The prefix path `/usr/local/` shown here is only the default.  Use the
 `configure` script to select a different prefix when installing libuEv.
 
 For GNU autotools based projects, use the following in `configure.ac`:
 
+```C
     # Check for required libraries
     PKG_CHECK_MODULES([uev], [libuev >= 1.4.0])
+```
 
 and in your `Makefile.am`:
 
+```conf
     proggy_CFLAGS = $(uev_CFLAGS)
     proggy_LDADD  = $(uev_LIBS)
+```
 
 
 Joystick Example

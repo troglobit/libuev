@@ -187,7 +187,7 @@ should only ever need to include one:
 
 The output from the `pkg-config` tool holds no surprises:
 
-```shell
+```sh
     $ pkg-config --libs --static --cflags libuev
     -I/usr/local/include -L/usr/local/lib -luev
 ```
@@ -204,7 +204,7 @@ For GNU autotools based projects, use the following in `configure.ac`:
 
 and in your `Makefile.am`:
 
-```conf
+```sh
     proggy_CFLAGS = $(uev_CFLAGS)
     proggy_LDADD  = $(uev_LIBS)
 ```

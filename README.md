@@ -49,11 +49,10 @@ the wall clock changes, either via NTP or user input.
 protect you against this problem, unless you stick to relative timers.
 
 ```C
-
     /*
      * Callback example, arg comes from the watcher's *_init() function,
-	 * w->fd holds the file descriptor or socket, and events is set by
-	 * libuEv to indicate status: UEV_HUP, UEV_READ and/or UEV_WRITE
+     * w->fd holds the file descriptor or socket, and events is set by
+     * libuEv to indicate status: UEV_HUP, UEV_READ and/or UEV_WRITE
      */
     void callback       (uev_t *w, void *arg, int events);
 
@@ -85,7 +84,6 @@ protect you against this problem, unless you stick to relative timers.
     int uev_signal_set  (uev_t *w, int signo);               /* Change signal to wait for */
     int uev_signal_start(uev_t *w);                          /* Restart a stopped signal watcher */
     int uev_signal_stop (uev_t *w);                          /* Stop signal watcher */
-
 ```
 
 
@@ -96,11 +94,9 @@ is achieved by calling `uev_init()` with a pointer to a (thread) local
 `uev_ctx_t` variable.
 
 ```C
-
     uev_ctx_t ctx;
-    
-    uev_init(&ctx);
 
+    uev_init(&ctx);
 ```
 
 
@@ -114,7 +110,6 @@ with the `uev_ctx_t` context, the callback, and an optional argument.
 Here is a signal example:
 
 ```C
-
     void cleanup_exit(uev_t *w, void *arg, int events)
     {
         /* Graceful exit, with optional cleanup ... */
@@ -122,17 +117,16 @@ Here is a signal example:
     }
     
     int main(void)
-	{
-	    uev_t sigterm_watcher;
+    {
+        uev_t sigterm_watcher;
         .
-		.
-		.
+        .
+        .
         uev_signal_init(&ctx, &sigterm_watcher, cleanup_exit, NULL, SIGTERM);
-		.
-		.
-		.
-	}
-
+        .
+        .
+        .
+    }
 ```
 
 
@@ -145,9 +139,7 @@ used to integrate [libuEv][] into another event loop.
 In this example we set `flags` to none:
 
 ```C
-
     uev_run(&ctx, UEV_NONE);
-
 ```
 
 With `flags` set to `UEV_ONCE` the event loop returns as soon as it has
@@ -217,7 +209,6 @@ Here follows a very brief example to illustrate how one can use libuEv
 to act upon joystick input.
 
 ```C
-
     #include <err.h>
     #include <errno.h>
     #include <stdio.h>
@@ -265,7 +256,6 @@ to act upon joystick input.
     
         return uev_run(&ctx, 0);
     }
-
 ```
 
 To build the example, follow installation instructions below, then save

@@ -197,7 +197,7 @@ The prefix path `/usr/local/` shown here is only the default.  Use the
 
 For GNU autotools based projects, use the following in `configure.ac`:
 
-```C
+```sh
     # Check for required libraries
     PKG_CHECK_MODULES([uev], [libuev >= 1.4.0])
 ```
@@ -269,7 +269,9 @@ to act upon joystick input.
 To build the example, follow installation instructions below, then save
 the code as `joystick.c` and call GCC
 
-    gcc `pkg-config --libs --static --cflags libuev` -o joystick joystick.c
+```sh
+    $ gcc `pkg-config --libs --static --cflags libuev` -o joystick joystick.c
+```
 
 Alternatively, call the `Makefile` with <kbd>make joystick</kbd> from
 the unpacked [libuEv][] distribution.
@@ -292,11 +294,13 @@ support *BSD and its [kqueue][] interface are most welcome.
 libuEv use the GNU configure and build system.  To try out the bundled
 examples, use the `--enable-examples` switch to the `configure` script.
 
-    ./configure
-    make -j5
-    make test
-    sudo make install-strip
-    sudo ldconfig
+```sh
+    $ ./configure
+    $ make -j5
+    $ make test
+    $ sudo make install-strip
+    $ sudo ldconfig
+```
 
 The resulting .so file is ~14 kiB (<kbd>make install-strip</kbd>).
 

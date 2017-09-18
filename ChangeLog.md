@@ -3,6 +3,19 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+
+[v1.6.0][] - 2017-09-18
+-----------------------
+
+### Changes
+- Support for edge triggered and oneshot event types
+- Add `make package` build targe to trigger a `.deb` package build
+- Support 64 bit `time_t` on 32 bit GLIBC systems
+
+### Fixes
+- `bench.c`: Use `signal.h`, not non-standard `sys/signal.h`
+
+
 [v1.5.2][] - 2016-11-27
 -----------------------
 

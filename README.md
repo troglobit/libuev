@@ -61,9 +61,6 @@ int main(void)
 Build & Install
 ---------------
 
-The library is built for and developed on GNU/Linux systems, patches to
-support *BSD and its [kqueue][] interface are most welcome.
-
 libuEv use the GNU configure and build system.  To try out the bundled
 examples, use the `--enable-examples` switch to the `configure` script.
 
@@ -87,7 +84,9 @@ more similar to the famous [libev][2] by [Mark Lehmann][].  Another
 small event library used for inspiration is the very small [Picoev][9]
 by [Oku Kazuho][].
 
-[libuEv][] is developed and maintained by [Joachim Nilsson][].
+[libuEv][] is developed and maintained by [Joachim Nilsson][].  It is
+built for and developed on GNU/Linux systems, patches to support *BSD
+and its [kqueue][] interface are most welcome.
 
 
 [1]: http://libevent.org

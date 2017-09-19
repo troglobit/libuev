@@ -1,3 +1,4 @@
+> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
 
 Table of Contents
 -----------------
@@ -263,3 +264,10 @@ Also see the `bench.c` program (<kbd>make bench</kbd> from within the
 library) for [reference benchmarks][7] against [libevent][1] and
 [libev][2].
 
+[1]: http://libevent.org
+[2]: http://software.schmorp.de/pkg/libev.html
+[5]: https://github.com/troglobit/uftpd
+[6]: https://github.com/troglobit/finit
+[7]: http://libev.schmorp.de/bench.html
+[LibuEv]:               https://github.com/troglobit/libuev
+[Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8

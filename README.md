@@ -29,8 +29,6 @@ modern Linux APIs: epoll, timerfd and signalfd.  Note however, a certain
 amount of care is needed when dealing with APIs that employ signalfd.
 For details, see [this article][4] at [lwn.net](http://lwn.net).
 
-> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
-
 
 Documentation
 -------------
@@ -74,9 +72,6 @@ event library used for inspiration is the very small [Picoev][9] by
 [2]: http://software.schmorp.de/pkg/libev.html
 [3]: http://unix.com/man-page/All/3x/XtDispatchEvent
 [4]: http://lwn.net/Articles/415684/
-[5]: https://github.com/troglobit/uftpd
-[6]: https://github.com/troglobit/finit
-[7]: http://libev.schmorp.de/bench.html
 [8]: http://code.google.com/p/libuevent/
 [9]: https://github.com/kazuho/picoev
 [Travis]:          https://travis-ci.org/troglobit/libuev
@@ -90,7 +85,6 @@ event library used for inspiration is the very small [Picoev][9] by
 [Mark Lehmann]:    http://software.schmorp.de
 [Joachim Nilsson]: http://troglobit.com
 [Flemming Madsen]: http://www.madsensoft.dk
-[Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8
 
 <!--
   -- Local Variables:

@@ -116,7 +116,7 @@ event library used for inspiration is the very small [Picoev][9] by
 [Coverity Scan]:   https://scan.coverity.com/projects/3846
 [Coverity Status]: https://scan.coverity.com/projects/3846/badge.svg
 [LibuEv]:          https://github.com/troglobit/libuev
-[README]:          https://github.com/troglobit/libuev/src/README.md
+[README]:          https://github.com/troglobit/libuev/blob/master/src/README.md
 [kqueue]:          https://github.com/mheily/libkqueue
 [Oku Kazuho]:      https://github.com/kazuho
 [Mark Lehmann]:    http://software.schmorp.de

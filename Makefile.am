@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS     = -I m4
 
-doc_DATA            = README.md LICENSE
-EXTRA_DIST          = README.md LICENSE AUTHORS ChangeLog.md
+doc_DATA            = API.md README.md LICENSE
+EXTRA_DIST          = API.md README.md LICENSE AUTHORS ChangeLog.md
 DIST_SUBDIRS        = examples tests
 SUBDIRS             = src tests
 

@@ -4,13 +4,13 @@ libuEv | Simple event loop for Linux
 
 
 * [Introduction](#introduction)
-* [API](src/API.md#api)
-  * [Create an Event Context](src/API.md#create-an-event-context)
-  * [Register an Event Watcher](src/API.md#register-an-event-watcher)
-  * [Start Event Loop](src/API.md#start-event-loop)
-  * [Summary](src/API.md#summary)
-* [Using -luev](src/API.md#using--luev)
-* [Joystick Example](src/API.md#joystick-example)
+* [API](API.md#api)
+  * [Create an Event Context](API.md#create-an-event-context)
+  * [Register an Event Watcher](API.md#register-an-event-watcher)
+  * [Start Event Loop](API.md#start-event-loop)
+  * [Summary](API.md#summary)
+* [Using -luev](API.md#using--luev)
+* [Joystick Example](API.md#joystick-example)
 * [Build & Install](#build--install)
 * [Motivation](MOTIVATION.md#background)
 * [Origin & References](#origin--references)
@@ -33,8 +33,7 @@ For details, see [this article][4] at [lwn.net](http://lwn.net).
 Documentation
 -------------
 
-The API documentation is available as a [separate document](src/API.md)
-in the `src/` directory.
+The API documentation is available as a [separate document](API.md).
 
 
 Build & Install

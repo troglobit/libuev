@@ -4,13 +4,13 @@ libuEv | Simple event loop for Linux
 
 
 * [Introduction](#introduction)
-* [API](src/README.md#api)
-  * [Create an Event Context](src/README.md#create-an-event-context)
-  * [Register an Event Watcher](src/README.md#register-an-event-watcher)
-  * [Start Event Loop](src/README.md#start-event-loop)
-  * [Summary](src/README.md#summary)
-* [Using -luev](src/README.md#using--luev)
-* [Joystick Example](src/README.md#joystick-example)
+* [API](src/API.md#api)
+  * [Create an Event Context](src/API.md#create-an-event-context)
+  * [Register an Event Watcher](src/API.md#register-an-event-watcher)
+  * [Start Event Loop](src/API.md#start-event-loop)
+  * [Summary](src/API.md#summary)
+* [Using -luev](src/API.md#using--luev)
+* [Joystick Example](src/API.md#joystick-example)
 * [Build & Install](#build--install)
 * [Motivation](MOTIVATION.md#background)
 * [Origin & References](#origin--references)
@@ -33,8 +33,8 @@ For details, see [this article][4] at [lwn.net](http://lwn.net).
 Documentation
 -------------
 
-The API documentation is available as separate [README][] in the `src/`
-directory.
+The API documentation is available as a [separate document](src/API.md)
+in the `src/` directory.
 
 
 Build & Install
@@ -79,7 +79,6 @@ event library used for inspiration is the very small [Picoev][9] by
 [Coverity Scan]:   https://scan.coverity.com/projects/3846
 [Coverity Status]: https://scan.coverity.com/projects/3846/badge.svg
 [LibuEv]:          https://github.com/troglobit/libuev
-[README]:          https://github.com/troglobit/libuev/blob/master/src/README.md
 [kqueue]:          https://github.com/mheily/libkqueue
 [Oku Kazuho]:      https://github.com/kazuho
 [Mark Lehmann]:    http://software.schmorp.de

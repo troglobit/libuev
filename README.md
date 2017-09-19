@@ -59,12 +59,13 @@ Origin & References
 -------------------
 
 [libuEv][] was originally based on [LibUEvent][8] by [Flemming Madsen][]
-but has been completely rewritten with a much clearer API.  Now more
-similar to the famous [libev][2] by [Mark Lehmann][].  Another small
-event library used for inspiration is the very small [Picoev][9] by
-[Oku Kazuho][].
+but has been completely rewritten to provide a cleaner API.  It is now
+more similar to the famous [libev][2] by [Mark Lehmann][].  Another
+small event library used for inspiration is the very small [Picoev][9]
+by [Oku Kazuho][].
 
 [libuEv][] is developed and maintained by [Joachim Nilsson][].
+
 
 [1]: http://libevent.org
 [2]: http://software.schmorp.de/pkg/libev.html

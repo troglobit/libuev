@@ -12,7 +12,6 @@ libuEv | Simple event loop for Linux
 * [Using -luev](API.md#using--luev)
 * [Joystick Example](API.md#joystick-example)
 * [Build & Install](#build--install)
-* [Motivation](MOTIVATION.md#background)
 * [Origin & References](#origin--references)
 
 

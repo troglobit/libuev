@@ -7,7 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "../uev.h"
+#include "../src/uev.h"
 
 #define UNUSED(arg) arg __attribute__ ((unused))
 

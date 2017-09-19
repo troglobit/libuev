@@ -32,7 +32,30 @@ For details, see [this article][4] at [lwn.net](http://lwn.net).
 Documentation
 -------------
 
-The API documentation is available as a [separate document](API.md).
+The library documentation is available as a [separate document](API.md).
+
+**Example:**
+
+```C
+#include <stdio.h>
+#include <uev/uev.h>
+
+static void cb(uev_t *w, void *arg, int events)
+{
+	printf("Callback runs every other second.\n");
+}
+
+int main(void)
+{
+	uev_t timer;
+	uev_ctx_t *ctx;
+
+	uev_init(&ctx);
+	uev_timer_init(&ctx, &timer, cb, NULL, 2 * 1000, 0);
+
+	return uev_run(&ctx, 0);
+}
+```
 
 
 Build & Install

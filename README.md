@@ -24,9 +24,7 @@ Introduction
 small size overhead impact of the library.
 
 Experienced developers may appreciate that [libuEv][] is built on top of
-modern Linux APIs: epoll, timerfd and signalfd.  Note however, a certain
-amount of care is needed when dealing with APIs that employ signalfd.
-For details, see [this article][4] at [lwn.net](http://lwn.net).
+modern Linux APIs: epoll, timerfd and signalfd.
 
 
 Documentation
@@ -92,7 +90,6 @@ and its [kqueue][] interface are most welcome.
 [1]: http://libevent.org
 [2]: http://software.schmorp.de/pkg/libev.html
 [3]: http://unix.com/man-page/All/3x/XtDispatchEvent
-[4]: http://lwn.net/Articles/415684/
 [8]: http://code.google.com/p/libuevent/
 [9]: https://github.com/kazuho/picoev
 [Travis]:          https://travis-ci.org/troglobit/libuev

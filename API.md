@@ -139,20 +139,21 @@ for stateful connections to be able to detect EOF.
 4. Exit the event loop with `uev_exit()`, possibly from a callback
 
 **Note 1:** Make sure to use non-blocking stream I/O!  Most hard to find
-bugs in event driven applications are due to sockets and files being
-opened in blocking mode.  Be careful out there!
+  bugs in event driven applications are due to sockets and files being
+  opened in blocking mode.  Be careful out there!
 
 **Note 2:** When closing a descriptor or socket, make sure to first stop
   your watcher, if possible.  This will help prevent any nasty side
   effects on your program.
 
-**Note 3:** As mentioned above, a certain amount of care is needed when
-dealing with signalfd.  If your application use `system()` you replace
-that with `fork()`, and then in the child, unblock all signals blocked
-by your parent process, before you run `exec()`.  This because Linux
-does not unblock signals for your children, and neither does most (all?)
-C-libraries.  See the [finit][6] project's implementation of `run()` for
-an example of this.
+**Note 3:** a certain amount of care is needed when dealing with APIs
+  that employ signalfd.  If your application use `system()` you replace
+  that with `fork()`, and then in the child, unblock all signals blocked
+  by your parent process, before you run `exec()`.  This because Linux
+  does not unblock signals for your children, and neither does most
+  (all?)  C-libraries.  See the [finit][6] project's implementation of
+  `run()` for an example of this.  For more details on this issue, see
+  [this article][4] at [lwn.net](http://lwn.net).
 
 
 Using -luev
@@ -266,6 +267,7 @@ library) for [reference benchmarks][7] against [libevent][1] and
 
 [1]: http://libevent.org
 [2]: http://software.schmorp.de/pkg/libev.html
+[4]: http://lwn.net/Articles/415684/
 [5]: https://github.com/troglobit/uftpd
 [6]: https://github.com/troglobit/finit
 [7]: http://libev.schmorp.de/bench.html

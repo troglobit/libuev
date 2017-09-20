@@ -29,7 +29,8 @@ the wall clock changes, either via NTP or user input.
 /*
  * Callback example, arg comes from the watcher's *_init() function,
  * w->fd holds the file descriptor or socket, and events is set by
- * libuEv to indicate status: UEV_HUP, UEV_READ and/or UEV_WRITE
+ * libuEv to indicate status: UEV_READ and/or UEV_WRITE with any of
+ * the optional UEV_HUP, UEV_RDHUP, or UEV_PRI for urgent read data.
  */
 void callback       (uev_t *w, void *arg, int events);
 
@@ -38,10 +39,9 @@ int uev_init        (uev_ctx_t *ctx);
 int uev_exit        (uev_ctx_t *ctx);
 int uev_run         (uev_ctx_t *ctx, int flags);         /* UEV_NONE, UEV_ONCE, and/or UEV_NONBLOCK */
 
-/* I/O watcher:     fd      MUST be non-blocking
- *                  events  can be any combination of: UEV_READ, UEV_WRITE, UEV_PRI,
- *                                                     UEV_HUP,  UEV_RDHUP
- *                                                     UEV_EDGE, UEV_ONESHOT
+/* I/O watcher:     fd      *MUST* be non-blocking!
+ *                  events  combination of the main flags:  UEV_READ, UEV_WRITE,
+ *                                                          UEV_EDGE, UEV_ONESHOT
  */
 int uev_io_init     (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events);
 int uev_io_set      (uev_t *w, int fd, int events);

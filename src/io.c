@@ -33,7 +33,7 @@
  * @param cb      I/O callback
  * @param arg     Optional callback argument
  * @param fd      File descriptor to watch, or -1 to register an empty watcher
- * @param events  Requested events to watch for, a mask of %UEV_READ, %UEV_WRITE and %UEV_PRI
+ * @param events  Events to watch for: %UEV_READ, %UEV_WRITE, %UEV_EDGE, %UEV_ONESHOW
  *
  * @return POSIX OK(0) or non-zero with @param errno set on error.
  */

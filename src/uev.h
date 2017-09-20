@@ -61,7 +61,11 @@ typedef struct uev {
 	uev_ctx_t      *ctx;
 } uev_t;
 
-/* Generic callback for watchers */
+/*
+ * Generic callback for watchers, @events holds %UEV_READ and/or %UEV_WRITE
+ * with optional %UEV_PRI (priority data available to read) and any of the
+ * %UEV_HUP and/or %UEV_RDHUP, which may be used to signal hang-up events.
+ */
 typedef void (uev_cb_t)(uev_t *w, void *arg, int events);
 
 /* Public interface */

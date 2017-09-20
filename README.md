@@ -26,6 +26,7 @@ small size overhead impact of the library.
 Experienced developers may appreciate that [libuEv][] is built on top of
 modern Linux APIs: epoll, timerfd and signalfd.
 
+> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
 
 Example
 -------
@@ -102,9 +103,4 @@ and its [kqueue][] interface are most welcome.
 [Mark Lehmann]:    http://software.schmorp.de
 [Joachim Nilsson]: http://troglobit.com
 [Flemming Madsen]: http://www.madsensoft.dk
-
-<!--
-  -- Local Variables:
-  --  mode: markdown
-  -- End:
-  -->
+[Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8

@@ -27,12 +27,10 @@ Experienced developers may appreciate that [libuEv][] is built on top of
 modern Linux APIs: epoll, timerfd and signalfd.
 
 
-Documentation
--------------
+Example
+-------
 
 The library documentation is available as a [separate document](API.md).
-
-**Example:**
 
 ```C
 #include <stdio.h>
@@ -61,6 +59,8 @@ Build & Install
 
 libuEv use the GNU configure and build system.  To try out the bundled
 examples, use the `--enable-examples` switch to the `configure` script.
+There is also a limited unit test suite that can be useful to learn how
+the library works.
 
 ```sh
     $ ./configure
@@ -70,7 +70,7 @@ examples, use the `--enable-examples` switch to the `configure` script.
     $ sudo ldconfig
 ```
 
-The resulting .so file is ~14 kiB (<kbd>make install-strip</kbd>).
+The resulting .so file is ~14 kiB.
 
 
 Origin & References
@@ -79,7 +79,7 @@ Origin & References
 [libuEv][] was originally based on [LibUEvent][8] by [Flemming Madsen][]
 but has been completely rewritten to provide a cleaner API.  It is now
 more similar to the famous [libev][2] by [Mark Lehmann][].  Another
-small event library used for inspiration is the very small [Picoev][9]
+small event library used for inspiration is the very small [picoev][9]
 by [Oku Kazuho][].
 
 [libuEv][] is developed and maintained by [Joachim Nilsson][].  It is

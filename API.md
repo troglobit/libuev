@@ -24,9 +24,9 @@ called cron timers and their callbacks get an `UEV_HUP` error event if
 the wall clock changes, either via NTP or user input.
 
 **NOTE:** On some systems, embedded in particular, `time_t` is a 32-bit
-  integer that wraps around in the year 2038.  A workaround for GLIBC
-  systems (`-D_TIME_BITS=64`) protects against this problem, bu users of
-  other C libraries have no known fix.  It is strongly recommended to
+  integer that wraps around in the year 2038.  A [GLIBC workaround][]
+  (`-D_TIME_BITS=64`) protects those systems, but users of other C
+  libraries have no known workarounds.  It is strongly recommended to
   use relative timers as often as possible.
 
 
@@ -280,3 +280,4 @@ library) for [reference benchmarks][7] against [libevent][1] and
 [6]:      https://github.com/troglobit/finit
 [7]:      http://libev.schmorp.de/bench.html
 [LibuEv]: https://github.com/troglobit/libuev
+[GLIBC workaround]: https://sourceware.org/glibc/wiki/Y2038ProofnessDesign

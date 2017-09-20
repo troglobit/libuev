@@ -24,9 +24,11 @@ a time given in `time_t`, see `mktime()` et al.  Absolute timers are
 called cron timers and their callbacks get an `UEV_HUP` error event if
 the wall clock changes, either via NTP or user input.
 
-**NOTE:** On some systems, embedded systems in particular, `time_t` is a
-32-bit integer that wraps around in the year 2038.  [libuEv][] cannot
-protect you against this problem, unless you stick to relative timers.
+**NOTE:** On some systems, embedded in particular, `time_t` is a 32-bit
+  integer that wraps around in the year 2038.  A workaround for GLIBC
+  systems (`-D_TIME_BITS=64`) protects against this problem, bu users of
+  other C libraries have no known fix.  It is strongly recommended to
+  use relative timers as often as possible.
 
 ```C
     /*

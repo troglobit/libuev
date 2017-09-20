@@ -64,11 +64,11 @@ There is also a limited unit test suite that can be useful to learn how
 the library works.
 
 ```sh
-    $ ./configure
-    $ make -j5
-    $ make test
-    $ sudo make install-strip
-    $ sudo ldconfig
+./configure
+make -j5
+make test
+sudo make install-strip
+sudo ldconfig
 ```
 
 The resulting .so file is ~14 kiB.

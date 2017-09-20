@@ -75,9 +75,9 @@ is achieved by calling `uev_init()` with a pointer to a (thread) local
 `uev_ctx_t` variable.
 
 ```C
-    uev_ctx_t ctx;
+uev_ctx_t ctx;
 
-    uev_init(&ctx);
+uev_init(&ctx);
 ```
 
 
@@ -91,22 +91,22 @@ with the `uev_ctx_t` context, the callback, and an optional argument.
 Here is a signal example:
 
 ```C
-    void cleanup_exit(uev_t *w, void *arg, int events)
-    {
-        /* Graceful exit, with optional cleanup ... */
-        uev_exit(w->ctx);
-    }
-    
-    int main(void)
-    {
-        uev_t sigterm_watcher;
+void cleanup_exit(uev_t *w, void *arg, int events)
+{
+    /* Graceful exit, with optional cleanup ... */
+    uev_exit(w->ctx);
+}
 
-        .
-        .
-        uev_signal_init(&ctx, &sigterm_watcher, cleanup_exit, NULL, SIGTERM);
-        .
-        .
-    }
+int main(void)
+{
+    uev_t sigterm_watcher;
+
+    .
+    .
+    uev_signal_init(&ctx, &sigterm_watcher, cleanup_exit, NULL, SIGTERM);
+    .
+    .
+}
 ```
 
 
@@ -119,7 +119,7 @@ used to integrate [libuEv][] into another event loop.
 In this example we set `flags` to none:
 
 ```C
-    uev_run(&ctx, UEV_NONE);
+uev_run(&ctx, UEV_NONE);
 ```
 
 With `flags` set to `UEV_ONCE` the event loop returns as soon as it has
@@ -163,14 +163,14 @@ LibuEv is by default installed as a library with a few header files, you
 should only ever need to include one:
 
 ```C
-    #include <uev/uev.h>
+#include <uev/uev.h>
 ```
 
 The output from the `pkg-config` tool holds no surprises:
 
 ```sh
-    $ pkg-config --libs --static --cflags libuev
-    -I/usr/local/include -L/usr/local/lib -luev
+$ pkg-config --libs --static --cflags libuev
+-I/usr/local/include -L/usr/local/lib -luev
 ```
 
 The prefix path `/usr/local/` shown here is only the default.  Use the
@@ -179,15 +179,15 @@ The prefix path `/usr/local/` shown here is only the default.  Use the
 For GNU autotools based projects, use the following in `configure.ac`:
 
 ```sh
-    # Check for required libraries
-    PKG_CHECK_MODULES([uev], [libuev >= 1.4.0])
+# Check for required libraries
+PKG_CHECK_MODULES([uev], [libuev >= 1.4.0])
 ```
 
 and in your `Makefile.am`:
 
 ```sh
-    proggy_CFLAGS = $(uev_CFLAGS)
-    proggy_LDADD  = $(uev_LIBS)
+proggy_CFLAGS = $(uev_CFLAGS)
+proggy_LDADD  = $(uev_LIBS)
 ```
 
 
@@ -198,60 +198,60 @@ Here follows a very brief example to illustrate how one can use libuEv
 to act upon joystick input.
 
 ```C
-    #include <err.h>
-    #include <errno.h>
-    #include <stdio.h>
-    #include <stdint.h>
-    #include <fcntl.h>
-    #include <unistd.h>
-    #include <uev/uev.h>
-    
-    struct js_event {
-        uint32_t time;      /* event timestamp in milliseconds */
-        int16_t  value;     /* value */
-        uint8_t  type;      /* event type */
-        uint8_t  number;    /* axis/button number */
-    } e;
-    
-    static void joystick_cb(uev_t *w, void *arg, int events)
-    {
-        read(w->fd, &e, sizeof(e));
-    
-        switch (e.type) {
-        case 1:
-            printf("Button %d %s\n", e.number, e.value ? "pressed" : "released");
-            break;
-    
-        case 2:
-            printf("Joystick axis %d moved, value %d!\n", e.number, e.value);
-            break;
-        }
+#include <err.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <uev/uev.h>
+
+struct js_event {
+    uint32_t time;      /* event timestamp in milliseconds */
+    int16_t  value;     /* value */
+    uint8_t  type;      /* event type */
+    uint8_t  number;    /* axis/button number */
+} e;
+
+static void joystick_cb(uev_t *w, void *arg, int events)
+{
+    read(w->fd, &e, sizeof(e));
+
+    switch (e.type) {
+    case 1:
+        printf("Button %d %s\n", e.number, e.value ? "pressed" : "released");
+        break;
+
+    case 2:
+        printf("Joystick axis %d moved, value %d!\n", e.number, e.value);
+        break;
     }
-    
-    int main(void)
-    {
-        int fd;
-        uev_t watcher;
-        uev_ctx_t ctx;
-    
-        fd = open("/dev/input/js1", O_RDONLY, O_NONBLOCK);
-        if (fd < 0)
-            errx(errno, "Cannot find a joystick attached.");
-    
-        uev_init(&ctx);
-        uev_io_init(&ctx, &watcher, joystick_cb, NULL, fd, UEV_READ);
-    
-        puts("Starting, press Ctrl-C to exit.");
-    
-        return uev_run(&ctx, 0);
-    }
+}
+
+int main(void)
+{
+    int fd;
+    uev_t watcher;
+    uev_ctx_t ctx;
+
+    fd = open("/dev/input/js1", O_RDONLY, O_NONBLOCK);
+    if (fd < 0)
+        errx(errno, "Cannot find a joystick attached.");
+
+    uev_init(&ctx);
+    uev_io_init(&ctx, &watcher, joystick_cb, NULL, fd, UEV_READ);
+
+    puts("Starting, press Ctrl-C to exit.");
+
+    return uev_run(&ctx, 0);
+}
 ```
 
 To build the example, follow installation instructions below, then save
 the code as `joystick.c` and call GCC
 
 ```sh
-    $ gcc `pkg-config --libs --static --cflags libuev` -o joystick joystick.c
+$ gcc `pkg-config --libs --static --cflags libuev` -o joystick joystick.c
 ```
 
 Alternatively, call the `Makefile` with <kbd>make joystick</kbd> from

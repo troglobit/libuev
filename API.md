@@ -38,7 +38,11 @@ the wall clock changes, either via NTP or user input.
     int uev_exit        (uev_ctx_t *ctx);
     int uev_run         (uev_ctx_t *ctx, int flags);         /* UEV_NONE, UEV_ONCE, and/or UEV_NONBLOCK */
     
-    /* I/O watcher:     fd is non-blocking, events is UEV_READ and/or UEV_WRITE */
+    /* I/O watcher:     fd      MUST be non-blocking
+	 *                  events  can be any combination of: UEV_READ, UEV_WRITE, UEV_PRI,
+	 *                                                     UEV_HUP,  UEV_RDHUP
+	 *                                                     UEV_EDGE, UEV_ONESHOT
+	 */
     int uev_io_init     (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events);
     int uev_io_set      (uev_t *w, int fd, int events);
     int uev_io_start    (uev_t *w);
@@ -96,11 +100,10 @@ Here is a signal example:
     int main(void)
     {
         uev_t sigterm_watcher;
-        .
+
         .
         .
         uev_signal_init(&ctx, &sigterm_watcher, cleanup_exit, NULL, SIGTERM);
-        .
         .
         .
     }

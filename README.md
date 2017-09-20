@@ -4,7 +4,7 @@ libuEv | Simple event loop for Linux
 
 
 * [Introduction](#introduction)
-* [API](API.md#api)
+* [API](API.md#overview)
   * [Create an Event Context](API.md#create-an-event-context)
   * [Register an Event Watcher](API.md#register-an-event-watcher)
   * [Start Event Loop](API.md#start-event-loop)

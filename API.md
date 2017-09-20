@@ -1,7 +1,8 @@
 API Documentation
------------------
+=================
 
-* [API](#api)
+* [Introduction](#introduction)
+* [Overview](#overview)
   * [Create an Event Context](#create-an-event-context)
   * [Register an Event Watcher](#register-an-event-watcher)
   * [Start Event Loop](#start-event-loop)
@@ -9,6 +10,9 @@ API Documentation
 * [Using -luev](#using--luev)
 * [Joystick Example](#joystick-example)
 
+
+Introduction
+------------
 
 The C API to [libuEv][], listed in `uev/uev.h`, handles three different
 types of events: I/O (files, sockets, message queues, etc.), timers, and
@@ -24,6 +28,10 @@ the wall clock changes, either via NTP or user input.
   systems (`-D_TIME_BITS=64`) protects against this problem, bu users of
   other C libraries have no known fix.  It is strongly recommended to
   use relative timers as often as possible.
+
+
+Overview
+--------
 
 ```C
 /*

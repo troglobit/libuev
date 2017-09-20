@@ -1,4 +1,4 @@
-Table of Contents
+API Documentation
 -----------------
 
 * [API](#api)
@@ -9,9 +9,6 @@ Table of Contents
 * [Using -luev](#using--luev)
 * [Joystick Example](#joystick-example)
 
-
-API
----
 
 The C API to [libuEv][], listed in `uev/uev.h`, handles three different
 types of events: I/O (files, sockets, message queues, etc.), timers, and
@@ -265,10 +262,10 @@ Also see the `bench.c` program (<kbd>make bench</kbd> from within the
 library) for [reference benchmarks][7] against [libevent][1] and
 [libev][2].
 
-[1]: http://libevent.org
-[2]: http://software.schmorp.de/pkg/libev.html
-[4]: http://lwn.net/Articles/415684/
-[5]: https://github.com/troglobit/uftpd
-[6]: https://github.com/troglobit/finit
-[7]: http://libev.schmorp.de/bench.html
-[LibuEv]:               https://github.com/troglobit/libuev
+[1]:      http://libevent.org
+[2]:      http://software.schmorp.de/pkg/libev.html
+[4]:      http://lwn.net/Articles/415684/
+[5]:      https://github.com/troglobit/uftpd
+[6]:      https://github.com/troglobit/finit
+[7]:      http://libev.schmorp.de/bench.html
+[LibuEv]: https://github.com/troglobit/libuev

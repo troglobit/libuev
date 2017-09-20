@@ -40,13 +40,13 @@ The library documentation is available as a [separate document](API.md).
 
 static void cb(uev_t *w, void *arg, int events)
 {
-	printf("Callback runs every other second.\n");
+	puts("Every other second");
 }
 
 int main(void)
 {
 	uev_t timer;
-	uev_ctx_t *ctx;
+	uev_ctx_t ctx;
 
 	uev_init(&ctx);
 	uev_timer_init(&ctx, &timer, cb, NULL, 2 * 1000, 0);

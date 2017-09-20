@@ -15,6 +15,8 @@ libuEv | Simple event loop for Linux
 * [Origin & References](#origin--references)
 
 
+> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
+
 Introduction
 ------------
 
@@ -26,7 +28,6 @@ small size overhead impact of the library.
 Experienced developers may appreciate that [libuEv][] is built on top of
 modern Linux APIs: epoll, timerfd and signalfd.
 
-> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
 
 Example
 -------

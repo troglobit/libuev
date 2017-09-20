@@ -30,7 +30,7 @@
 /* Max. number of simulateneous events */
 #define UEV_MAX_EVENTS  10
 
-/* I/O events, for signals and timers revents will always be UEV_READ */
+/* I/O events, signal and timer revents are always UEV_READ */
 #define UEV_NONE        0
 #define UEV_READ        EPOLLIN
 #define UEV_WRITE       EPOLLOUT

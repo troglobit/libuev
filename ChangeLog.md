@@ -9,7 +9,7 @@ All notable changes to the project are documented in this file.
 
 ### Changes
 - Support for edge triggered and oneshot event types
-- Add `make package` build targe to trigger a `.deb` package build
+- Add `make package` build target to trigger a `.deb` package build
 - Support 64 bit `time_t` on 32 bit GLIBC systems
 
 ### Fixes

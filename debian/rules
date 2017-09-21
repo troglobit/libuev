@@ -6,3 +6,5 @@
 %:
 	dh $@ --with autoreconf
 
+override_dh_compress:
+	dh_compress -A -X.md

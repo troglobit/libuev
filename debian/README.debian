@@ -1,0 +1,14 @@
+libuEv for Debian
+-----------------
+
+This is the upstream pre-packaged version of libuEv.  It consists of two
+.deb packages: one with only the .so library and one -dev package with
+headers and the .a library for static linking.  It builds on any Debian
+based operating system, e.g.  Debian, Ubuntu, Linux Mint, etc.
+
+Recommended reading is the upstream README and API docs.
+
+     less /usr/share/doc/libuev-dev/README.md
+    zless /usr/share/doc/libuev-dev/API.md.gz
+
+ -- Joachim Nilsson <troglobit@gmail.com>  Thu, 21 Sep 18:10, 2017

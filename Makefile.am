@@ -1,9 +1,8 @@
 ACLOCAL_AMFLAGS     = -I m4
-
+SUBDIRS             = src tests
+DIST_SUBDIRS        = src examples tests
 doc_DATA            = API.md README.md LICENSE
 EXTRA_DIST          = API.md README.md LICENSE AUTHORS ChangeLog.md
-DIST_SUBDIRS        = src examples tests
-SUBDIRS             = src tests
 
 ## Generate .deb package
 package:

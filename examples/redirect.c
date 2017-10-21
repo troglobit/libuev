@@ -60,3 +60,11 @@ int main(int argc, char **argv)
 
 	return uev_run(&ctx, 0);
 }
+
+/**
+ * Local Variables:
+ *  compile-command: "make redirect; echo hej > hej.txt; ./redirect < hej.txt"
+ *  indent-tabs-mode: t
+ *  c-file-style: "linux"
+ * End:
+ */

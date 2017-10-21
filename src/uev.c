@@ -26,6 +26,7 @@
 #include <fcntl.h>		/* O_CLOEXEC */
 #include <string.h>		/* memset() */
 #include <sys/epoll.h>
+#include <sys/select.h>		/* for select() workaround */
 #include <sys/signalfd.h>	/* struct signalfd_siginfo */
 #include <unistd.h>		/* close(), read() */
 
@@ -54,6 +55,18 @@ static int _init(uev_ctx_t *ctx, int close_old)
 static int is_valid_fd(int fd)
 {
     return fcntl(fd, F_GETFL) != -1 || errno != EBADF;
+}
+
+/* Used by file i/o workaround when epoll => EPERM */
+static int has_data(int fd)
+{
+	struct timeval timeout = { 0, 0 };
+	fd_set fds;
+
+	FD_ZERO(&fds);
+	FD_SET(fd, &fds);
+
+	return select(1, &fds, NULL, NULL, &timeout) > 0;
 }
 
 /* Private to libuEv, do not use directly! */
@@ -90,10 +103,23 @@ int _uev_watcher_start(uev_t *w)
 
 	ev.events   = w->events | EPOLLRDHUP;
 	ev.data.ptr = w;
-	if (epoll_ctl(w->ctx->fd, EPOLL_CTL_ADD, w->fd, &ev) < 0)
-		return -1;
+	if (epoll_ctl(w->ctx->fd, EPOLL_CTL_ADD, w->fd, &ev) < 0) {
+		if (errno != EPERM)
+			return -1;
 
-	w->active = 1;
+		/* Handle special case: `application < file.txt` */
+		if (w->type != UEV_IO_TYPE || w->events != UEV_READ)
+			return -1;
+
+		/* Only allow this special handling for stdin */
+		if (w->fd != STDIN_FILENO)
+			return -1;
+
+		w->ctx->workaround = 1;
+		w->active = -1;
+	} else {
+		w->active = 1;
+	}
 
 	/* Add to internal list for bookkeeping */
 	LIST_INSERT_HEAD(&w->ctx->watchers, w, link);
@@ -254,8 +280,29 @@ int uev_run(uev_ctx_t *ctx, int flags)
 	}
 
 	while (ctx->running) {
-		int i, nfds;
+		int i, nfds, rerun = 0;
 		struct epoll_event events[UEV_MAX_EVENTS];
+
+		/* Handle special case: `application < file.txt` */
+		if (ctx->workaround) {
+			LIST_FOREACH(w, &ctx->watchers, link) {
+				if (w->active != -1 || !w->cb)
+					continue;
+
+				if (!has_data(w->fd)) {
+					w->active = 0;
+					LIST_REMOVE(w, link);
+					continue;
+				}
+
+				rerun++;
+				w->cb(w, w->arg, UEV_READ);
+			}
+		}
+
+		if (rerun)
+			continue;
+		ctx->workaround = 0;
 
 		while ((nfds = epoll_wait(ctx->fd, events, UEV_MAX_EVENTS, timeout)) < 0) {
 			if (!ctx->running)

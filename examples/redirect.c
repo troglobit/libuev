@@ -36,7 +36,7 @@ void process_stdin(uev_t *w, void *arg, int events)
 
 	if (len == 0) {
 		fprintf(stderr, "Connection closed.\n");
-		exit(0);
+		return;
 	}
 
 	fprintf(stdout, "--- read %d bytes\n", len);

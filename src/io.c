@@ -44,10 +44,10 @@ int uev_io_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int e
 		return -1;
 	}
 
-	if (uev_watcher_init(ctx, w, UEV_IO_TYPE, cb, arg, fd, events))
+	if (_uev_watcher_init(ctx, w, UEV_IO_TYPE, cb, arg, fd, events))
 		return -1;
 
-	return uev_watcher_start(w);
+	return _uev_watcher_start(w);
 }
 
 /**
@@ -62,7 +62,7 @@ int uev_io_set(uev_t *w, int fd, int events)
 {
 
 	if ((events & UEV_ONESHOT) && w->active)
-		return uev_watcher_rearm(w);
+		return _uev_watcher_rearm(w);
 
 	/* Ignore any errors, only to clean up anything lingering ... */
 	uev_io_stop(w);
@@ -89,7 +89,7 @@ int uev_io_start(uev_t *w)
  */
 int uev_io_stop(uev_t *w)
 {
-	return uev_watcher_stop(w);
+	return _uev_watcher_stop(w);
 }
 
 /**

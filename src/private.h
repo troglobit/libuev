@@ -81,13 +81,13 @@ struct uev;
 	uev_type_t
 
 /* Internal API for dealing with generic watchers */
-int uev_watcher_init  (uev_ctx_t *ctx, struct uev *w, uev_type_t type,
-		       void (*cb)(struct uev *, void *, int), void *arg,
-		       int fd, int events);
-int uev_watcher_start (struct uev *w);
-int uev_watcher_stop  (struct uev *w);
-int uev_watcher_active(struct uev *w);
-int uev_watcher_rearm (struct uev *w);
+int _uev_watcher_init  (uev_ctx_t *ctx, struct uev *w, uev_type_t type,
+			void (*cb)(struct uev *, void *, int), void *arg,
+			int fd, int events);
+int _uev_watcher_start (struct uev *w);
+int _uev_watcher_stop  (struct uev *w);
+int _uev_watcher_active(struct uev *w);
+int _uev_watcher_rearm (struct uev *w);
 
 #endif /* LIBUEV_PRIVATE_H_ */
 

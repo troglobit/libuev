@@ -72,11 +72,11 @@ int uev_cron_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, time_t when
 	if (fd < 0)
 		return -1;
 
-	if (uev_watcher_init(ctx, w, UEV_CRON_TYPE, cb, arg, fd, UEV_READ))
+	if (_uev_watcher_init(ctx, w, UEV_CRON_TYPE, cb, arg, fd, UEV_READ))
 		goto exit;
 
 	if (uev_cron_set(w, when, interval)) {
-		uev_watcher_stop(w);
+		_uev_watcher_stop(w);
 	exit:
 		close(fd);
 		return -1;
@@ -132,7 +132,7 @@ int uev_cron_set(uev_t *w, time_t when, time_t interval)
 			return 1;
 	}
 
-	return uev_watcher_start(w);
+	return _uev_watcher_start(w);
 }
 
 /**

@@ -45,10 +45,10 @@
 #define UEV_NONBLOCK    2
 
 /* Macros */
-#define uev_io_active(w)     uev_watcher_active(w)
-#define uev_timer_active(w)  uev_watcher_active(w)
-#define uev_cron_active(w)   uev_watcher_active(w)
-#define uev_signal_active(w) uev_watcher_active(w)
+#define uev_io_active(w)     _uev_watcher_active(w)
+#define uev_timer_active(w)  _uev_watcher_active(w)
+#define uev_cron_active(w)   _uev_watcher_active(w)
+#define uev_signal_active(w) _uev_watcher_active(w)
 
 /* Event watcher */
 typedef struct uev {

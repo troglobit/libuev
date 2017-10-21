@@ -57,7 +57,7 @@ static int is_valid_fd(int fd)
 }
 
 /* Private to libuEv, do not use directly! */
-int uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events)
+int _uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events)
 {
 	if (!ctx || !w) {
 		errno = EINVAL;
@@ -76,7 +76,7 @@ int uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, vo
 }
 
 /* Private to libuEv, do not use directly! */
-int uev_watcher_start(uev_t *w)
+int _uev_watcher_start(uev_t *w)
 {
 	struct epoll_event ev;
 
@@ -102,7 +102,7 @@ int uev_watcher_start(uev_t *w)
 }
 
 /* Private to libuEv, do not use directly! */
-int uev_watcher_stop(uev_t *w)
+int _uev_watcher_stop(uev_t *w)
 {
 	if (!w) {
 		errno = EINVAL;
@@ -125,7 +125,7 @@ int uev_watcher_stop(uev_t *w)
 }
 
 /* Private to libuEv, do not use directly! */
-int uev_watcher_active(uev_t *w)
+int _uev_watcher_active(uev_t *w)
 {
 	if (!w)
 		return 0;
@@ -134,7 +134,7 @@ int uev_watcher_active(uev_t *w)
 }
 
 /* Private to libuEv, do not use directly! */
-int uev_watcher_rearm(uev_t *w)
+int _uev_watcher_rearm(uev_t *w)
 {
 	struct epoll_event ev;
 
@@ -280,7 +280,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 					/* If not valid anymore, try to remove, ignore any errors. */
 					if (!is_valid_fd(w->fd))
-						uev_watcher_stop(w);
+						_uev_watcher_stop(w);
 
 					/* Must recreate epoll fd now ... */
 					if (_init(ctx, 1)) {
@@ -293,10 +293,10 @@ int uev_run(uev_ctx_t *ctx, int flags)
 						if (w->active) {
 							w->active = 0;
 							LIST_REMOVE(w, link);
-							uev_watcher_start(w);
+							_uev_watcher_start(w);
 						}
 					}
-					uev_watcher_start(retry);
+					_uev_watcher_start(retry);
 
 					/* New efd, restart everything! */
 					ctx->errors = 0;

@@ -56,11 +56,11 @@ int uev_signal_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo
 	if (fd < 0)
 		return -1;
 
-	if (uev_watcher_init(ctx, w, UEV_SIGNAL_TYPE, cb, arg, fd, UEV_READ))
+	if (_uev_watcher_init(ctx, w, UEV_SIGNAL_TYPE, cb, arg, fd, UEV_READ))
 		goto exit;
 
 	if (uev_signal_set(w, signo)) {
-		uev_watcher_stop(w);
+		_uev_watcher_stop(w);
 	exit:
 		close(fd);
 		return -1;
@@ -109,7 +109,7 @@ int uev_signal_set(uev_t *w, int signo)
 	if (signalfd(w->fd, &mask, SFD_NONBLOCK) < 0)
 		return -1;
 
-	return uev_watcher_start(w);
+	return _uev_watcher_start(w);
 }
 
 
@@ -140,7 +140,7 @@ int uev_signal_start(uev_t *w)
  */
 int uev_signal_stop(uev_t *w)
 {
-	if (uev_watcher_stop(w))
+	if (_uev_watcher_stop(w))
 		return -1;
 
 	close(w->fd);

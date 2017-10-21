@@ -85,7 +85,7 @@ int _uev_watcher_start(uev_t *w)
 		return -1;
 	}
 
-	if (w->active)
+	if (_uev_watcher_active(w))
 		return 0;
 
 	ev.events   = w->events | EPOLLRDHUP;
@@ -109,7 +109,7 @@ int _uev_watcher_stop(uev_t *w)
 		return -1;
 	}
 
-	if (!w->active)
+	if (!_uev_watcher_active(w))
 		return 0;
 
 	w->active = 0;
@@ -130,7 +130,7 @@ int _uev_watcher_active(uev_t *w)
 	if (!w)
 		return 0;
 
-	return w->active;
+	return w->active > 0;
 }
 
 /* Private to libuEv, do not use directly! */
@@ -189,7 +189,7 @@ int uev_exit(uev_ctx_t *ctx)
 		/* Remove from internal list */
 		LIST_REMOVE(w, link);
 
-		if (!w->active)
+		if (!_uev_watcher_active(w))
 			continue;
 
 		switch (w->type) {
@@ -290,7 +290,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 					/* Restart watchers in new efd */
 					LIST_FOREACH_SAFE(w, &ctx->watchers, link, tmp) {
-						if (w->active) {
+						if (_uev_watcher_active(w)) {
 							w->active = 0;
 							LIST_REMOVE(w, link);
 							_uev_watcher_start(w);

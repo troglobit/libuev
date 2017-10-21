@@ -78,11 +78,10 @@ The resulting .so file is ~14 kiB.
 Origin & References
 -------------------
 
-[libuEv][] was originally based on [LibUEvent][8] by [Flemming Madsen][]
-but has been completely rewritten to provide a cleaner API.  It is now
-more similar to the famous [libev][2] by [Mark Lehmann][].  Another
-small event library used for inspiration is the very small [picoev][9]
-by [Oku Kazuho][].
+[libuEv][] originates from [LibUEvent][8] by [Flemming Madsen][], but
+with a rewritten and much cleaner API.  It is now more similar to the
+famous [libev][2] by [Mark Lehmann][].  Another library inspiring this
+project is [picoev][9] by [Oku Kazuho][].
 
 [libuEv][] is developed and maintained by [Joachim Nilsson][].  It is
 built for and developed on GNU/Linux systems, patches to support *BSD

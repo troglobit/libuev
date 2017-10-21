@@ -7,8 +7,10 @@
 *.la
 *.lo
 *.html
+.config
 .deps
 .libs
+.unpacked
 compile
 config.*
 configure

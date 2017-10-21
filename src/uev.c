@@ -26,6 +26,7 @@
 #include <fcntl.h>		/* O_CLOEXEC */
 #include <string.h>		/* memset() */
 #include <sys/epoll.h>
+#include <sys/ioctl.h>
 #include <sys/select.h>		/* for select() workaround */
 #include <sys/signalfd.h>	/* struct signalfd_siginfo */
 #include <unistd.h>		/* close(), read() */
@@ -62,11 +63,15 @@ static int has_data(int fd)
 {
 	struct timeval timeout = { 0, 0 };
 	fd_set fds;
+	int n = 0;
 
 	FD_ZERO(&fds);
 	FD_SET(fd, &fds);
 
-	return select(1, &fds, NULL, NULL, &timeout) > 0;
+	if (select(1, &fds, NULL, NULL, &timeout) > 0)
+		return ioctl(0, FIONREAD, &n) == 0 && n > 0;
+
+	return 0;
 }
 
 /* Private to libuEv, do not use directly! */
@@ -292,7 +297,6 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				if (!has_data(w->fd)) {
 					w->active = 0;
 					LIST_REMOVE(w, link);
-					continue;
 				}
 
 				rerun++;

@@ -17,20 +17,14 @@
 #include <stdio.h>
 #include "src/uev.h"
 
-/*
- * When stdin becomes ready to be read from, this callback is invoked by
- * libuEv.  We just print out the data.
- */
 void process_stdin(uev_t *w, void *arg, int events)
 {
 	char buf[256];
 	int len;
 
-	fprintf(stderr, "process_stdin() called with fd: %d, events: 0x%x\n", w->fd, events);
-
 	len = read(w->fd, buf, sizeof(buf));
 	if (len == -1) {
-		perror("Reading from stdin.");
+		perror("Error reading from stdin");
 		return;
 	}
 
@@ -39,9 +33,9 @@ void process_stdin(uev_t *w, void *arg, int events)
 		return;
 	}
 
-	fprintf(stdout, "--- read %d bytes\n", len);
+	fprintf(stdout, "Read %d bytes\n", len);
 	if (write(STDOUT_FILENO, buf, len) != len)
-		fprintf(stdout, "--- failed writing\n");
+		perror("Failed writing to stdout");
 }
 
 int main(int argc, char **argv)
@@ -50,10 +44,8 @@ int main(int argc, char **argv)
 	uev_t watcher;
 	uev_ctx_t ctx;
 
-	/* Initalize the event library */
 	uev_init(&ctx);
 
-	/* Bind an to a read-ready event on the new socket and activate. */
 	ret = uev_io_init(&ctx, &watcher, process_stdin, NULL, STDIN_FILENO, UEV_READ);
 	if (ret)
 		perror("Failed setting up STDIN watcher");

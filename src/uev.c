@@ -284,7 +284,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			uev_timer_set(w, w->u.t.timeout, w->u.t.period);
 	}
 
-	while (ctx->running) {
+	while (ctx->running && !LIST_EMPTY(&ctx->watchers)) {
 		int i, nfds, rerun = 0;
 		struct epoll_event events[UEV_MAX_EVENTS];
 
@@ -408,7 +408,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			}
 		}
 
-		if ((flags & UEV_ONCE) || LIST_EMPTY(&ctx->watchers))
+		if (flags & UEV_ONCE)
 			break;
 	}
 

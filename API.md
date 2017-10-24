@@ -15,8 +15,14 @@ Introduction
 ------------
 
 The C API to [libuEv][], listed in `uev/uev.h`, handles three different
-types of events: I/O (files, sockets, message queues, etc.), timers, and
+types of events: I/O (pipes, sockets, message queues, etc.), timers, and
 signals.  The [Summary](#summary) details a slight caveat on signals.
+
+Notice the *lack of support for regular files* and directories.  This is
+a limitation of the underlying Linux `epoll` interface which will return
+`EPERM` for regular files.  Except for the special case when `stdin` is
+redirected from the command line.  See `examples/redirect.c` for more on
+this particular case.
 
 Timers can be either relative, timeout in milliseconds, or absolute with
 a time given in `time_t`, see `mktime()` et al.  Absolute timers are

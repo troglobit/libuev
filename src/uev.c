@@ -74,6 +74,14 @@ static int has_data(int fd)
 	return 0;
 }
 
+/* Set error condition and remove watcher from set */
+static void invalidate_watcher(uev_t *w, struct epoll_event *event)
+{
+	event->events = UEV_ERROR;
+	w->active = 0;
+	LIST_REMOVE(w, link);
+}
+
 /* Private to libuEv, do not use directly! */
 int _uev_watcher_init(uev_ctx_t *ctx, uev_t *w, uev_type_t type, uev_cb_t *cb, void *arg, int fd, int events)
 {
@@ -359,12 +367,10 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				uint64_t exp;
 
 				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
-					if (errno != ECANCELED) {
-						uev_exit(ctx);
-						return -3;
-					}
-
-					events[i].events = UEV_HUP;
+					if (errno != ECANCELED)
+						invalidate_watcher(w, &events[i]);
+					else
+						events[i].events = UEV_HUP;
 				}
 
 				if (!w->u.c.interval)
@@ -377,8 +383,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				uint64_t exp;
 
 				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
-					uev_exit(ctx);
-					return -3;
+					invalidate_watcher(w, &events[i]);
 				}
 
 				if (!w->u.t.period)
@@ -389,10 +394,8 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				struct signalfd_siginfo fdsi;
 				ssize_t sz = sizeof(fdsi);
 
-				if (read(w->fd, &fdsi, sz) != sz) {
-					uev_exit(ctx);
-					return -4;
-				}
+				if (read(w->fd, &fdsi, sz) != sz)
+					invalidate_watcher(w, &events[i]);
 			}
 
 			if (w->cb)

@@ -32,6 +32,7 @@
 
 /* I/O events, signal and timer revents are always UEV_READ */
 #define UEV_NONE        0
+#define UEV_ERROR       EPOLLERR
 #define UEV_READ        EPOLLIN
 #define UEV_WRITE       EPOLLOUT
 #define UEV_PRI         EPOLLPRI

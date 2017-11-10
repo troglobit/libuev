@@ -325,7 +325,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 			/* Unrecoverable error, cleanup and exit with error. */
 			uev_exit(ctx);
-			return -1;
+			return -2;
 		}
 
 		for (i = 0; ctx->running && i < nfds; i++) {
@@ -343,8 +343,9 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 					/* Must recreate epoll fd now ... */
 					if (_init(ctx, 1)) {
+						/* Catastrophic error, no way to recover. */
 						uev_exit(ctx);
-						return -2;
+						return -3;
 					}
 
 					/* Restart watchers in new efd */

@@ -133,12 +133,23 @@ used to integrate [libuEv][] into another event loop.
 In this example we set `flags` to none:
 
 ```C
-uev_run(&ctx, UEV_NONE);
+result = uev_run(&ctx, UEV_NONE);
 ```
 
 With `flags` set to `UEV_ONCE` the event loop returns as soon as it has
 served the first event.  If `flags` is set to `UEV_ONCE | UEV_NONBLOCK`
 the event loop returns immediately if no event is available.
+
+```
+if (result < 0)
+    errx(result, "Unrecoverable event loop error, error %d", result);
+```
+
+If the call to `uev_run()` fails you should notify the user somehow.
+libuEv fails if there is an invalid pointer, if `uev_init()` was not
+called, or recurring `epoll()` errors thare are impossible to recover
+from should occur.  This is true for individual watchers as well, in
+particular signal and timer watchers which can fail in miserable ways.
 
 **Note:** libuEv handles many types of errors, stream close, or peer
 shutdowns internally, but also lets the callback run.  This is useful

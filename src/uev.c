@@ -270,7 +270,7 @@ int uev_exit(uev_ctx_t *ctx)
  */
 int uev_run(uev_ctx_t *ctx, int flags)
 {
-	int result = 0, timeout = -1;
+	int timeout = -1;
 	uev_t *w;
 
         if (!ctx || ctx->fd < 0) {
@@ -415,7 +415,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			break;
 	}
 
-	return result;
+	return 0;
 }
 
 /**

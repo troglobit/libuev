@@ -3,19 +3,22 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
-[v2.0.0][UNRELEASED] - 2017-11-XX
----------------------------------
 
-Beware, this is a major release, introducing incompatible changes to
-`uev_run()` and watcher callback failure modes.
+[v2.0.0][] - 2017-11-11
+-----------------------
+
+Beware, this is a major release, introducing incompatible changes to the
+failure modes of `uev_run()` and watcher callbacks.  Most users will most
+likely not notice any difference, but please read on.
 
 ### Changes
 - `uev_run()` no longer exits the main event loop if an unrecoverable
-  error with a watcher should occur.  Instead, the watcher is disabled
-  and the watcher callback is called with `events` set to `UEV_ERROR`.
-- All watchers should now handle `UEV_ERROR` conditions.  This pertains
+  error with a watcher occurs.  Instead, the watcher is disabled and the
+  callback is run one last time with `events` set to `UEV_ERROR`.
+- Watcher callbacks must handle `UEV_ERROR` conditions.  This pertains
   in particular to signal and timer watchers.
-- Examples and API docs updated with new failure modes.
+- Examples and API docs updated with the new failure modes.
+
 
 [v1.6.0][] - 2017-09-18
 -----------------------
@@ -293,7 +296,7 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.6.0...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.0.0...HEAD
 [v2.0.0]: https://github.com/troglobit/libuev/compare/v1.6.0...v2.0.0
 [v1.6.0]: https://github.com/troglobit/libuev/compare/v1.5.2...v1.6.0
 [v1.5.2]: https://github.com/troglobit/libuev/compare/v1.5.1...v1.5.2
@@ -325,9 +328,3 @@ Lua users mailing list.
 [libuevent]: https://code.google.com/p/libuevent/
 [Flemming Madsen]: http://www.madsensoft.dk
 [Initial announcement]: http://lua-users.org/lists/lua-l/2012-03/msg00510.html
-
-<!--
-  -- Local Variables:
-  --  mode: markdown
-  -- End:
-  -->

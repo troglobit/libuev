@@ -15,6 +15,8 @@ libuEv | Simple event loop for Linux
 * [Origin & References](#origin--references)
 
 
+> **NOTE:** Incompatible failure mode changes in v2.0 compared to v1.x!
+
 Introduction
 ------------
 
@@ -23,8 +25,8 @@ Introduction
 *u* (micro) in the name refers to both the small feature set and the
 small size overhead impact of the library.
 
-Experienced developers may appreciate that [libuEv][] is built on top of
-modern Linux APIs: epoll, timerfd and signalfd.
+Failure mode changes introduced in v2.0 may affect users of v1.x, See
+the [ChangeLog][] for the full details.
 
 
 Example
@@ -92,6 +94,7 @@ and its [kqueue][] interface are most welcome.
 [3]: http://unix.com/man-page/All/3x/XtDispatchEvent
 [8]: http://code.google.com/p/libuevent/
 [9]: https://github.com/kazuho/picoev
+[ChangeLog]:       https://github.com/troglobit/libuev/blob/master/ChangeLog.md
 [Travis]:          https://travis-ci.org/troglobit/libuev
 [Travis Status]:   https://travis-ci.org/troglobit/libuev.png?branch=master
 [Coverity Scan]:   https://scan.coverity.com/projects/3846

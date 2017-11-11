@@ -12,6 +12,8 @@
  * reading from stdin as a special case.
  */
 
+#include <err.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -24,18 +26,18 @@ void process_stdin(uev_t *w, void *arg, int events)
 
 	len = read(w->fd, buf, sizeof(buf));
 	if (len == -1) {
-		perror("Error reading from stdin");
+		warn("Error reading from stdin");
 		return;
 	}
 
 	if (len == 0) {
-		fprintf(stderr, "Connection closed.\n");
+		warnx("Connection closed.");
 		return;
 	}
 
-	fprintf(stdout, "Read %d bytes\n", len);
+	printf("Read %d bytes\n", len);
 	if (write(STDOUT_FILENO, buf, len) != len)
-		perror("Failed writing to stdout");
+		warn("Failed writing to stdout");
 }
 
 int main(int argc, char **argv)
@@ -48,7 +50,7 @@ int main(int argc, char **argv)
 
 	ret = uev_io_init(&ctx, &watcher, process_stdin, NULL, STDIN_FILENO, UEV_READ);
 	if (ret)
-		perror("Failed setting up STDIN watcher");
+		err(errno, "Failed setting up STDIN watcher");
 
 	return uev_run(&ctx, 0);
 }

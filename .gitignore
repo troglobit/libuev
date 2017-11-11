@@ -11,6 +11,10 @@
 .deps
 .libs
 .unpacked
+ID
+GTAGS
+GRTAGS
+GPATH
 compile
 config.*
 configure

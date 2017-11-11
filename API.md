@@ -238,8 +238,20 @@ struct js_event {
     uint8_t  number;    /* axis/button number */
 } e;
 
+/*
+ * Called on any joystick event
+ *
+ * Note: We handle errors here by exiting, for a background daemon with
+ *       multiple watchers you may want another approach.
+ */
 static void joystick_cb(uev_t *w, void *arg, int events)
 {
+    if (UEV_ERROR == events) {
+        /* Possibly joystick was unplugged */
+        warn("Unrecoverable error, exiting");
+        uev_exit(w->ctx);
+    }
+
     read(w->fd, &e, sizeof(e));
 
     switch (e.type) {

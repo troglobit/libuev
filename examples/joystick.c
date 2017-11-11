@@ -37,8 +37,15 @@ struct js_event {
 	uint8_t  number;	/* axis/button number */
 } e;
 
+/*
+ * Always check for UEV_ERROR in watcher callback!
+ * Possibly joystick was unplugged
+ */
 static void joystick_cb(uev_t *w, void *arg, int events)
 {
+	if (UEV_ERROR == events)
+		errx(EBADF, "Unrecoverable error, exiting");
+
 	if (read(w->fd, &e, sizeof(e)) < 0)
 		errx(errno, "Failed reading joystick event");
 

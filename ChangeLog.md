@@ -3,6 +3,19 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+[v2.0.0][] - 2017-11-XX
+-----------------------
+
+Beware, this is a major release, introducing incompatible changes to
+`uev_run()` and watcher callback failure modes.
+
+### Changes
+- `uev_run()` no longer exits the main event loop if an unrecoverable
+  error with a watcher should occur.  Instead, the watcher is disabled
+  and the watcher callback is called with `events` set to `UEV_ERROR`.
+- All watchers should now handle `UEV_ERROR` conditions.  This pertains
+  in particular to signal and timer watchers.
+- Examples and API docs updated with new failure modes.
 
 [v1.6.0][] - 2017-09-18
 -----------------------

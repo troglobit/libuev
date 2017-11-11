@@ -24,6 +24,9 @@ void process_stdin(uev_t *w, void *arg, int events)
 	char buf[256];
 	int len;
 
+	if (UEV_ERROR == events)
+		errx(EBADF, "Unrecoverable error, exiting");
+
 	len = read(w->fd, buf, sizeof(buf));
 	if (len == -1) {
 		warn("Error reading from stdin");

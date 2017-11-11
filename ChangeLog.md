@@ -3,8 +3,8 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
-[v2.0.0][] - 2017-11-XX
------------------------
+[v2.0.0][UNRELEASED] - 2017-11-XX
+---------------------------------
 
 Beware, this is a major release, introducing incompatible changes to
 `uev_run()` and watcher callback failure modes.
@@ -294,6 +294,7 @@ Lua users mailing list.
 
 
 [UNRELEASED]: https://github.com/troglobit/libuev/compare/v1.6.0...HEAD
+[v2.0.0]: https://github.com/troglobit/libuev/compare/v1.6.0...v2.0.0
 [v1.6.0]: https://github.com/troglobit/libuev/compare/v1.5.2...v1.6.0
 [v1.5.2]: https://github.com/troglobit/libuev/compare/v1.5.1...v1.5.2
 [v1.5.1]: https://github.com/troglobit/libuev/compare/v1.5.0...v1.5.1

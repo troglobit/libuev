@@ -15,8 +15,6 @@ libuEv | Simple event loop for Linux
 * [Origin & References](#origin--references)
 
 
-> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
-
 Introduction
 ------------
 

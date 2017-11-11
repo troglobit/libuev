@@ -11,6 +11,8 @@ API Documentation
 * [Joystick Example](#joystick-example)
 
 
+> “Event driven software improves concurrency” -- [Dave Zarzycki, Apple][]
+
 Introduction
 ------------
 
@@ -310,3 +312,4 @@ library) for [reference benchmarks][7] against [libevent][1] and
 [7]:      http://libev.schmorp.de/bench.html
 [LibuEv]: https://github.com/troglobit/libuev
 [GLIBC workaround]: https://sourceware.org/glibc/wiki/Y2038ProofnessDesign
+[Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8

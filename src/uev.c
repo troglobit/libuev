@@ -330,39 +330,6 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			w = (uev_t *)ee[i].data.ptr;
 			events = ee[i].events;
 
-			if (events & (EPOLLHUP | EPOLLERR)) {
-				ctx->errors++;
-
-				if (ctx->errors >= 42) {
-					uev_t *tmp, *retry = w;
-
-					/* If not valid anymore, try to remove, ignore any errors. */
-					if (!is_valid_fd(w->fd))
-						_uev_watcher_stop(w);
-
-					/* Must recreate epoll fd now ... */
-					if (_init(ctx, 1)) {
-						/* Catastrophic error, no way to recover. */
-						uev_exit(ctx);
-						return -3;
-					}
-
-					/* Restart watchers in new efd */
-					LIST_FOREACH_SAFE(w, &ctx->watchers, link, tmp) {
-						if (_uev_watcher_active(w)) {
-							w->active = 0;
-							LIST_REMOVE(w, link);
-							_uev_watcher_start(w);
-						}
-					}
-					_uev_watcher_start(retry);
-
-					/* New efd, restart everything! */
-					ctx->errors = 0;
-					continue;
-				}
-			}
-
 			switch (w->type) {
 			case UEV_CRON_TYPE:
 				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
@@ -395,6 +362,13 @@ int uev_run(uev_ctx_t *ctx, int flags)
 						uev_signal_stop(w);
 						events = UEV_ERROR;
 					}
+				}
+				break;
+
+			case UEV_IO_TYPE:
+				if (events & (EPOLLHUP | EPOLLERR)) {
+					if (!is_valid_fd(w->fd))
+						uev_io_stop(w);
 				}
 				break;
 			}

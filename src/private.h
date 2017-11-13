@@ -44,7 +44,6 @@ typedef enum {
 typedef struct {
 	int             running;
 	int             fd;     /* For epoll() */
-	uint32_t        errors;
 	LIST_HEAD(,uev) watchers;
 	uint32_t        workaround; /* For workarounds, e.g. redirected stdin */
 } uev_ctx_t;

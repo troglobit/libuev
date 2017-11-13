@@ -286,7 +286,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 	while (ctx->running && !LIST_EMPTY(&ctx->watchers)) {
 		int i, nfds, rerun = 0;
-		struct epoll_event events[UEV_MAX_EVENTS];
+		struct epoll_event ee[UEV_MAX_EVENTS];
 
 		/* Handle special case: `application < file.txt` */
 		if (ctx->workaround) {
@@ -308,7 +308,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			continue;
 		ctx->workaround = 0;
 
-		while ((nfds = epoll_wait(ctx->fd, events, UEV_MAX_EVENTS, timeout)) < 0) {
+		while ((nfds = epoll_wait(ctx->fd, ee, UEV_MAX_EVENTS, timeout)) < 0) {
 			if (!ctx->running)
 				break;
 
@@ -317,17 +317,21 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 			/* Unrecoverable error, cleanup and exit with error. */
 			uev_exit(ctx);
+
 			return -2;
 		}
 
 		for (i = 0; ctx->running && i < nfds; i++) {
-			w = (uev_t *)events[i].data.ptr;
+			uint32_t events:
 
-			if (events[i].events & (EPOLLHUP | EPOLLERR)) {
+			w = (uev_t *)ee[i].data.ptr;
+			events = ee[i].events;
+
+			if (events & (EPOLLHUP | EPOLLERR)) {
 				ctx->errors++;
 
 				if (ctx->errors >= 42) {
-					uev_t *tmp, *retry = w;;
+					uev_t *tmp, *retry = w;
 
 					/* If not valid anymore, try to remove, ignore any errors. */
 					if (!is_valid_fd(w->fd))
@@ -360,10 +364,10 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				uint64_t exp;
 
 				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
-					events[i].events = UEV_HUP;
+					events = UEV_HUP;
 					if (errno != ECANCELED) {
 						uev_cron_stop(w);
-						events[i].events = UEV_ERROR;
+						events = UEV_ERROR;
 					}
 				}
 
@@ -378,7 +382,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
 					uev_timer_stop(w);
-					events[i].events = UEV_ERROR;
+					events = UEV_ERROR;
 				}
 
 				if (!w->u.t.period)
@@ -392,13 +396,13 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				if (read(w->fd, &fdsi, sz) != sz) {
 					if (uev_signal_start(w)) {
 						uev_signal_stop(w);
-						events[i].events = UEV_ERROR;
+						events = UEV_ERROR;
 					}
 				}
 			}
 
 			if (w->cb)
-				w->cb(w, w->arg, events[i].events & UEV_EVENT_MASK);
+				w->cb(w, w->arg, events & UEV_EVENT_MASK);
 
 			if (UEV_CRON_TYPE == w->type) {
 				if (!w->u.c.when)

@@ -322,7 +322,10 @@ int uev_run(uev_ctx_t *ctx, int flags)
 		}
 
 		for (i = 0; ctx->running && i < nfds; i++) {
-			uint32_t events:
+			uint64_t exp;
+			uint32_t events;
+			struct signalfd_siginfo fdsi;
+			ssize_t sz = sizeof(fdsi);
 
 			w = (uev_t *)ee[i].data.ptr;
 			events = ee[i].events;
@@ -360,9 +363,8 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				}
 			}
 
-			if (UEV_CRON_TYPE == w->type) {
-				uint64_t exp;
-
+			switch (w->type) {
+			case UEV_CRON_TYPE:
 				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
 					events = UEV_HUP;
 					if (errno != ECANCELED) {
@@ -375,11 +377,9 @@ int uev_run(uev_ctx_t *ctx, int flags)
 					w->u.c.when = 0;
 				else
 					w->u.c.when += w->u.c.interval;
-			}
+				break;
 
-			if (UEV_TIMER_TYPE == w->type) {
-				uint64_t exp;
-
+			case UEV_TIMER_TYPE:
 				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
 					uev_timer_stop(w);
 					events = UEV_ERROR;
@@ -387,18 +387,16 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 				if (!w->u.t.period)
 					w->u.t.timeout = 0;
-			}
+				break;
 
-			if (UEV_SIGNAL_TYPE == w->type) {
-				struct signalfd_siginfo fdsi;
-				ssize_t sz = sizeof(fdsi);
-
+			case UEV_SIGNAL_TYPE:
 				if (read(w->fd, &fdsi, sz) != sz) {
 					if (uev_signal_start(w)) {
 						uev_signal_stop(w);
 						events = UEV_ERROR;
 					}
 				}
+				break;
 			}
 
 			if (w->cb)

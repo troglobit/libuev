@@ -31,10 +31,10 @@
 
 /* I/O, timer, or signal watcher */
 typedef enum {
-	UEV_CRON_TYPE = 1,
-	UEV_IO_TYPE,
+	UEV_IO_TYPE = 1,
 	UEV_SIGNAL_TYPE,
 	UEV_TIMER_TYPE,
+	UEV_CRON_TYPE,
 } uev_type_t;
 
 /* Event mask, used internally only. */

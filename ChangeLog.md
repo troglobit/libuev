@@ -4,14 +4,20 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
-[v2.1.0][UNRELEASED] - 2017-11-XX
----------------------------------
+[v2.1.0][] - 2017-11-14
+-----------------------
 
 ### Changes
 - Remove event loop error tracking used to trigger a `epoll_create1()`
   at a certain error threshold.  This tracking was first introduced in
   [v1.1.0][], triggered by spurious `EPOLLERR` on I/O watchers
-- Stop all I/O watchers that return `EPOLLERR`, like other watchers
+- Unconditionally stop I/O watchers that return `EPOLLERR` or `EPOLLHUP`
+  it is up to the watcher callback to clear the error and/or `read()`
+  the last few bytes from the descriptor.  HUP usally means EOF, or that
+  the remote end of a stream or pipe closed, this may also be signaled
+  by `read()` returning zero
+- Add missing `--enable-examples` to `configure` script
+- Update documentation, both [README.md][] and [API.md][]
 
 ### Fixes
 - Properly stop and de-register signal and cron/timer watchers from the
@@ -25,6 +31,7 @@ All notable changes to the project are documented in this file.
 - Fix use-before-set in cronrun unit test
 - Make sure to restart unit test's I/O watchers on `UEV_ERROR`
 - Make sure to restart example I/O watchers on `UEV_ERROR`
+- Properly check for `UEV_HUP` in unit tests and examples
 
 
 [v2.0.0][] - 2017-11-11
@@ -75,7 +82,7 @@ likely not notice any difference, but please read on.
 
 ### Changes
 - Add support for absolute timers with the `uev_cron_*()` API.
-- Update build & install instructions in README
+- Update build & install instructions in [README.md][]
 
 ### Fixes
 - Fix `uev_timer_set()` so that it returns error in case the underlying
@@ -117,7 +124,7 @@ introduced in [v1.2.1][].  Apologies for any problems this may cause!
   `pkg-config` your C program must now `#include <uev/uev.h>`
 - Support for `EPOLLPRI` events for I/O watchers, thanks to Markus Svilans
 - Simplified joystick example
-- Updated `README` slightly
+- Updated [README.md][] slightly
 
 
 [v1.3.1][] - 2016-02-02
@@ -125,7 +132,7 @@ introduced in [v1.2.1][].  Apologies for any problems this may cause!
 
 ### Fixes
 - Remove symlinks to Markdown files from GIT
-- Distribute and install Markdown files: README.md, etc.
+- Distribute and install Markdown files: [README.md][], etc.
 
 
 [v1.3.0][] - 2016-01-22
@@ -161,7 +168,7 @@ Very minor release.
 - Dropped [TODO.md][] from distribution archives, only for devs
 
 ### Fixes
-- Lots of Markdown syntax fixes in both README and ChangeLog
+- Lots of Markdown syntax fixes in both [README.md][] and ChangeLog
 - Silence annoying warning from newer GNU ar in Ubuntu 15.10
 
 
@@ -319,7 +326,7 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.0.0...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.1.0...HEAD
 [v2.1.0]: https://github.com/troglobit/libuev/compare/v2.0.0...v2.1.0
 [v2.0.0]: https://github.com/troglobit/libuev/compare/v1.6.0...v2.0.0
 [v1.6.0]: https://github.com/troglobit/libuev/compare/v1.5.2...v1.6.0
@@ -343,6 +350,7 @@ Lua users mailing list.
 [v1.0.1]: https://github.com/troglobit/libuev/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/troglobit/libuev/compare/v0.0.1...v1.0.0
 [TODO.md]: https://github.com/troglobit/libuev/blob/master/TODO.md
+[API.md]: https://github.com/troglobit/libuev/blob/master/API.md
 [README.md]: https://github.com/troglobit/libuev/blob/master/README.md
 [ChangeLog.md]: https://github.com/troglobit/libuev/blob/master/ChangeLog.md
 [joystick.c]: https://github.com/troglobit/libuev/blob/master/joystick.c

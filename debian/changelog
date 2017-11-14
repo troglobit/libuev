@@ -1,3 +1,16 @@
+libuev (2.1.0-1) unstable; urgency=medium
+
+  * New upstream release.  Further improvements to failure modes, some
+    fixes to regressions introduced in v2.0.
+
+    - Unconditionally stop I/O watchers on UEV_HUP and UEV_ERR conditions.
+    - Attempt to restart failing  signal watchers before dropping to error.
+    - Properly de-register signal and cron/timer watchers on error.
+    - Fix possible double close() on cron/timer watchers.
+    - Documentation updates, improved examples, and unit tests.
+
+ -- Joachim Nilsson <troglobit@gmail.com>  Tue, 14 Nov 2017 17:40:43 +0100
+
 libuev (2.0.0-1) unstable; urgency=medium
 
   * Major new upstream version, possibly incompatible changes to both

@@ -58,10 +58,11 @@ int main(void)
 	uev_init(&ctx);
 
 	gettimeofday(&tv, NULL);
+	when = tv.tv_sec + TIMEOUT;
+
 	printf("Start of test %s", ctime(&tv.tv_sec));
 	printf("Expected cron %s", ctime(&when));
 	
-	when     = tv.tv_sec + TIMEOUT;
 	interval = INTERVAL;
 	uev_cron_init(&ctx, &cron_watcher, cron_job, NULL, when, interval);
 

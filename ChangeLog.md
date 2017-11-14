@@ -4,6 +4,29 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
+[v2.1.0][UNRELEASED] - 2017-11-XX
+---------------------------------
+
+### Changes
+- Remove event loop error tracking used to trigger a `epoll_create1()`
+  at a certain error threshold.  This tracking was first introduced in
+  [v1.1.0][], triggered by spurious `EPOLLERR` on I/O watchers
+- Stop all I/O watchers that return `EPOLLERR`, like other watchers
+
+### Fixes
+- Properly stop and de-register signal and cron/timer watchers from the
+  epoll socket in case of errors, problem introduced in [v2.0.0][]
+- Mark watcher file descriptor as unintialized on internal error
+- Fix double-close of cron/timer watchers.  Problem triggered when the
+  timer expires and calls `uev_exit()`, which stops all watchers.  When
+  the timer callback returns another call to stop the watcher triggered
+  the double `close()`
+- Fix unit test's error handling in watcher callbacks, for reference
+- Fix use-before-set in cronrun unit test
+- Make sure to restart unit test's I/O watchers on `UEV_ERROR`
+- Make sure to restart example I/O watchers on `UEV_ERROR`
+
+
 [v2.0.0][] - 2017-11-11
 -----------------------
 
@@ -297,6 +320,7 @@ Lua users mailing list.
 
 
 [UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.0.0...HEAD
+[v2.1.0]: https://github.com/troglobit/libuev/compare/v2.0.0...v2.1.0
 [v2.0.0]: https://github.com/troglobit/libuev/compare/v1.6.0...v2.0.0
 [v1.6.0]: https://github.com/troglobit/libuev/compare/v1.5.2...v1.6.0
 [v1.5.2]: https://github.com/troglobit/libuev/compare/v1.5.1...v1.5.2

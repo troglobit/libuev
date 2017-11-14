@@ -166,6 +166,10 @@ int uev_timer_start(uev_t *w)
  */
 int uev_timer_stop(uev_t *w)
 {
+	/* Check if already stopped in uev_run() after cb() or _init() */
+	if (!_uev_watcher_active(w))
+		return 0;
+
 	/* Stop kernel timer */
 	uev_timer_set(w, 0, 0);
 

@@ -14,10 +14,10 @@ likely not notice any difference, but please read on.
 ### Changes
 - `uev_run()` no longer exits the main event loop if an unrecoverable
   error with a watcher occurs.  Instead, the watcher is disabled and the
-  callback is run one last time with `events` set to `UEV_ERROR`.
+  callback is run one last time with `events` set to `UEV_ERROR`
 - Watcher callbacks must handle `UEV_ERROR` conditions.  This pertains
-  in particular to signal and timer watchers.
-- Examples and API docs updated with the new failure modes.
+  in particular to signal and timer watchers
+- Examples and API docs updated with the new failure modes
 
 
 [v1.6.0][] - 2017-09-18

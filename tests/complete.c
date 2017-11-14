@@ -70,16 +70,28 @@ static void signal_cb(uev_t *w, void *UNUSED(arg), int events)
 	fprintf(stderr, w->signo == SIGINT ? "^Cv" : "^\v");
 }
 
-static void pipe_read_cb(uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events))
+static void pipe_read_cb(uev_t *w, void UNUSED(*arg), int events)
 {
 	int cnt;
 	char msg[50];
+
+	if (UEV_ERROR == events) {
+	error:
+		fprintf(stderr, "pipe watcher failed, restarting ...\n");
+		uev_io_start(w);
+		return;
+	}
 
         /* Kick watchdog */
 	if (watchdog)
 		uev_timer_set(watchdog, 1000, 0);
 
-	cnt = read(in, msg, sizeof(msg));
+	/* Here we can read() from in or w->fd, either works. */
+	cnt = read(w->fd, msg, sizeof(msg));
+	if (cnt < 0) {
+		perror(__func__);
+		goto error;
+	}
 //	fprintf(stderr, "READ %.*s %d\n", cnt, msg, cnt);
 	fprintf(stderr, "%.*s.%d ", cnt, msg, cnt);
 }
@@ -92,6 +104,7 @@ static void pipe_write_cb(uev_t *w, void *arg, int UNUSED(events))
 	if (UEV_ERROR == events)
 		fprintf(stderr, "timer watcher failed, ignoring ...\n");
 
+	/* Here we *must* use out, not w->fd, since we're a timer callback */
 	if (write(out, msg, my->counter) < 0) {
                 perror("\nFailed writing to pipe");
                 return;

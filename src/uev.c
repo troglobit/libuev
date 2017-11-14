@@ -55,7 +55,7 @@ static int _init(uev_ctx_t *ctx, int close_old)
 /* Simple check if a descriptor is still valid in the kernel */
 static int is_valid_fd(int fd)
 {
-    return fcntl(fd, F_GETFL) != -1 || errno != EBADF;
+	return fcntl(fd, F_GETFL) != -1 || errno != EBADF;
 }
 
 /* Used by file i/o workaround when epoll => EPERM */
@@ -331,6 +331,32 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			events = ee[i].events;
 
 			switch (w->type) {
+			case UEV_IO_TYPE:
+				if (events & (EPOLLHUP | EPOLLERR)) {
+					if (!is_valid_fd(w->fd))
+						uev_io_stop(w);
+				}
+				break;
+
+			case UEV_SIGNAL_TYPE:
+				if (read(w->fd, &fdsi, sz) != sz) {
+					if (uev_signal_start(w)) {
+						uev_signal_stop(w);
+						events = UEV_ERROR;
+					}
+				}
+				break;
+
+			case UEV_TIMER_TYPE:
+				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
+					uev_timer_stop(w);
+					events = UEV_ERROR;
+				}
+
+				if (!w->u.t.period)
+					w->u.t.timeout = 0;
+				break;
+
 			case UEV_CRON_TYPE:
 				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
 					events = UEV_HUP;
@@ -344,32 +370,6 @@ int uev_run(uev_ctx_t *ctx, int flags)
 					w->u.c.when = 0;
 				else
 					w->u.c.when += w->u.c.interval;
-				break;
-
-			case UEV_TIMER_TYPE:
-				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp)) {
-					uev_timer_stop(w);
-					events = UEV_ERROR;
-				}
-
-				if (!w->u.t.period)
-					w->u.t.timeout = 0;
-				break;
-
-			case UEV_SIGNAL_TYPE:
-				if (read(w->fd, &fdsi, sz) != sz) {
-					if (uev_signal_start(w)) {
-						uev_signal_stop(w);
-						events = UEV_ERROR;
-					}
-				}
-				break;
-
-			case UEV_IO_TYPE:
-				if (events & (EPOLLHUP | EPOLLERR)) {
-					if (!is_valid_fd(w->fd))
-						uev_io_stop(w);
-				}
 				break;
 			}
 

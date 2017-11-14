@@ -52,12 +52,6 @@ static int _init(uev_ctx_t *ctx, int close_old)
 	return 0;
 }
 
-/* Simple check if a descriptor is still valid in the kernel */
-static int is_valid_fd(int fd)
-{
-	return fcntl(fd, F_GETFL) != -1 || errno != EBADF;
-}
-
 /* Used by file i/o workaround when epoll => EPERM */
 static int has_data(int fd)
 {
@@ -332,10 +326,8 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 			switch (w->type) {
 			case UEV_IO_TYPE:
-				if (events & (EPOLLHUP | EPOLLERR)) {
-					if (!is_valid_fd(w->fd))
-						uev_io_stop(w);
-				}
+				if (events & (EPOLLHUP | EPOLLERR))
+					uev_io_stop(w);
 				break;
 
 			case UEV_SIGNAL_TYPE:

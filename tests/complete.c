@@ -33,15 +33,21 @@ static int in, out;
 static int period = 0;
 static uev_t *watchdog;
 
-static void lifetime_cb(uev_t *w, void *arg, int UNUSED(events))
+static void lifetime_cb(uev_t *w, void *arg, int events)
 {
+	if (UEV_ERROR == events)
+		fprintf(stderr, "timer watcher failed, ignoring ...\n");
+
 	fprintf(stderr, "\nLifetime exceeded, program completed successfully! (arg:%p)\n", arg);
 	uev_exit(w->ctx);
 }
 
 /* The pipe watchdog, if it triggers we haven't received data in time. */
-static void timeout_cb(uev_t *w, void *arg, int UNUSED(events))
+static void timeout_cb(uev_t *w, void *arg, int events)
 {
+	if (UEV_ERROR == events)
+		fprintf(stderr, "timer watcher failed, ignoring ...\n");
+
 	watchdog = NULL;
 	fprintf(stderr, "\nTimeout exceeded %p\n", arg);
 
@@ -54,8 +60,13 @@ static void periodic_task(uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events
 	fprintf(stderr, "|");
 }
 
-static void signal_cb(uev_t *w, void *UNUSED(arg), int UNUSED(events))
+static void signal_cb(uev_t *w, void *UNUSED(arg), int events)
 {
+	if (UEV_ERROR == events) {
+		fprintf(stderr, "Signal watcher failed, unrecoverable error.\n");
+		return;
+	}
+
 	fprintf(stderr, w->signo == SIGINT ? "^Cv" : "^\v");
 }
 
@@ -77,6 +88,9 @@ static void pipe_write_cb(uev_t *w, void *arg, int UNUSED(events))
 {
 	my_t *my  = arg;
 	char *msg = "TESTING";
+
+	if (UEV_ERROR == events)
+		fprintf(stderr, "timer watcher failed, ignoring ...\n");
 
 	if (write(out, msg, my->counter) < 0) {
                 perror("\nFailed writing to pipe");

@@ -12,8 +12,11 @@ uev_t timer3;
 uev_t cron1;
 uev_t cron2;
 
-static void cb(uev_t *w, void *UNUSED(arg), int UNUSED(events))
+static void cb(uev_t *w, void *UNUSED(arg), int events)
 {
+	if (UEV_ERROR == events)
+		fprintf(stderr, "timer watcher failed, ignoring ...\n");
+
 	fail_unless(w == &timer1);
 
 	fail_unless(uev_timer_active(&timer2));

@@ -30,10 +30,13 @@
 
 struct timeval tv;
 
-static void cron_job(uev_t *w, void *UNUSED(arg), int UNUSED(events))
+static void cron_job(uev_t *w, void *UNUSED(arg), int events)
 {
 	static int laps = 3;
 	struct timeval now;
+
+	if (UEV_ERROR == events)
+		fprintf(stderr, "cron watcher failed, ignoring ...\n");
 
 	/* Update timer every lap */
 	tv.tv_sec += TIMEOUT;

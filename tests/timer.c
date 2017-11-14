@@ -5,9 +5,12 @@
 #define TIMEOUT 2		/* 2 sec */
 struct timeval start;
 
-static void cb(uev_t *w, void *UNUSED(arg), int UNUSED(events))
+static void cb(uev_t *w, void *UNUSED(arg), int events)
 {
 	struct timeval now;
+
+	if (UEV_ERROR == events)
+		fprintf(stderr, "timer watcher failed, ignoring ...\n");
 
 	gettimeofday(&now, NULL);
 	fail_unless(now.tv_sec == start.tv_sec + TIMEOUT);

@@ -17,7 +17,7 @@ addons:
       name: "troglobit/libuev"
       description: "libuEv | Simple event loop for Linux"
     notification_email: troglobit@gmail.com
-    build_command_prepend: "./autogen && ./configure --enable-examples"
+    build_command_prepend: "./autogen.sh && ./configure --enable-examples"
     build_command: "make clean all"
     branch_pattern: dev
 

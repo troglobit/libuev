@@ -47,6 +47,11 @@ Overview
  * w->fd holds the file descriptor or socket, and events is set by
  * libuEv to indicate status: UEV_READ and/or UEV_WRITE with any of
  * the optional UEV_HUP, UEV_RDHUP, or UEV_PRI for urgent read data.
+ *
+ * Note: UEV_ERROR may be returned for any watcher and must be checked
+ *       by all callbacks.  I/O watchers may also need to check UEV_HUP.
+ *       Appropriate action, e.g. restart the watcher, is up to the
+ *       application and is thus delegated to the callback.
  */
 void callback       (uev_t *w, void *arg, int events);
 
@@ -99,16 +104,20 @@ uev_init(&ctx);
 
 ### Register an Event Watcher
 
-For each event to monitor, be it a signal, timer or file descriptor, a
-*watcher* must be registered with the event context.  The watcher, an
-`uev_t`, is registered by calling the event type's `_init()` function
-with the `uev_ctx_t` context, the callback, and an optional argument.
+For each event to monitor, be it a signal, cron/timer or a file/network
+descriptor, a *watcher* must be registered with the event context.  The
+watcher, an `uev_t`, is registered by calling the event type's `_init()`
+function with the `uev_ctx_t` context, the callback, and an optional
+argument.
 
 Here is a signal example:
 
 ```C
 void cleanup_exit(uev_t *w, void *arg, int events)
 {
+    if (UEV_ERROR == events)
+	    puts("Ignoring signal watcher error ...");
+
     /* Graceful exit, with optional cleanup ... */
     uev_exit(w->ctx);
 }
@@ -124,6 +133,17 @@ int main(void)
     .
 }
 ```
+
+Notice that the callback must be prepared to handle `UEV_ERROR`.  I/O
+watchers in particular, but also timer watchers, must be restarted if
+required by the application.  libuEv automatically tries to restart a
+signal watcher, but should that fail the callback will return error as
+well.
+
+I/O watchers should also check for `UEV_HUP`, preferably when handling
+any short `read()` or `write()` system calls.  A short read on a socket
+may be due to the remote end having performed a `shutdown()`.  This is
+signaled to the callback using `UEV_HUP` in the `events` mask.
 
 
 ### Start Event Loop
@@ -162,8 +182,16 @@ for stateful connections to be able to detect EOF.
 1. Set up an event context with `uev_init()`
 2. Register event callbacks with the event context using
    `uev_io_init()`, `uev_signal_init()` or `uev_timer_init()`
-3. Start the event loop with `uev_run()`
-4. Exit the event loop with `uev_exit()`, possibly from a callback
+3. Make sure callbacks checks their `events` mask and handles:
+
+   - `UEV_ERROR`, e.g. I/O watchers must be restarted
+   - `UEV_HUP`, reading any remaining data on the descriptor
+
+   In both of these cases the watcher is stopped by libuEv.  On HUP the
+   descriptor/connection must be reopened and the watcher reinitialized
+   with `uev_io_set()`, if required by the application.
+4. Start the event loop with `uev_run()`
+5. Exit the event loop with `uev_exit()`, possibly from a callback
 
 **Note 1:** Make sure to use non-blocking stream I/O!  Most hard to find
   bugs in event driven applications are due to sockets and files being
@@ -186,7 +214,7 @@ for stateful connections to be able to detect EOF.
 Using -luev
 -----------
 
-LibuEv is by default installed as a library with a few header files, you
+libuEv is by default installed as a library with a few header files, you
 should only ever need to include one:
 
 ```C
@@ -248,13 +276,24 @@ struct js_event {
  */
 static void joystick_cb(uev_t *w, void *arg, int events)
 {
+    ssize_t cnt;
+
     if (UEV_ERROR == events) {
         /* Possibly joystick was unplugged */
-        warn("Unrecoverable error, exiting");
-        uev_exit(w->ctx);
+        warnx("Spurious problem with the joystick watcher, restarting.");
+        uev_io_start(w);
     }
 
-    read(w->fd, &e, sizeof(e));
+    cnt = read(w->fd, &e, sizeof(e));
+    if (cnt < 0) {
+        warn("Failed reading joystick event");
+        return;
+    }
+
+    if (cnt == 0 || UEV_HUP == events) {
+        warn("Joystick disconnected");
+        return;
+    }
 
     switch (e.type) {
     case 1:
@@ -310,6 +349,6 @@ library) for [reference benchmarks][7] against [libevent][1] and
 [5]:      https://github.com/troglobit/uftpd
 [6]:      https://github.com/troglobit/finit
 [7]:      http://libev.schmorp.de/bench.html
-[LibuEv]: https://github.com/troglobit/libuev
+[libuEv]: https://github.com/troglobit/libuev
 [GLIBC workaround]: https://sourceware.org/glibc/wiki/Y2038ProofnessDesign
 [Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8

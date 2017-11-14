@@ -4,6 +4,10 @@ DIST_SUBDIRS        = src examples tests
 doc_DATA            = API.md README.md LICENSE
 EXTRA_DIST          = API.md README.md LICENSE AUTHORS ChangeLog.md
 
+if ENABLE_EXAMPLES
+SUBDIRS            += examples
+endif
+
 ## Generate .deb package
 package:
 	@dpkg-buildpackage -uc -us -B

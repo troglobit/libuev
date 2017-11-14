@@ -11,4 +11,10 @@ AC_PROG_CC
 AM_PROG_AR
 LT_INIT
 
+# Optional features
+AC_ARG_ENABLE([examples],
+	[AC_HELP_STRING([--enable-examples], [Build libuEv examples/ directory])],
+	[], [enable_examples=no])
+AM_CONDITIONAL([ENABLE_EXAMPLES], [test "$enable_examples" = yes])
+
 AC_OUTPUT

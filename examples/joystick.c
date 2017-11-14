@@ -43,11 +43,15 @@ struct js_event {
  */
 static void joystick_cb(uev_t *w, void *arg, int events)
 {
-	if (UEV_ERROR == events)
-		errx(EBADF, "Unrecoverable error, exiting");
+	if (UEV_ERROR == events) {
+		warnx("Spurious problem with the joystick watcher, restarting.");
+		uev_io_start(w);
+	}
 
-	if (read(w->fd, &e, sizeof(e)) < 0)
-		errx(errno, "Failed reading joystick event");
+	if (read(w->fd, &e, sizeof(e)) < 0) {
+		warn("Failed reading joystick event");
+		return;
+	}
 
 	switch (e.type) {
 	case 1:

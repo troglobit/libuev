@@ -35,7 +35,7 @@ void process_stdin(uev_t *w, void *arg, int events)
 		return;
 	}
 
-	if (len == 0) {
+	if (len == 0 || UEV_HUP == events) {
 		warnx("Connection closed.");
 		return;
 	}

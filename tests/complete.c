@@ -72,7 +72,7 @@ static void signal_cb(uev_t *w, void *UNUSED(arg), int events)
 
 static void pipe_read_cb(uev_t *w, void UNUSED(*arg), int events)
 {
-	int cnt;
+	int len;
 	char msg[50];
 
 	if (UEV_ERROR == events) {
@@ -87,13 +87,19 @@ static void pipe_read_cb(uev_t *w, void UNUSED(*arg), int events)
 		uev_timer_set(watchdog, 1000, 0);
 
 	/* Here we can read() from in or w->fd, either works. */
-	cnt = read(w->fd, msg, sizeof(msg));
-	if (cnt < 0) {
+	len = read(w->fd, msg, sizeof(msg));
+	if (len < 0) {
 		perror(__func__);
 		goto error;
 	}
-//	fprintf(stderr, "READ %.*s %d\n", cnt, msg, cnt);
-	fprintf(stderr, "%.*s.%d ", cnt, msg, cnt);
+
+	if (len == 0 || UEV_HUP == events) {
+		fprintf(stderr, "Other end of pipe closed, no more data\n");
+		return;
+	}
+
+//	fprintf(stderr, "READ %.*s %d\n", len, msg, len);
+	fprintf(stderr, "%.*s.%d ", len, msg, len);
 }
 
 static void pipe_write_cb(uev_t *w, void *arg, int UNUSED(events))

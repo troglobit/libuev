@@ -43,13 +43,21 @@ struct js_event {
  */
 static void joystick_cb(uev_t *w, void *arg, int events)
 {
+	ssize_t len;
+
 	if (UEV_ERROR == events) {
 		warnx("Spurious problem with the joystick watcher, restarting.");
 		uev_io_start(w);
 	}
 
-	if (read(w->fd, &e, sizeof(e)) < 0) {
+	len = read(w->fd, &e, sizeof(e));
+	if (len < 0) {
 		warn("Failed reading joystick event");
+		return;
+	}
+
+	if (len == 0 || UEV_HUP == events) {
+		warn("Joystick disconnected");
 		return;
 	}
 

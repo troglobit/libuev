@@ -66,6 +66,11 @@ typedef struct uev {
  * Generic callback for watchers, @events holds %UEV_READ and/or %UEV_WRITE
  * with optional %UEV_PRI (priority data available to read) and any of the
  * %UEV_HUP and/or %UEV_RDHUP, which may be used to signal hang-up events.
+ *
+ * Note: UEV_ERROR conditions must be handled by all callbacks!
+ *       I/O watchers may also need to check UEV_HUP.  Appropriate action,
+ *       e.g. restart the watcher, is up to the application and is thus
+ *       delegated to the callback.
  */
 typedef void (uev_cb_t)(uev_t *w, void *arg, int events);
 

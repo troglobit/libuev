@@ -28,11 +28,16 @@ small size overhead impact of the library.
 Failure mode changes introduced in v2.0 may affect users of v1.x, See
 the [ChangeLog][] for the full details.
 
+The [API documentation](API.md) is available as a separate document.
+
 
 Example
 -------
 
-The library documentation is available as a [separate document](API.md).
+Notice below how watcher `UEV_ERROR` conditions must be handled by each
+callback.  I/O watchers must also check for `UEV_HUP`.  Both errors are
+usually fatal, libuEv makes sure to stop each watcher before a callback
+runs, leaving it up to the callback to take appropriate action.
 
 ```C
 #include <stdio.h>
@@ -40,6 +45,10 @@ The library documentation is available as a [separate document](API.md).
 
 static void cb(uev_t *w, void *arg, int events)
 {
+    if (UEV_ERROR == events) {
+        puts("Problem with timer, attempting to restart.");
+        uev_timer_start(w);
+    }
 	puts("Every other second");
 }
 

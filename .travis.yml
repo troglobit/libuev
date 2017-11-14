@@ -17,13 +17,13 @@ addons:
       name: "troglobit/libuev"
       description: "libuEv | Simple event loop for Linux"
     notification_email: troglobit@gmail.com
-    build_command_prepend: "./autogen && ./configure"
+    build_command_prepend: "./autogen && ./configure --enable-examples"
     build_command: "make clean all"
     branch_pattern: dev
 
 script:
   - ./autogen.sh
-  - ./configure --disable-silent-rules
+  - ./configure --disable-silent-rules --enable-examples
   - make clean
   - make -j5
   - make check

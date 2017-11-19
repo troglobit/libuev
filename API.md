@@ -69,7 +69,7 @@ int uev_io_set      (uev_t *w, int fd, int events);
 int uev_io_start    (uev_t *w);
 int uev_io_stop     (uev_t *w);
 
-/* Timer watcher:   schedule a relative timer, timeout and period in milliseconds */
+/* Timer watcher:   schedule a relative timer, timeout (must be non-zero) and period in milliseconds */
 int uev_timer_init  (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeout, int period);
 int uev_timer_set   (uev_t *w, int timeout, int period); /* Change timeout or period */
 int uev_timer_start (uev_t *w);                          /* Restart a stopped timer */

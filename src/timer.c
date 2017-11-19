@@ -93,8 +93,12 @@ int uev_timer_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeou
 /**
  * Reset a timer
  * @param w        Watcher to reset
- * @param timeout  Timeout in milliseconds before @param cb is called
+ * @param timeout  Timeout in milliseconds before @param cb is called, zero disarms timer
  * @param period   For periodic timers this is the period time that @param timeout is reset to
+ *
+ * Note, the @param timeout value must be non-zero.  Setting it to zero
+ * will disarm the timer.  This is the underlying Linux function @func
+ * timerfd_settimer() which has this behavior.
  *
  * @return POSIX OK(0) or non-zero with @param errno set on error.
  */

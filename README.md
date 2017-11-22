@@ -59,7 +59,7 @@ int main(void)
 
 	uev_init(&ctx);
 	/* Set up a timer watcher to call cb() every other second */
-	uev_timer_init(&ctx, &timer, cb, NULL, 0, 2 * 1000);
+	uev_timer_init(&ctx, &timer, cb, NULL, 2 * 1000, 2 * 1000);
 
 	return uev_run(&ctx, 0);
 }

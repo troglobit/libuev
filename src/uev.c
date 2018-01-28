@@ -347,6 +347,8 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 				if (!w->u.t.period)
 					w->u.t.timeout = 0;
+				if (!w->u.t.timeout)
+					uev_timer_stop(w);
 				break;
 
 			case UEV_CRON_TYPE:
@@ -362,16 +364,9 @@ int uev_run(uev_ctx_t *ctx, int flags)
 					w->u.c.when = 0;
 				else
 					w->u.c.when += w->u.c.interval;
-				break;
-			}
-
-			if (UEV_CRON_TYPE == w->type) {
 				if (!w->u.c.when)
 					uev_timer_stop(w);
-			}
-			if (UEV_TIMER_TYPE == w->type) {
-				if (!w->u.t.timeout)
-					uev_timer_stop(w);
+				break;
 			}
 
 			/*

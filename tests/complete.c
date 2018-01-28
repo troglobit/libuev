@@ -82,7 +82,7 @@ static void pipe_read_cb(uev_t *w, void UNUSED(*arg), int events)
 		return;
 	}
 
-        /* Kick watchdog */
+	/* Kick watchdog */
 	if (watchdog)
 		uev_timer_set(watchdog, 1000, 0);
 
@@ -112,9 +112,9 @@ static void pipe_write_cb(uev_t *w, void *arg, int UNUSED(events))
 
 	/* Here we *must* use out, not w->fd, since we're a timer callback */
 	if (write(out, msg, my->counter) < 0) {
-                perror("\nFailed writing to pipe");
-                return;
-        }
+		perror("\nFailed writing to pipe");
+		return;
+	}
 
 //	fprintf(stderr, "WRITE %.*s %d\n", my->counter, msg, my->counter);
 	fprintf(stderr, "%d ", my->counter);

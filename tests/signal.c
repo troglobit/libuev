@@ -63,7 +63,7 @@ static int callback(arg_t *arg, int event, void *foo)
 	printf("child: segfaulting failed!\n");
 #endif
 
-        return 42;
+	return 42;
 }
 
 static void sigsegv_cb(uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))
@@ -74,27 +74,27 @@ static void sigsegv_cb(uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))
 
 static void sigchld_cb(uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))
 {
-        pid_t pid = waitpid(-1, NULL, WNOHANG);
+	pid_t pid = waitpid(-1, NULL, WNOHANG);
 
-        if (-1 != pid)
-                warnx("PID %d exited, bye.", pid);
+	if (-1 != pid)
+		warnx("PID %d exited, bye.", pid);
 }
 
 static void work_cb(uev_t *UNUSED(w), void *arg, int UNUSED(events))
 {
 	int    status = 0;
-        pid_t  pid;
+	pid_t  pid;
 
-        pid = fork();
-        if (-1 == pid)
-                err(1, "fork");
+	pid = fork();
+	if (-1 == pid)
+		err(1, "fork");
 	if (!pid) {
 		status = callback(arg, 6137, NULL);
-                exit(status);
-        }
+		exit(status);
+	}
 
-        if (waitpid(pid, &status, 0) == -1)
-                err(1, "waitpid");
+	if (waitpid(pid, &status, 0) == -1)
+		err(1, "waitpid");
 
 	if (WIFEXITED(status))
 		printf("Child exited normally => %d\n", WEXITSTATUS(status));
@@ -108,7 +108,7 @@ static void work_cb(uev_t *UNUSED(w), void *arg, int UNUSED(events))
 
 static void exit_cb(uev_t *w, void *UNUSED(arg), int UNUSED(events))
 {
-        printf("Process deadline reached, exiting!\n");
+	printf("Process deadline reached, exiting!\n");
 	uev_exit(w->ctx);
 }
 

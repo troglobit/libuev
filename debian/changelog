@@ -1,3 +1,10 @@
+libuev (2.1.1) unstable; urgency=medium
+
+  * Minor bugfix release
+  * Use native version numbering for package
+
+ -- Joachim Nilsson <troglobit@gmail.com>  Sun, 28 Jan 2018 13:38:00 +0100
+
 libuev (2.1.0-1) unstable; urgency=medium
 
   * New upstream release.  Further improvements to failure modes, some

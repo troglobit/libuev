@@ -3,6 +3,16 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+[v2.1.1][] - 2018-01-28
+-----------------------
+
+### Fixes
+- Fix use after free in main event loop if watcher deletes itself in
+  the callback.  I.e., the callback must be the last action for the
+  watcher in the event loop.
+- Doc timer example fix by @tisyang
+- Doc timer updates, non-zero timeout required
+
 
 [v2.1.0][] - 2017-11-14
 -----------------------
@@ -326,7 +336,8 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.1.0...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.1.1...HEAD
+[v2.1.1]: https://github.com/troglobit/libuev/compare/v2.1.0...v2.1.1
 [v2.1.0]: https://github.com/troglobit/libuev/compare/v2.0.0...v2.1.0
 [v2.0.0]: https://github.com/troglobit/libuev/compare/v1.6.0...v2.0.0
 [v1.6.0]: https://github.com/troglobit/libuev/compare/v1.5.2...v1.6.0

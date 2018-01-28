@@ -365,9 +365,6 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				break;
 			}
 
-			if (w->cb)
-				w->cb(w, w->arg, events & UEV_EVENT_MASK);
-
 			if (UEV_CRON_TYPE == w->type) {
 				if (!w->u.c.when)
 					uev_timer_stop(w);
@@ -376,6 +373,13 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				if (!w->u.t.timeout)
 					uev_timer_stop(w);
 			}
+
+			/*
+			 * NOTE: Must be last action for watcher, the
+			 *       callback may delete itself.
+			 */
+			if (w->cb)
+				w->cb(w, w->arg, events & UEV_EVENT_MASK);
 		}
 
 		if (flags & UEV_ONCE)

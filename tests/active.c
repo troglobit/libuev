@@ -52,3 +52,10 @@ int main(void)
 
 	return uev_run(&ctx, 0);
 }
+
+/**
+ * Local Variables:
+ *  indent-tabs-mode: t
+ *  c-file-style: "linux"
+ * End:
+ */

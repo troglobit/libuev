@@ -28,6 +28,7 @@
 #define TIMEOUT  2
 #define INTERVAL 2
 
+int result = -1;
 struct timeval tv;
 
 static void cron_job(uev_t *w, void *UNUSED(arg), int events)
@@ -45,12 +46,15 @@ static void cron_job(uev_t *w, void *UNUSED(arg), int events)
 	printf("Cron job HELO %s", ctime(&now.tv_sec));
 	fail_unless(now.tv_sec == tv.tv_sec);
 
-	if (!laps--)
+	if (!laps--) {
+		result = 0;
 		uev_exit(w->ctx);
+	}
 }
 
 int main(void)
 {
+	int rc;
 	uev_t cron_watcher;
 	uev_ctx_t ctx;
 	time_t when, interval;
@@ -66,7 +70,10 @@ int main(void)
 	interval = INTERVAL;
 	uev_cron_init(&ctx, &cron_watcher, cron_job, NULL, when, interval);
 
-	return uev_run(&ctx, 0);
+	rc = uev_run(&ctx, 0);
+	fail_unless(result == 0);
+
+	return rc;
 }
 
 /**

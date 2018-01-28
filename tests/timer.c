@@ -3,6 +3,8 @@
 #include <sys/time.h>
 
 #define TIMEOUT 2		/* 2 sec */
+
+int result = -1;
 struct timeval start;
 
 static void cb(uev_t *w, void *UNUSED(arg), int events)
@@ -15,11 +17,13 @@ static void cb(uev_t *w, void *UNUSED(arg), int events)
 	gettimeofday(&now, NULL);
 	fail_unless(now.tv_sec == start.tv_sec + TIMEOUT);
 
+	result = 0;
 	uev_exit(w->ctx);
 }
 
 int main(void)
 {
+	int rc;
 	uev_t w;
 	uev_ctx_t ctx;
 
@@ -27,5 +31,15 @@ int main(void)
 	uev_timer_init(&ctx, &w, cb, NULL, TIMEOUT * 1000, 0);
 	gettimeofday(&start, NULL);
 
-	return uev_run(&ctx, 0);
+	rc = uev_run(&ctx, 0);
+	fail_unless(result == 0);
+
+	return rc;
 }
+
+/**
+ * Local Variables:
+ *  indent-tabs-mode: t
+ *  c-file-style: "linux"
+ * End:
+ */

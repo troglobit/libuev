@@ -1,3 +1,13 @@
+libuev (2.1.2) unstable; urgency=medium
+
+  * Minor bugfix release
+    - Fix #17: build problem on systems with too old autoconf + automake
+    - Fix unit tests, return result of test not result of event loop
+    - Refactor/simplify/collapse main event loop code after fixes in v2.1.1
+  * Fix minor packaging issues
+
+ -- Joachim Nilsson <troglobit@gmail.com>  Tue, 27 Feb 2018 00:05:32 +0100
+
 libuev (2.1.1) unstable; urgency=medium
 
   * Minor bugfix release

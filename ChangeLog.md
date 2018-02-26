@@ -3,6 +3,20 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+[v2.1.2][] - 2018-02-27
+-----------------------
+
+### Changes
+- Minor refactor of event loop after fixing the nasty use-after-free bug
+  in v2.1.1.  Code can now be collapsed and noticeably simplified
+
+### Fixes
+- Issue #17: Check if `AM_PROG_AR` macro exists before calling it, fixes
+  problem building libuEv on systems with older autoconf + automake.
+  Patch by Markus Svilans
+- Fix minor issue with unit tests, return result of test not event loop
+
+
 [v2.1.1][] - 2018-01-28
 -----------------------
 
@@ -336,7 +350,8 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.1.1...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.1.2...HEAD
+[v2.1.2]: https://github.com/troglobit/libuev/compare/v2.1.1...v2.1.2
 [v2.1.1]: https://github.com/troglobit/libuev/compare/v2.1.0...v2.1.1
 [v2.1.0]: https://github.com/troglobit/libuev/compare/v2.0.0...v2.1.0
 [v2.0.0]: https://github.com/troglobit/libuev/compare/v1.6.0...v2.0.0

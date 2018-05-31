@@ -312,7 +312,7 @@ int main(void)
     uev_t watcher;
     uev_ctx_t ctx;
 
-    fd = open("/dev/input/js1", O_RDONLY, O_NONBLOCK);
+    fd = open("/dev/input/js0", O_RDONLY, O_NONBLOCK);
     if (fd < 0)
         errx(errno, "Cannot find a joystick attached.");
 

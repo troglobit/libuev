@@ -3,6 +3,7 @@ CLEANFILES      = *~ *.trs *.log
 
 TESTS           =
 TESTS          += active
+TESTS          += api
 TESTS          += complete
 TESTS          += cronrun
 TESTS          += signal

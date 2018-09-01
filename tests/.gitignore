@@ -1,6 +1,7 @@
 *.trs
 *.log
 active
+api
 complete
 cronrun
 signal

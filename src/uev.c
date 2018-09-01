@@ -203,14 +203,14 @@ int uev_init(uev_ctx_t *ctx)
  */
 int uev_exit(uev_ctx_t *ctx)
 {
+	uev_t *w, *next;
+
 	if (!ctx) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	while (!LIST_EMPTY(&ctx->watchers)) {
-		uev_t *w = LIST_FIRST(&ctx->watchers);
-
+	LIST_FOREACH_SAFE(w, &ctx->watchers, link, next) {
 		/* Remove from internal list */
 		LIST_REMOVE(w, link);
 
@@ -233,6 +233,7 @@ int uev_exit(uev_ctx_t *ctx)
 		}
 	}
 
+	LIST_INIT(&ctx->watchers);
 	ctx->running = 0;
 	close(ctx->fd);
 	ctx->fd = -1;

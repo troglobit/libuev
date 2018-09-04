@@ -30,6 +30,9 @@ static void cb(uev_t *w, void *UNUSED(arg), int events)
 	fail_unless(!uev_timer_active(&timer2));
 	fail_unless(!uev_cron_active(&cron2));
 
+	/* Restart timer and see if we fail in uev_exit() */
+	uev_timer_start(&timer2);
+
 	uev_exit(w->ctx);
 }
 

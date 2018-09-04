@@ -140,6 +140,9 @@ int uev_signal_start(uev_t *w)
  */
 int uev_signal_stop(uev_t *w)
 {
+	if (!_uev_watcher_active(w))
+		return 0;
+
 	if (_uev_watcher_stop(w))
 		return -1;
 

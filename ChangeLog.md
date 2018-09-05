@@ -3,6 +3,22 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+
+[v2.1.3][UNRELEASED] - 2018-09-xx
+---------------------------------
+
+### Changes
+- Update joystick example, use first device, `/dev/input/js0`
+- Minor refactor of `uev_exit()`, use `_SAFE` macros to traverse
+  list of watchers instead of `while()`
+- New API test to verify that `uev_exit()` terminates properly
+- Make `uev_signal_stop()` idempotent
+
+### Fixes
+- Let `uev_timer_stop()` call `close()` on the timerfd directly, do not
+  call `uev_timer_set()` since that may cause lockups or hangs
+
+
 [v2.1.2][] - 2018-02-27
 -----------------------
 

@@ -1,3 +1,4 @@
 usr/include/uev/*.h
-usr/lib/*/lib*.a
+usr/lib/*/libuev.a
+usr/lib/*/libuev.so
 usr/lib/*/pkgconfig/lib*.pc

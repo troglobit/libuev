@@ -4,8 +4,8 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
-[v2.1.3][UNRELEASED] - 2018-09-xx
----------------------------------
+[v2.1.3][] - 2018-09-06
+-----------------------
 
 ### Changes
 - Update joystick example, use first device, `/dev/input/js0`
@@ -366,7 +366,8 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.1.2...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.1.3...HEAD
+[v2.1.3]: https://github.com/troglobit/libuev/compare/v2.1.2...v2.1.3
 [v2.1.2]: https://github.com/troglobit/libuev/compare/v2.1.1...v2.1.2
 [v2.1.1]: https://github.com/troglobit/libuev/compare/v2.1.0...v2.1.1
 [v2.1.0]: https://github.com/troglobit/libuev/compare/v2.0.0...v2.1.0

@@ -1,3 +1,14 @@
+libuev (2.1.3) unstable; urgency=medium
+
+  * Minor bugfix release
+    - Updated joystick example, use first joystick, /dev/input/js0
+    - Use LIST_FOREACH_SAFE() instead of while() in uev_exit()
+    - New API test for uev_exit()
+    - Don't call uev_timer_set() when stopping a timer, may cause lockups
+    - Return OK immediately if a signal watcher is already stopped
+  * Packaging fixes: libuev.so symlink goes in -dev package
+ -- Joachim Nilsson <troglobit@gmail.com>  Thu, 06 Sep 2018 22:01:24 +0200
+
 libuev (2.1.2) unstable; urgency=medium
 
   * Minor bugfix release

@@ -90,7 +90,7 @@ int _uev_watcher_start(uev_t *w)
 {
 	struct epoll_event ev;
 
-	if (!w || w->fd < 0) {
+	if (!w || w->fd < 0 || !w->ctx) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -119,7 +119,7 @@ int _uev_watcher_start(uev_t *w)
 	}
 
 	/* Add to internal list for bookkeeping */
-	LIST_INSERT_HEAD(&w->ctx->watchers, w, link);
+	_UEV_INSERT(w, w->ctx->watchers);
 
 	return 0;
 }
@@ -138,7 +138,7 @@ int _uev_watcher_stop(uev_t *w)
 	w->active = 0;
 
 	/* Remove from internal list */
-	LIST_REMOVE(w, link);
+	_UEV_REMOVE(w, w->ctx->watchers);
 
 	/* Remove from kernel */
 	if (epoll_ctl(w->ctx->fd, EPOLL_CTL_DEL, w->fd, NULL) < 0)
@@ -188,7 +188,6 @@ int uev_init(uev_ctx_t *ctx)
 	}
 
 	memset(ctx, 0, sizeof(*ctx));
-	LIST_INIT(&ctx->watchers);
 
 	return _init(ctx, 0);
 }
@@ -201,16 +200,16 @@ int uev_init(uev_ctx_t *ctx)
  */
 int uev_exit(uev_ctx_t *ctx)
 {
-	uev_t *w, *next;
+	uev_t *w;
 
 	if (!ctx) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	LIST_FOREACH_SAFE(w, &ctx->watchers, link, next) {
+	_UEV_FOREACH(w, ctx->watchers) {
 		/* Remove from internal list */
-		LIST_REMOVE(w, link);
+		_UEV_REMOVE(w, ctx->watchers);
 
 		if (!_uev_watcher_active(w))
 			continue;
@@ -231,9 +230,10 @@ int uev_exit(uev_ctx_t *ctx)
 		}
 	}
 
-	LIST_INIT(&ctx->watchers);
+	ctx->watchers = NULL;
 	ctx->running = 0;
-	close(ctx->fd);
+	if (ctx->fd > -1)
+		close(ctx->fd);
 	ctx->fd = -1;
 
 	return 0;
@@ -270,26 +270,26 @@ int uev_run(uev_ctx_t *ctx, int flags)
 	ctx->running = 1;
 
 	/* Start all dormant timers */
-	LIST_FOREACH(w, &ctx->watchers, link) {
+	_UEV_FOREACH(w, ctx->watchers) {
 		if (UEV_CRON_TYPE == w->type)
 			uev_cron_set(w, w->u.c.when, w->u.c.interval);
 		if (UEV_TIMER_TYPE == w->type)
 			uev_timer_set(w, w->u.t.timeout, w->u.t.period);
 	}
 
-	while (ctx->running && !LIST_EMPTY(&ctx->watchers)) {
+	while (ctx->running && ctx->watchers) {
 		int i, nfds, rerun = 0;
 		struct epoll_event ee[UEV_MAX_EVENTS];
 
 		/* Handle special case: `application < file.txt` */
 		if (ctx->workaround) {
-			LIST_FOREACH(w, &ctx->watchers, link) {
+			_UEV_FOREACH(w, ctx->watchers) {
 				if (w->active != -1 || !w->cb)
 					continue;
 
 				if (!has_data(w->fd)) {
 					w->active = 0;
-					LIST_REMOVE(w, link);
+					_UEV_REMOVE(w, ctx->watchers);
 				}
 
 				rerun++;

@@ -121,9 +121,6 @@ int uev_timer_set(uev_t *w, int timeout, int period)
 		if (!timeout && !period)
 			return 0;
 
-		/* Remove from internal list */
-		LIST_REMOVE(w, link);
-
 		if (uev_timer_init(w->ctx, w, (uev_cb_t *)w->cb, w->arg, timeout, period))
 			return -1;
 	}

@@ -91,9 +91,6 @@ int uev_signal_set(uev_t *w, int signo)
 
 	/* Handle stopped signal watchers */
 	if (w->fd < 0) {
-		/* Remove from internal list */
-		LIST_REMOVE(w, link);
-
 		if (uev_signal_init(w->ctx, w, (uev_cb_t *)w->cb, w->arg, signo))
 			return -1;
 	}

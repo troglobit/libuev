@@ -27,7 +27,38 @@
 
 #include <stdio.h>
 #include <sys/epoll.h>
-#include "queue.h"	       /* OpenBSD queue.h > old GLIBC version */
+
+/*
+ * List functions.
+ */
+#define _UEV_FOREACH(node, list)		\
+	for (typeof (node) next, node = list;	\
+	     node && (next = node->next, 1);	\
+	     node = next)
+
+#define _UEV_INSERT(node, list) do {		\
+	typeof (node) next;			\
+	next       = list;			\
+	list       = node;			\
+	if (next)				\
+		next->prev = node;		\
+	node->next = next;			\
+	node->prev = NULL;			\
+} while (0)
+
+#define _UEV_REMOVE(node, list) do {		\
+	typeof (node) prev, next;		\
+	prev = node->prev;			\
+	next = node->next;			\
+	if (prev)				\
+		prev->next = next;		\
+	if (next)				\
+		next->prev = prev;		\
+	node->prev = NULL;			\
+	node->next = NULL;			\
+	if (list == node)			\
+		list = next;			\
+} while (0)
 
 /* I/O, timer, or signal watcher */
 typedef enum {
@@ -44,8 +75,8 @@ typedef enum {
 /* Main libuEv context type */
 typedef struct {
 	int             running;
-	int             fd;     /* For epoll() */
-	LIST_HEAD(,uev) watchers;
+	int             fd;	    /* For epoll() */
+	struct uev     *watchers;
 	uint32_t        workaround; /* For workarounds, e.g. redirected stdin */
 } uev_ctx_t;
 
@@ -54,7 +85,7 @@ struct uev;
 
 /* This is used to hide all private data members in uev_t */
 #define uev_private_t                                           \
-	LIST_ENTRY(uev) link;   /* For queue.h linked list */   \
+	struct uev     *next, *prev;				\
 								\
 	int             active;                                 \
 	int             events;                                 \

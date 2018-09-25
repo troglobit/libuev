@@ -11,4 +11,4 @@ bench_LDADD         = libuev.la
 pkgconfigdir        = $(libdir)/pkgconfig
 pkgincludedir       = $(includedir)/uev
 pkgconfig_DATA      = libuev.pc
-pkginclude_HEADERS  = uev.h private.h queue.h
+pkginclude_HEADERS  = uev.h private.h

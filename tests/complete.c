@@ -153,8 +153,10 @@ int main(void)
 	uev_io_init(&ctx, &reader, pipe_read_cb, NULL, in, UEV_READ);
 	uev_timer_init(&ctx, &writer, pipe_write_cb, &my, 400, 0);
 
-	/* Watchdog for the above timer callback, if it doesn't wake up
-	 * and write to the pipe within a given deadline it will bark. */
+	/*
+	 * Watchdog for the above timer callback, if it doesn't wake up
+	 * and write to the pipe within a given deadline it will bark.
+	 */
 	uev_timer_init(&ctx, &wdt, timeout_cb, (void *)(intptr_t)1, 950, 0);
 	watchdog = &wdt;
 

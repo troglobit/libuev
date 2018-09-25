@@ -33,8 +33,6 @@
 
 #include "uev.h"
 
-#define UNUSED(arg) arg __attribute__ ((unused))
-
 
 static int _init(uev_ctx_t *ctx, int close_old)
 {

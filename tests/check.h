@@ -9,8 +9,6 @@
 
 #include "../src/uev.h"
 
-#define UNUSED(arg) arg __attribute__ ((unused))
-
 #define fail_unless(test)						\
   do {									\
     if (!(test)) {							\

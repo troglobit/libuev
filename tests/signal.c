@@ -33,7 +33,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define UNUSED(arg) arg __attribute__ ((unused))
 #define DO_SEGFAULT 1
 
 typedef struct {
@@ -66,13 +65,13 @@ static int callback(arg_t *arg, int event, void *foo)
 	return 42;
 }
 
-static void sigsegv_cb(uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))
+static void sigsegv_cb(uev_t *w, void *arg, int events)
 {
 	warnx("PID %d caused segfault.", getpid());
 	exit(-1);
 }
 
-static void sigchld_cb(uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))
+static void sigchld_cb(uev_t *w, void *arg, int events)
 {
 	pid_t pid = waitpid(-1, NULL, WNOHANG);
 
@@ -80,7 +79,7 @@ static void sigchld_cb(uev_t *UNUSED(w), void *UNUSED(arg), int UNUSED(events))
 		warnx("PID %d exited, bye.", pid);
 }
 
-static void work_cb(uev_t *UNUSED(w), void *arg, int UNUSED(events))
+static void work_cb(uev_t *w, void *arg, int events)
 {
 	int    status = 0;
 	pid_t  pid;
@@ -106,7 +105,7 @@ static void work_cb(uev_t *UNUSED(w), void *arg, int UNUSED(events))
 		printf("Child did not exit normally!\n");
 }
 
-static void exit_cb(uev_t *w, void *UNUSED(arg), int UNUSED(events))
+static void exit_cb(uev_t *w, void *arg, int events)
 {
 	printf("Process deadline reached, exiting!\n");
 	uev_exit(w->ctx);

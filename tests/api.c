@@ -3,7 +3,7 @@
 uev_t timer, file;
 int   counter = 10;
 
-static void cb(uev_t *w, void *UNUSED(arg), int events)
+static void cb(uev_t *w, void *arg, int events)
 {
 	if (UEV_ERROR == events)
 		fprintf(stderr, "timer watcher failed, ignoring ...\n");

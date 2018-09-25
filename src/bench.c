@@ -57,8 +57,6 @@
 
 #include "uev.h"
 
-#define UNUSED(arg) arg __attribute__ ((unused))
-
 typedef struct {
 	int index;
 } myarg_t;
@@ -70,7 +68,7 @@ static int *pipes;
 static uev_t *evio;
 static uev_t *evto;
 
-static void read_cb(uev_t *w, void *arg, int UNUSED(events))
+static void read_cb(uev_t *w, void *arg, int events)
 {
 	int idx, widx;
 	u_char ch;
@@ -96,7 +94,7 @@ static void read_cb(uev_t *w, void *arg, int UNUSED(events))
 	}
 }
 
-static void timer_cb(uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events))
+static void timer_cb(uev_t *w, void *arg, int events)
 {
 	/* nop */
 }

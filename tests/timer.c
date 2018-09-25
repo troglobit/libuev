@@ -7,7 +7,7 @@
 int result = -1;
 struct timeval start;
 
-static void cb(uev_t *w, void *UNUSED(arg), int events)
+static void cb(uev_t *w, void *arg, int events)
 {
 	struct timeval now;
 

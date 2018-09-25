@@ -55,12 +55,12 @@ static void timeout_cb(uev_t *w, void *arg, int events)
 	uev_exit(w->ctx);
 }
 
-static void periodic_task(uev_t UNUSED(*w), void UNUSED(*arg), int UNUSED(events))
+static void periodic_task(uev_t *w, void *arg, int events)
 {
 	fprintf(stderr, "|");
 }
 
-static void signal_cb(uev_t *w, void *UNUSED(arg), int events)
+static void signal_cb(uev_t *w, void *arg, int events)
 {
 	if (UEV_ERROR == events) {
 		fprintf(stderr, "Signal watcher failed, unrecoverable error.\n");
@@ -70,7 +70,7 @@ static void signal_cb(uev_t *w, void *UNUSED(arg), int events)
 	fprintf(stderr, w->signo == SIGINT ? "^Cv" : "^\v");
 }
 
-static void pipe_read_cb(uev_t *w, void UNUSED(*arg), int events)
+static void pipe_read_cb(uev_t *w, void *arg, int events)
 {
 	int len;
 	char msg[50];
@@ -102,7 +102,7 @@ static void pipe_read_cb(uev_t *w, void UNUSED(*arg), int events)
 	fprintf(stderr, "%.*s.%d ", len, msg, len);
 }
 
-static void pipe_write_cb(uev_t *w, void *arg, int UNUSED(events))
+static void pipe_write_cb(uev_t *w, void *arg, int events)
 {
 	my_t *my  = arg;
 	char *msg = "TESTING";

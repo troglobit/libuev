@@ -178,16 +178,46 @@ int _uev_watcher_rearm(uev_t *w)
  * Create an event loop context
  * @param ctx  Pointer to an uev_ctx_t context to be initialized
  *
+ * This function calls @func uev_init1() with @param maxevents set to
+ * @const UEV_MAX_EVENTS.
+ *
  * @return POSIX OK(0) on success, or non-zero on error.
  */
 int uev_init(uev_ctx_t *ctx)
 {
-	if (!ctx) {
+	return uev_init1(ctx, UEV_MAX_EVENTS);
+}
+
+/**
+ * Create an event loop context
+ * @param ctx  Pointer to an uev_ctx_t context to be initialized
+ * @param maxevents Maximum number of events in event cache
+ *
+ * This function is the same as @func uev_init() except for the
+ * @param maxevents argument, which controls the number of events
+ * in the event cache returned to the main loop.
+ *
+ * In cases where you have multiple events pending in the cache and some
+ * event may cause later ones, already sent by the kernel to userspace,
+ * to be deleted the pointer returned to the event loop for this later
+ * event may be deleted.
+ *
+ * There are two ways around this (accessing deleted memory); 1) use
+ * this function to initialize your event loop and set @param maxevents
+ * to 1, 2) use a free list in you application that you garbage collect
+ * at intervals relevant to your application.
+ *
+ * @return POSIX OK(0) on success, or non-zero on error.
+ */
+int uev_init1(uev_ctx_t *ctx, int maxevents)
+{
+	if (!ctx || maxevents < 1) {
 		errno = EINVAL;
 		return -1;
 	}
 
 	memset(ctx, 0, sizeof(*ctx));
+	ctx->maxevents = maxevents;
 
 	return _init(ctx, 0);
 }
@@ -301,7 +331,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			continue;
 		ctx->workaround = 0;
 
-		while ((nfds = epoll_wait(ctx->fd, ee, UEV_MAX_EVENTS, timeout)) < 0) {
+		while ((nfds = epoll_wait(ctx->fd, ee, ctx->maxevents, timeout)) < 0) {
 			if (!ctx->running)
 				break;
 

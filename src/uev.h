@@ -76,6 +76,7 @@ typedef void (uev_cb_t)(uev_t *w, void *arg, int events);
 
 /* Public interface */
 int uev_init           (uev_ctx_t *ctx);
+int uev_init1          (uev_ctx_t *ctx, int maxevents);
 int uev_exit           (uev_ctx_t *ctx);
 int uev_run            (uev_ctx_t *ctx, int flags);
 

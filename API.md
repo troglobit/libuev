@@ -57,6 +57,7 @@ void callback       (uev_t *w, void *arg, int events);
 
 /* Event loop:      Notice the use of flags! */
 int uev_init        (uev_ctx_t *ctx);
+int uev_init1       (uev_ctx_t *ctx, int maxevents);
 int uev_exit        (uev_ctx_t *ctx);
 int uev_run         (uev_ctx_t *ctx, int flags);         /* UEV_NONE, UEV_ONCE, and/or UEV_NONBLOCK */
 

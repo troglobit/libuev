@@ -76,6 +76,7 @@ typedef enum {
 typedef struct {
 	int             running;
 	int             fd;	    /* For epoll() */
+	int             maxevents;  /* For epoll() */
 	struct uev     *watchers;
 	uint32_t        workaround; /* For workarounds, e.g. redirected stdin */
 } uev_ctx_t;

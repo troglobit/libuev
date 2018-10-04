@@ -4,6 +4,24 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
+[v2.2.0][] - 2018-10-04
+-----------------------
+
+**NOTE:** You now have to explicitly include `sys/queue.h`, or provide a
+          local version of `queue.h`, if your application depends on it.
+
+### Changes
+- Replaced BSD `queue.h` doubly-linked lst API with own implementation.
+  Making libuEv stand-alone, no longer imposing any particular version
+  of `queue.h` on the user
+- Enforce `-std=gnu11` to unlock `typeof()` in older GCC versions
+- Code cleanup
+
+### Fixes
+- Fix missing header deps. in `Makefile.am`, library did not rebuild
+  properly if any of the local header files were changed
+
+
 [v2.1.3][] - 2018-09-06
 -----------------------
 
@@ -366,7 +384,8 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.1.3...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.2.0...HEAD
+[v2.2.0]: https://github.com/troglobit/libuev/compare/v2.1.3...v2.2.0
 [v2.1.3]: https://github.com/troglobit/libuev/compare/v2.1.2...v2.1.3
 [v2.1.2]: https://github.com/troglobit/libuev/compare/v2.1.1...v2.1.2
 [v2.1.1]: https://github.com/troglobit/libuev/compare/v2.1.0...v2.1.1

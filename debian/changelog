@@ -1,3 +1,11 @@
+libuev (2.2.0) unstable; urgency=medium
+
+  * Replaced BSD queue.h with own linked list implementation.  This means
+    applications relying on any of the queue.h APIs now need to provide
+    their own version, or use the system sys/queue.h
+
+ -- Joachim Nilsson <troglobit@gmail.com>  Thu, 04 Oct 2018 21:03:48 +0200
+
 libuev (2.1.3) unstable; urgency=medium
 
   * Minor bugfix release

@@ -245,17 +245,18 @@ int uev_exit(uev_ctx_t *ctx)
 			continue;
 
 		switch (w->type) {
-		case UEV_CRON_TYPE:
-		case UEV_TIMER_TYPE:
-			uev_timer_stop(w);
+		case UEV_IO_TYPE:
+			uev_io_stop(w);
 			break;
 
 		case UEV_SIGNAL_TYPE:
 			uev_signal_stop(w);
 			break;
 
-		case UEV_IO_TYPE:
-			uev_io_stop(w);
+		case UEV_TIMER_TYPE:
+		case UEV_CRON_TYPE:
+			uev_timer_stop(w);
+			break;
 			break;
 		}
 	}

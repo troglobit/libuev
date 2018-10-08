@@ -87,6 +87,11 @@ int uev_signal_init (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int sign
 int uev_signal_set  (uev_t *w, int signo);               /* Change signal to wait for */
 int uev_signal_start(uev_t *w);                          /* Restart a stopped signal watcher */
 int uev_signal_stop (uev_t *w);                          /* Stop signal watcher */
+
+/* Generic event watcher, post events for later processing, or from forked child */
+int uev_event_init  (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg);
+int uev_event_post  (uev_t *w);
+int uev_event_stop  (uev_t *w);
 ```
 
 

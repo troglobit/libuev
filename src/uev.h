@@ -50,6 +50,7 @@
 #define uev_signal_active(w) _uev_watcher_active(w)
 #define uev_timer_active(w)  _uev_watcher_active(w)
 #define uev_cron_active(w)   _uev_watcher_active(w)
+#define uev_event_active(w)  _uev_watcher_active(w)
 
 /* Event watcher */
 typedef struct uev {
@@ -99,6 +100,10 @@ int uev_signal_init    (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int s
 int uev_signal_set     (uev_t *w, int signo);
 int uev_signal_start   (uev_t *w);
 int uev_signal_stop    (uev_t *w);
+
+int uev_event_init     (uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg);
+int uev_event_post     (uev_t *w);
+int uev_event_stop     (uev_t *w);
 
 #endif /* LIBUEV_UEV_H_ */
 

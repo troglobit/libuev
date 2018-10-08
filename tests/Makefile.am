@@ -8,6 +8,7 @@ TESTS          += complete
 TESTS          += cronrun
 TESTS          += signal
 TESTS          += timer
+TESTS          += event
 
 check_PROGRAMS  = $(TESTS)
 

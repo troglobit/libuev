@@ -66,6 +66,7 @@ typedef enum {
 	UEV_SIGNAL_TYPE,
 	UEV_TIMER_TYPE,
 	UEV_CRON_TYPE,
+	UEV_EVENT_TYPE,
 } uev_type_t;
 
 /* Event mask, used internally only. */

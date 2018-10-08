@@ -257,6 +257,9 @@ int uev_exit(uev_ctx_t *ctx)
 		case UEV_CRON_TYPE:
 			uev_timer_stop(w);
 			break;
+
+		case UEV_EVENT_TYPE:
+			uev_event_stop(w);
 			break;
 		}
 	}
@@ -396,6 +399,11 @@ int uev_run(uev_ctx_t *ctx, int flags)
 					w->u.c.when += w->u.c.interval;
 				if (!w->u.c.when)
 					uev_timer_stop(w);
+				break;
+
+			case UEV_EVENT_TYPE:
+				if (read(w->fd, &exp, sizeof(exp)) != sizeof(exp))
+					events = UEV_HUP;
 				break;
 			}
 

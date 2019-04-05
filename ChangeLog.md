@@ -4,6 +4,14 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
+[v2.3.0][] - 2019-04-xx
+-----------------------
+
+### Changes
+
+- Support for Linux eventfd, `uev_event_*()` see [API.md][] for on this
+
+
 [v2.2.0][] - 2018-10-04
 -----------------------
 

@@ -1,5 +1,5 @@
-libuEv | Simple event loop for Linux
-====================================
+µEv | Simple event loop for Linux
+==================================
 [![Travis Status][]][Travis] [![Coverity Status][]][Coverity Scan]
 
 
@@ -20,10 +20,10 @@ libuEv | Simple event loop for Linux
 Introduction
 ------------
 
-[libuEv][] is a simple event loop in the style of the more established
-[libevent][1], [libev][2] and the venerable [Xt(3)][3] event loop.  The
-*u* (micro) in the name refers to both the small feature set and the
-small size overhead impact of the library.
+[libuEv][] is a small event loop that wraps the Linux `epoll()` family
+of APIs.  It is similar to the more established [libevent][], [libev][]
+and the venerable [Xt(3)][] event loop.  The *µ* in the name refers to
+both its limited feature set and the size impact of the library.
 
 Failure mode changes introduced in v2.0 may affect users of v1.x, See
 the [ChangeLog][] for the full details.
@@ -34,34 +34,35 @@ The [API documentation](API.md) is available as a separate document.
 Example
 -------
 
-Notice below how watcher `UEV_ERROR` conditions must be handled by each
+Notice how watcher conditions like `UEV_ERROR` must be handled by each
 callback.  I/O watchers must also check for `UEV_HUP`.  Both errors are
 usually fatal, libuEv makes sure to stop each watcher before a callback
 runs, leaving it up to the callback to take appropriate action.
 
 ```C
+/* Set up a timer watcher to call cb() every other second */
 #include <stdio.h>
 #include <uev/uev.h>
 
 static void cb(uev_t *w, void *arg, int events)
 {
-    if (UEV_ERROR == events) {
-        puts("Problem with timer, attempting to restart.");
-        uev_timer_start(w);
-    }
-	puts("Every other second");
+        if (UEV_ERROR == events) {
+            puts("Problem with timer, attempting to restart.");
+            uev_timer_start(w);
+        }
+
+        puts("Every other second");
 }
 
 int main(void)
 {
-	uev_t timer;
-	uev_ctx_t ctx;
+        uev_ctx_t ctx;
+        uev_t timer;
 
-	uev_init(&ctx);
-	/* Set up a timer watcher to call cb() every other second */
-	uev_timer_init(&ctx, &timer, cb, NULL, 2 * 1000, 2 * 1000);
+        uev_init(&ctx);
+        uev_timer_init(&ctx, &timer, cb, NULL, 2 * 1000, 2 * 1000);
 
-	return uev_run(&ctx, 0);
+        return uev_run(&ctx, 0);
 }
 ```
 
@@ -82,36 +83,40 @@ sudo make install-strip
 sudo ldconfig
 ```
 
-The resulting .so file is ~14 kiB.
+The resulting .so library is ~23 kiB.
+
+To build from GIT sources; clone the repository and run the `autogen.sh`
+script.  This requires GNU `automake`, `autoconf` amd `libtool` to be
+installed on your system.  (If you build from a released tarball you do
+not need them.)
 
 
 Origin & References
 -------------------
 
-[libuEv][] originates from [LibUEvent][8] by [Flemming Madsen][], but
-with a rewritten and much cleaner API.  It is now more similar to the
-famous [libev][2] by [Mark Lehmann][].  Another library inspiring this
-project is [picoev][9] by [Oku Kazuho][].
+[libuEv][] is developed and maintained by [Joachim Nilsson][] on GitHub.
+It is primarily built for and developed on GNU/Linux systems, patches to
+support the BSD [kqueue][] interface are most welcome.
 
-[libuEv][] is developed and maintained by [Joachim Nilsson][].  It is
-built for and developed on GNU/Linux systems, patches to support *BSD
-and its [kqueue][] interface are most welcome.
+Originally based on [LibUEvent][] by [Flemming Madsen][], uEv has since
+evolved to support all of the Linux `epoll()` family APIs.  It is now
+more similar to the excellent [libev][] by [Mark Lehmann][], with some
+inspiration also from [picoev][] by [Oku Kazuho][].
 
 
-[1]: http://libevent.org
-[2]: http://software.schmorp.de/pkg/libev.html
-[3]: http://unix.com/man-page/All/3x/XtDispatchEvent
-[8]: http://code.google.com/p/libuevent/
-[9]: https://github.com/kazuho/picoev
 [ChangeLog]:       https://github.com/troglobit/libuev/blob/master/ChangeLog.md
 [Travis]:          https://travis-ci.org/troglobit/libuev
 [Travis Status]:   https://travis-ci.org/troglobit/libuev.png?branch=master
 [Coverity Scan]:   https://scan.coverity.com/projects/3846
 [Coverity Status]: https://scan.coverity.com/projects/3846/badge.svg
+[libevent]:        https://libevent.org
+[Xt(3)]:           https://unix.com/man-page/All/3x/XtDispatchEvent
+[LibUEvent]:       https://code.google.com/p/libuevent/
+[picoev]:          https://github.com/kazuho/picoev
+[libev]:           http://software.schmorp.de/pkg/libev.html
 [LibuEv]:          https://github.com/troglobit/libuev
 [kqueue]:          https://github.com/mheily/libkqueue
 [Oku Kazuho]:      https://github.com/kazuho
 [Mark Lehmann]:    http://software.schmorp.de
 [Joachim Nilsson]: http://troglobit.com
 [Flemming Madsen]: http://www.madsensoft.dk
-[Dave Zarzycki, Apple]: http://www.youtube.com/watch?v=cD_s6Fjdri8

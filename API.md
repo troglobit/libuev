@@ -314,16 +314,16 @@ static void joystick_cb(uev_t *w, void *arg, int events)
 
 int main(void)
 {
-    int fd;
-    uev_t watcher;
     uev_ctx_t ctx;
+    uev_t js;
+    int fd;
 
     fd = open("/dev/input/js0", O_RDONLY, O_NONBLOCK);
     if (fd < 0)
         errx(errno, "Cannot find a joystick attached.");
 
     uev_init(&ctx);
-    uev_io_init(&ctx, &watcher, joystick_cb, NULL, fd, UEV_READ);
+    uev_io_init(&ctx, &js, joystick_cb, NULL, fd, UEV_READ);
 
     puts("Starting, press Ctrl-C to exit.");
 

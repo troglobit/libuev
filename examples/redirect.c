@@ -47,9 +47,9 @@ void process_stdin(uev_t *w, void *arg, int events)
 
 int main(int argc, char **argv)
 {
-	int ret;
-	uev_t watcher;
 	uev_ctx_t ctx;
+	uev_t watcher;
+	int ret;
 
 	uev_init(&ctx);
 

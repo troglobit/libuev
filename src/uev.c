@@ -289,8 +289,8 @@ int uev_exit(uev_ctx_t *ctx)
  */
 int uev_run(uev_ctx_t *ctx, int flags)
 {
-	int timeout = -1;
 	uev_t *w;
+	int timeout = -1;
 
         if (!ctx || ctx->fd < 0) {
 		errno = EINVAL;
@@ -312,8 +312,8 @@ int uev_run(uev_ctx_t *ctx, int flags)
 	}
 
 	while (ctx->running && ctx->watchers) {
-		int i, nfds, rerun = 0;
 		struct epoll_event ee[UEV_MAX_EVENTS];
+		int i, nfds, rerun = 0;
 
 		/* Handle special case: `application < file.txt` */
 		if (ctx->workaround) {
@@ -349,9 +349,9 @@ int uev_run(uev_ctx_t *ctx, int flags)
 		}
 
 		for (i = 0; ctx->running && i < nfds; i++) {
-			uint64_t exp;
-			uint32_t events;
 			struct signalfd_siginfo fdsi;
+			uint32_t events;
+			uint64_t exp;
 			ssize_t sz = sizeof(fdsi);
 
 			w = (uev_t *)ee[i].data.ptr;

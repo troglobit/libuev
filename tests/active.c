@@ -38,8 +38,8 @@ static void cb(uev_t *w, void *arg, int events)
 
 int main(void)
 {
-	uev_ctx_t ctx;
 	struct timeval tomorrow;
+	uev_ctx_t ctx;
 
 	gettimeofday(&tomorrow, NULL);
 	tomorrow.tv_sec += 24 * 60 * 60;

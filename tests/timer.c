@@ -23,9 +23,9 @@ static void cb(uev_t *w, void *arg, int events)
 
 int main(void)
 {
-	int rc;
-	uev_t w;
 	uev_ctx_t ctx;
+	uev_t w;
+	int rc;
 
 	uev_init(&ctx);
 	uev_timer_init(&ctx, &w, cb, NULL, TIMEOUT * 1000, 0);

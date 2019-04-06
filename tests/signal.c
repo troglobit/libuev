@@ -81,8 +81,8 @@ static void sigchld_cb(uev_t *w, void *arg, int events)
 
 static void work_cb(uev_t *w, void *arg, int events)
 {
-	int    status = 0;
-	pid_t  pid;
+	pid_t pid;
+	int status = 0;
 
 	pid = fork();
 	if (-1 == pid)
@@ -113,8 +113,8 @@ static void exit_cb(uev_t *w, void *arg, int events)
 
 int main(void)
 {
-	uev_t sigsegv_watcher, sigchld_watcher, timeout_watcher, deadline_watcher;
 	uev_ctx_t ctx;
+	uev_t sigsegv_watcher, sigchld_watcher, timeout_watcher, deadline_watcher;
 
 	/* Initialize libuEv */
 	uev_init(&ctx);

@@ -33,8 +33,8 @@ struct timeval tv;
 
 static void cron_job(uev_t *w, void *arg, int events)
 {
-	static int laps = 3;
 	struct timeval now;
+	static int laps = 3;
 
 	if (UEV_ERROR == events)
 		fprintf(stderr, "cron watcher failed, ignoring ...\n");
@@ -54,10 +54,10 @@ static void cron_job(uev_t *w, void *arg, int events)
 
 int main(void)
 {
-	int rc;
-	uev_t cron_watcher;
 	uev_ctx_t ctx;
 	time_t when, interval;
+	uev_t cron;
+	int rc;
 
 	uev_init(&ctx);
 
@@ -68,7 +68,7 @@ int main(void)
 	printf("Expected cron %s", ctime(&when));
 
 	interval = INTERVAL;
-	uev_cron_init(&ctx, &cron_watcher, cron_job, NULL, when, interval);
+	uev_cron_init(&ctx, &cron, cron_job, NULL, when, interval);
 
 	rc = uev_run(&ctx, 0);
 	fail_unless(result == 0);

@@ -42,8 +42,8 @@
  */
 int uev_signal_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo)
 {
-	int fd;
 	sigset_t mask;
+	int fd;
 
 	if (!w || !ctx) {
 		errno = EINVAL;

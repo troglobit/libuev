@@ -8,7 +8,7 @@ based operating system, e.g.  Debian, Ubuntu, Linux Mint, etc.
 
 Recommended reading is the upstream README and API docs.
 
-     less /usr/share/doc/libuev-dev/README.md
-    zless /usr/share/doc/libuev-dev/API.md.gz
+    less /usr/share/doc/libuev-dev/README.md
+    less /usr/share/doc/libuev-dev/API.md
 
- -- Joachim Nilsson <troglobit@gmail.com>  Thu, 21 Sep 18:10, 2017
+ -- Joachim Nilsson <troglobit@gmail.com>  Sat, 6 Apr 13:18, 2019

@@ -14,26 +14,24 @@ Section: libdevel
 Architecture: any
 Depends: ${misc:Depends}, libuev (= ${binary:Version})
 Description: static library, header files, and docs for libuev
- Static library, header files, and documentation for libuev.
+ Static library, header files, and documentation for libuEv
  .
- libuEv is a simple event loop in the style of the more established
- libevent, libev and the venerable Xt(3) event loop. The u (micro) in the
- name refers to both the small feature set and the small size overhead
- impact of the library.
+ libuEv is a small event loop that wraps the Linux epoll() family of APIs.
+ It is similar to the more established libevent, libev and the venerable
+ Xt(3) event loop. The u (micro) in the name refers to both its limited
+ feature set and the small size impact of the library.
  .
- Experienced developers may appreciate that libuEv is built on top of
- modern Linux APIs: epoll, timerfd and signalfd. Note however, a certain
- amount of care is needed when dealing with APIs that employ signalfd.
+ Experienced developers may appreciate libuEv is built on top of modern
+ Linux APIs like epoll, eventfd, timerf, and signalfd.
 
 Package: libuev
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
-Description: Lightweight event loop library
- libuEv is a simple event loop in the style of the more established
- libevent, libev and the venerable Xt(3) event loop. The u (micro) in the
- name refers to both the small feature set and the small size overhead
- impact of the library.
+Description: Lightweight event loop library for Linux
+ libuEv is a small event loop that wraps the Linux epoll() family of APIs.
+ It is similar to the more established libevent, libev and the venerable
+ Xt(3) event loop. The u (micro) in the name refers to both its limited
+ feature set and the small size impact of the library.
  .
- Experienced developers may appreciate that libuEv is built on top of
- modern Linux APIs: epoll, timerfd and signalfd. Note however, a certain
- amount of care is needed when dealing with APIs that employ signalfd.
+ Experienced developers may appreciate libuEv is built on top of modern
+ Linux APIs like epoll, eventfd, timerfd, and signalfd.

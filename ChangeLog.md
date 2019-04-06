@@ -4,12 +4,12 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
-[v2.3.0][] - 2019-04-xx
+[v2.3.0][] - 2019-04-06
 -----------------------
 
 ### Changes
 
-- Support for Linux eventfd, `uev_event_*()` see [API.md][] for on this
+- Support for Linux eventfd, `uev_event_*()` see [API.md][] for details
 
 
 [v2.2.0][] - 2018-10-04
@@ -392,7 +392,8 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.2.0...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.3.0...HEAD
+[v2.3.0]: https://github.com/troglobit/libuev/compare/v2.2.0...v2.3.0
 [v2.2.0]: https://github.com/troglobit/libuev/compare/v2.1.3...v2.2.0
 [v2.1.3]: https://github.com/troglobit/libuev/compare/v2.1.2...v2.1.3
 [v2.1.2]: https://github.com/troglobit/libuev/compare/v2.1.1...v2.1.2

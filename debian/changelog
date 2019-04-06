@@ -1,3 +1,9 @@
+libuev (2.3.0) unstable; urgency=medium
+
+  * Support for Linux eventfd, uev_event_*(), see API.md for details.
+
+ -- Joachim Nilsson <troglobit@gmail.com>  Thu, 06 Apr 2019 13:09:31 +0200
+
 libuev (2.2.0) unstable; urgency=medium
 
   * Replaced BSD queue.h with own linked list implementation.  This means

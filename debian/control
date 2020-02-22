@@ -2,7 +2,7 @@ Source: libuev
 Section: libs
 Priority: optional
 Maintainer: Joachim Nilsson <troglobit@gmail.com>
-Build-Depends: dpkg-dev (>= 1.14.9), debhelper (>= 9), dh-autoreconf
+Build-Depends: debhelper (>= 10)
 Standards-Version: 4.3.0
 Homepage: https://github.com/troglobit/libuev/
 Vcs-Browser: https://github.com/troglobit/libuev/

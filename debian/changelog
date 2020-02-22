@@ -1,3 +1,10 @@
+libuev (2.3.1) stable; urgency=high
+
+  * Step library name to match SONAME, found by lintian
+  * Update Build-Depends to debhelper >= 10, drop other deps
+
+ -- Joachim Nilsson <troglobit@gmail.com>  Sat, 22 Feb 2020 15:50:06 +0100
+
 libuev (2.3.0) unstable; urgency=medium
 
   * Support for Linux eventfd, uev_event_*(), see API.md for details.

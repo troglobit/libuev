@@ -3,6 +3,13 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+[v2.3.1][] - 2020-02-22
+-----------------------
+
+### Fixes
+
+- Debian packaging fixes only.
+
 
 [v2.3.0][] - 2019-04-06
 -----------------------

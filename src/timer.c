@@ -49,18 +49,24 @@ static void msec2tspec(int msec, struct timespec *ts)
  * @param timeout  Timeout in milliseconds before @param cb is called
  * @param period   For periodic timers this is the period time that @param timeout is reset to
  *
- * For one-shot timers you set @param period to zero and only use @param
- * timeout.  For periodic timers you likely set @param timeout to either
- * zero, to call it as soon as the event loop starts, or to the same
- * value as @param period.  When the timer expires, the @param cb
- * is called, with the optional @param arg argument.  A non-periodic
- * timer ends its life there, while a periodic task's @param timeout is
- * reset to the @param period and restarted.
+ * This function creates, and optionally starts, a timer watcher.  There
+ * are two types of timers: one-shot and periodic.
+ *
+ * One-shot timers only use @param timeout, @param period is zero.
+ *
+ * Periodic timers can either start their life disabled, with @param
+ * timeout set to zero, or with the same value as @param period.
+ *
+ * When the timeout expires, for either of the two types, @param cb is
+ * called, with the optional @param arg argument.  A one-shot timer ends
+ * its life there, while a periodic task's @param timeout is reset to
+ * the @param period and restarted.
  *
  * A timer is automatically started if the event loop is already
  * running, otherwise it is kept on hold until triggered by calling
  * uev_run().
  *
+ * @see uev_timer_set
  * @return POSIX OK(0) or non-zero with @param errno set on error.
  */
 int uev_timer_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeout, int period)

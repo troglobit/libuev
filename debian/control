@@ -9,7 +9,7 @@ Vcs-Browser: https://github.com/troglobit/libuev/
 Vcs-Git: https://github.com/troglobit/libuev.git
 
 Package: libuev-dev
-Priority: extra
+Priority: optional
 Section: libdevel
 Architecture: any
 Depends: ${misc:Depends}, libuev2 (= ${binary:Version})

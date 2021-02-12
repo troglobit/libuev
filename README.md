@@ -94,7 +94,7 @@ not need them.)
 Origin & References
 -------------------
 
-[libuEv][] is developed and maintained by [Joachim Nilsson][] on GitHub.
+[libuEv][] is developed and maintained by [Joachim Wiberg][] on GitHub.
 It is primarily built for and developed on GNU/Linux systems, patches to
 support the BSD [kqueue][] interface are most welcome.
 
@@ -118,5 +118,5 @@ inspiration also from [picoev][] by [Oku Kazuho][].
 [kqueue]:          https://github.com/mheily/libkqueue
 [Oku Kazuho]:      https://github.com/kazuho
 [Mark Lehmann]:    http://software.schmorp.de
-[Joachim Nilsson]: http://troglobit.com
+[Joachim Wiberg]: http://troglobit.com
 [Flemming Madsen]: http://www.madsensoft.dk

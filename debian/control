@@ -1,7 +1,7 @@
 Source: libuev
 Section: libs
 Priority: optional
-Maintainer: Joachim Nilsson <troglobit@gmail.com>
+Maintainer: Joachim Wiberg <troglobit@gmail.com>
 Build-Depends: debhelper (>= 10)
 Standards-Version: 4.3.0
 Homepage: https://github.com/troglobit/libuev/

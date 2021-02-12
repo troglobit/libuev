@@ -3,12 +3,24 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+[v2.3.2][] - 2021-02-12
+-----------------------
+
+### Changes
+- Copyright updates, including LICENSE file, year + author last name
+- Add tar.gz archives to distribution
+- Enable .sha256 checksums of all tarballs
+
+### Fixes
+- Debian packaging fixes only
+
+
 [v2.3.1][] - 2020-02-22
 -----------------------
 
 ### Fixes
 
-- Debian packaging fixes only.
+- Debian packaging fixes only
 
 
 [v2.3.0][] - 2019-04-06
@@ -399,7 +411,9 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.3.0...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.3.2...HEAD
+[v2.3.2]: https://github.com/troglobit/libuev/compare/v2.3.1...v2.3.2
+[v2.3.1]: https://github.com/troglobit/libuev/compare/v2.3.0...v2.3.1
 [v2.3.0]: https://github.com/troglobit/libuev/compare/v2.2.0...v2.3.0
 [v2.2.0]: https://github.com/troglobit/libuev/compare/v2.1.3...v2.2.0
 [v2.1.3]: https://github.com/troglobit/libuev/compare/v2.1.2...v2.1.3

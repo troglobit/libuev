@@ -1,3 +1,10 @@
+libuev (2.3.2) stable; urgency=low
+
+  * Copyright updates, including LICENSE file, year + author last name
+  * Debian packaging fixes
+
+ -- Joachim Wiberg <troglobit@gmail.com>  Fri, 12 Feb 2021 09:36:39 +0100
+
 libuev (2.3.1) stable; urgency=high
 
   * Step library name to match SONAME, found by lintian

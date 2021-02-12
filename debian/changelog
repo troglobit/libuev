@@ -1,7 +1,7 @@
 libuev (2.3.2) stable; urgency=low
 
   * Copyright updates, including LICENSE file, year + author last name
-  * Debian packaging fixes
+  * Debian packaging fixes, including a .symbols file
 
  -- Joachim Wiberg <troglobit@gmail.com>  Fri, 12 Feb 2021 09:36:39 +0100
 

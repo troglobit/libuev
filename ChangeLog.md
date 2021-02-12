@@ -9,7 +9,7 @@ All notable changes to the project are documented in this file.
 ### Changes
 - Copyright updates, including LICENSE file, year + author last name
 - Add tar.gz archives to distribution
-- Enable .sha256 checksums of all tarballs
+- Enable .sha256 checksums for all tarballs
 
 ### Fixes
 - Debian packaging fixes only

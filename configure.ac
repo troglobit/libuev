@@ -1,4 +1,4 @@
-AC_INIT(libuev, 2.3.1, https://github.com/troglobit/libuev/issues)
+AC_INIT(libuev, 2.3.2, https://github.com/troglobit/libuev/issues)
 AC_CONFIG_AUX_DIR(aux)
 AM_INIT_AUTOMAKE([1.11 foreign dist-xz])
 AM_SILENT_RULES([yes])

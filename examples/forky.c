@@ -1,4 +1,4 @@
-/* Example of how to handle signal, in this case Ctrl-C
+/* Example with fork and signals, in this case Ctrl-C, from terminal
  * 
  * A common problem for users of libuEV is how to combine it with the
  * traditional aspects of UNIX.  Since libuEV is just a wrapper for
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 	else
 		robot = "Pusher";
 
-	setsid();
+	setsid();			/* puts child in new process group */
 	uev_init(&ctx);
 
 	/* example worker, a timer callback */

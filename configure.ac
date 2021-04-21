@@ -4,7 +4,7 @@ AM_INIT_AUTOMAKE([1.11 foreign dist-xz])
 AM_SILENT_RULES([yes])
 
 AC_CONFIG_SRCDIR(src/uev.c)
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES([Makefile src/libuev.pc src/Makefile examples/Makefile tests/Makefile])
 AC_CONFIG_MACRO_DIR([m4])
 

@@ -78,7 +78,7 @@ the library works.
 ```sh
 ./configure
 make -j5
-make test
+make check
 sudo make install-strip
 sudo ldconfig
 ```

@@ -369,7 +369,9 @@ int uev_run(uev_ctx_t *ctx, int flags)
 						uev_signal_stop(w);
 						events = UEV_ERROR;
 					}
-				}
+					memset(&w->siginfo, 0, sizeof(w->siginfo));
+				} else
+					w->siginfo = fdsi;
 				break;
 
 			case UEV_TIMER_TYPE:

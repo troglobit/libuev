@@ -67,14 +67,20 @@ static int callback(arg_t *arg, int event, void *foo)
 
 static void sigsegv_cb(uev_t *w, void *arg, int events)
 {
+	printf("Got SIGSEGV (%d) from PID %d\n", w->siginfo.ssi_signo,
+	       w->siginfo.ssi_pid);
 	warnx("PID %d caused segfault.", getpid());
 	exit(-1);
 }
 
 static void sigchld_cb(uev_t *w, void *arg, int events)
 {
-	pid_t pid = waitpid(-1, NULL, WNOHANG);
+	pid_t pid;
 
+	printf("Got SIGCHLD (%d) from PID %d\n",
+	       w->siginfo.ssi_signo, w->siginfo.ssi_pid);
+
+	pid = waitpid(-1, NULL, WNOHANG);
 	if (-1 != pid)
 		warnx("PID %d exited, bye.", pid);
 }

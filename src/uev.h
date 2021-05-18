@@ -61,6 +61,9 @@ typedef struct uev {
 	int             signo;
 	int             fd;
 	uev_ctx_t      *ctx;
+
+	/* Extra data for certain watcher types */
+	struct signalfd_siginfo siginfo;
 } uev_t;
 
 /*

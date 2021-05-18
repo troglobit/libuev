@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <sys/epoll.h>
+#include <sys/signalfd.h>
 
 /*
  * List functions.

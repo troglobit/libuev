@@ -122,7 +122,10 @@ Here is a signal example:
 void cleanup_exit(uev_t *w, void *arg, int events)
 {
     if (UEV_ERROR == events)
-	    puts("Ignoring signal watcher error ...");
+        puts("Ignoring signal watcher error ...");
+    else
+        printf("Got signal (signo %d) from PID %d\n",
+               w->siginfo.ssi_signo, w->siginfo.ssi_pid);
 
     /* Graceful exit, with optional cleanup ... */
     uev_exit(w->ctx);

@@ -1,3 +1,9 @@
+libuev (2.4.0) unstable; urgency=medium
+
+  * Add 'struct signalfd_siginfo' to uev_t, valid for signal watchers
+
+ -- Joachim Wiberg <troglobit@gmail.com>  Wed, 26 May 2021 23:03:02 +0200
+
 libuev (2.3.2) stable; urgency=low
 
   * Copyright updates, including LICENSE file, year + author last name

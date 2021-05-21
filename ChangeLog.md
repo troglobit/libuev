@@ -3,6 +3,17 @@ Change Log
 
 All notable changes to the project are documented in this file.
 
+
+[v2.4.0][UNRELEASED]
+--------------------
+
+Please note, this release is a major ABI bump due to change in the
+`uev_t` which requires recompiling all programs that use libuEv.
+
+### Changes
+- Add `struct signalfd_siginfo` to `uev_t`, valid for signal watchers
+
+
 [v2.3.2][] - 2021-02-12
 -----------------------
 

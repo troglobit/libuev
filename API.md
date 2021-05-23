@@ -291,6 +291,7 @@ static void joystick_cb(uev_t *w, void *arg, int events)
         /* Possibly joystick was unplugged */
         warnx("Spurious problem with the joystick watcher, restarting.");
         uev_io_start(w);
+        return;
     }
 
     cnt = read(w->fd, &e, sizeof(e));

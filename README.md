@@ -49,6 +49,7 @@ static void cb(uev_t *w, void *arg, int events)
         if (UEV_ERROR == events) {
             puts("Problem with timer, attempting to restart.");
             uev_timer_start(w);
+            return;
         }
 
         puts("Every other second");

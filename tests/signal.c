@@ -36,6 +36,7 @@
 #define DO_SEGFAULT 1
 
 typedef struct {
+	pid_t pid;
 	int magic;
 	void *ptr;
 } arg_t;
@@ -48,10 +49,10 @@ static arg_t arg = {
 
 static int callback(arg_t *arg, int event, void *foo)
 {
-	arg_t *event_arg  = (arg_t *)foo;
+	arg_t *event_arg = (arg_t *)foo;
 
-	printf("child: got magic %d and ptr %p, with event %d and event arg %p\n",
-	       arg->magic, arg->ptr, event, event_arg);
+	printf("child[%d] magic %d ptr %p, event %d event arg %p\n",
+	       getpid(), arg->magic, arg->ptr, event, event_arg);
 
 	arg->magic = 7331;
 	arg->ptr   = &event_arg;
@@ -65,50 +66,55 @@ static int callback(arg_t *arg, int event, void *foo)
 	return 42;
 }
 
-static void sigsegv_cb(uev_t *w, void *arg, int events)
+static void sig_cb(uev_t *w, void *cbarg, int events)
 {
-	printf("Got SIGSEGV (%d) from PID %d\n", w->siginfo.ssi_signo,
-	       w->siginfo.ssi_pid);
-	warnx("PID %d caused segfault.", getpid());
-	exit(-1);
+	arg_t *arg = (arg_t *)cbarg;
+
+	switch (w->signo) {
+	case SIGSEGV:
+//		printf("Got SIGSEGV (%d) from PID %d\n", w->siginfo.ssi_signo, w->siginfo.ssi_pid);
+		warnx("PID %d caused segfault.", getpid());
+		exit(-1);
+		break;
+
+	case SIGCHLD:
+		if (arg->pid != w->siginfo.ssi_pid)
+			err(1, "wrong child exited pid %d vs ssi_pid %d",
+			    arg->pid, w->siginfo.ssi_pid);
+
+		warnx("Got SIGCHLD (%d), PID %d exited, bye.", w->siginfo.ssi_signo, arg->pid);
+		break;
+
+	default:
+		err(1, "unhandled signal %d", w->siginfo.ssi_signo);
+	}
 }
 
-static void sigchld_cb(uev_t *w, void *arg, int events)
+static void work_cb(uev_t *w, void *cbarg, int events)
 {
+	arg_t *arg = (arg_t *)cbarg;
 	pid_t pid;
-
-	printf("Got SIGCHLD (%d) from PID %d\n",
-	       w->siginfo.ssi_signo, w->siginfo.ssi_pid);
-
-	pid = waitpid(-1, NULL, WNOHANG);
-	if (-1 != pid)
-		warnx("PID %d exited, bye.", pid);
-}
-
-static void work_cb(uev_t *w, void *arg, int events)
-{
-	pid_t pid;
-	int status = 0;
+	int rc = 0;
 
 	pid = fork();
 	if (-1 == pid)
 		err(1, "fork");
-	if (!pid) {
-		status = callback(arg, 6137, NULL);
-		exit(status);
-	}
+	if (!pid)
+		exit(callback(arg, 6137, NULL));
 
-	if (waitpid(pid, &status, 0) == -1)
+	arg->pid = pid;
+	pid = waitpid(pid, &rc, 0);
+	if (pid == -1)
 		err(1, "waitpid");
 
-	if (WIFEXITED(status))
-		printf("Child exited normally => %d\n", WEXITSTATUS(status));
-	else if (WCOREDUMP(status))
-		printf("Child crashed! %s\n", DO_SEGFAULT
-		       ? "As expected, everything is OK."
-		       : "This should not happen!");
+	if (WIFEXITED(rc))
+		printf("Child %d exited normally => %d\n", pid, WEXITSTATUS(rc));
+	else if (WCOREDUMP(rc))
+		printf("Child %d crashed%s\n", pid, DO_SEGFAULT
+		       ? ", as expected, everything is OK."
+		       : ".  This should not happen!");
 	else
-		printf("Child did not exit normally!\n");
+		printf("Child %d did not exit normally!\n", pid);
 }
 
 static void exit_cb(uev_t *w, void *arg, int events)
@@ -119,17 +125,17 @@ static void exit_cb(uev_t *w, void *arg, int events)
 
 int main(void)
 {
+	uev_t deadline, sigsegv, sigchld, timeout;
 	uev_ctx_t ctx;
-	uev_t sigsegv_watcher, sigchld_watcher, timeout_watcher, deadline_watcher;
 
 	/* Initialize libuEv */
 	uev_init(&ctx);
 
 	/* Setup callbacks */
-	uev_signal_init(&ctx, &sigsegv_watcher, sigsegv_cb, NULL, SIGSEGV);
-	uev_signal_init(&ctx, &sigchld_watcher, sigchld_cb, NULL, SIGCHLD);
-	uev_timer_init(&ctx, &timeout_watcher, work_cb, &arg, 400, 0);
-	uev_timer_init(&ctx, &deadline_watcher, exit_cb, NULL, 1000, 0);
+	uev_signal_init(&ctx, &sigsegv, sig_cb, NULL, SIGSEGV);
+	uev_signal_init(&ctx, &sigchld, sig_cb, &arg, SIGCHLD);
+	uev_timer_init(&ctx, &timeout, work_cb, &arg, 400, 0);
+	uev_timer_init(&ctx, &deadline, exit_cb, NULL, 1000, 0);
 
 	/* Start event loop */
 	return uev_run(&ctx, 0);

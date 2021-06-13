@@ -4,13 +4,13 @@
 
 
 * [Introduction](#introduction)
-* [API](API.md#overview)
-  * [Create an Event Context](API.md#create-an-event-context)
-  * [Register an Event Watcher](API.md#register-an-event-watcher)
-  * [Start Event Loop](API.md#start-event-loop)
-  * [Summary](API.md#summary)
-* [Using -luev](API.md#using--luev)
-* [Joystick Example](API.md#joystick-example)
+* [API](doc/API.md#overview)
+  * [Create an Event Context](doc/API.md#create-an-event-context)
+  * [Register an Event Watcher](doc/API.md#register-an-event-watcher)
+  * [Start Event Loop](doc/API.md#start-event-loop)
+  * [Summary](doc/API.md#summary)
+* [Using -luev](doc/API.md#using--luev)
+* [Joystick Example](doc/API.md#joystick-example)
 * [Build & Install](#build--install)
 * [Origin & References](#origin--references)
 
@@ -28,7 +28,7 @@ both its limited feature set and the size impact of the library.
 Failure mode changes introduced in v2.0 may affect users of v1.x, See
 the [ChangeLog][] for the full details.
 
-The [API documentation](API.md) is available as a separate document.
+The [API documentation](doc/API.md) is available as a separate document.
 
 
 Example

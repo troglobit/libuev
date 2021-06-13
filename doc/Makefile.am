@@ -1,5 +1,6 @@
-dist_doc_DATA = API.md
-EXTRA_DIST    = Doxyfile.in
+dist_doc_DATA  = API.md
+EXTRA_DIST     = Doxyfile.in
+DISTCLEANFILES = libuev.tag
 
 if ENABLE_HTML
 pkghtmldir     = $(docdir)/html

@@ -25,6 +25,10 @@
 #include <errno.h>
 #include "uev.h"
 
+/**
+ * Descriptor backend, capable of watching files, sockets, pipes, etc.
+ * @file io.c
+ */
 
 /**
  * Create an I/O watcher
@@ -33,9 +37,9 @@
  * @param cb      I/O callback
  * @param arg     Optional callback argument
  * @param fd      File descriptor to watch, or -1 to register an empty watcher
- * @param events  Events to watch for: %UEV_READ, %UEV_WRITE, %UEV_EDGE, %UEV_ONESHOW
+ * @param events  Events to watch for: ::UEV_READ, ::UEV_WRITE, ::UEV_EDGE, ::UEV_ONESHOT
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_io_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int events)
 {
@@ -54,9 +58,9 @@ int uev_io_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int fd, int e
  * Reset an I/O watcher
  * @param w       Pointer to an uev_t watcher
  * @param fd      New file descriptor to monitor
- * @param events  Requested events to watch for, a mask of %UEV_READ and %UEV_WRITE
+ * @param events  Requested events to watch for, a mask of ::UEV_READ and ::UEV_WRITE
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_io_set(uev_t *w, int fd, int events)
 {
@@ -73,7 +77,7 @@ int uev_io_set(uev_t *w, int fd, int events)
  * Start an I/O watcher
  * @param w  Watcher to start (again)
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_io_start(uev_t *w)
 {
@@ -84,7 +88,7 @@ int uev_io_start(uev_t *w)
  * Stop an I/O watcher
  * @param w  Watcher to stop
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_io_stop(uev_t *w)
 {

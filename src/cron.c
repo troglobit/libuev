@@ -37,6 +37,10 @@
 #define TFD_SETTIME_FLAGS (TFD_TIMER_ABSTIME | TFD_TIMER_CANCEL_ON_SET)
 #endif
 
+/**
+ * At/Cron like timers.
+ * @file cron.c
+ */
 
 /**
  * Create and start an at/cron job watcher
@@ -44,20 +48,20 @@
  * @param w        Pointer to an uev_t watcher
  * @param cb       Callback function for cron job
  * @param arg      Optional callback argument
- * @param when     First point in time to call @param cb
+ * @param when     First point in time to call @p cb
  * @param interval For an at job this is zero, for cron the offset interval
  *
- * For at jobs set @param interval to zero and only use @param when.  For
- * cron jobs, set @param interval to the offset.  E.g., if the job should
- * run every five minutes set the @param tm_min of struct tm to five.
+ * For at jobs set @p interval to zero and only use @p when.  For
+ * cron jobs, set @p interval to the offset.  E.g., if the job should
+ * run every five minutes set the @p tm_min of struct tm to five.
  *
  * Use mktime() to create the time_t arguments.  The special value zero
- * may be used for @param when to denote 'now', where 'now' is when the
+ * may be used for @p when to denote 'now', where 'now' is when the
  * event loop is started.  You can also treat time_t simply as a signed
- * integer.  E.g., set @param interval to 3600 to create a cron job that
+ * integer.  E.g., set @p interval to 3600 to create a cron job that
  * runs every hour.
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_cron_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, time_t when, time_t interval)
 {
@@ -88,10 +92,10 @@ int uev_cron_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, time_t when
 /**
  * Reset an at/cron job watcher
  * @param w        Watcher to reset
- * @param when     First point in time to call @param cb
+ * @param when     First point in time to call @p cb
  * @param interval For an at job this is zero, for cron the offset interval
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_cron_set(uev_t *w, time_t when, time_t interval)
 {
@@ -136,7 +140,7 @@ int uev_cron_set(uev_t *w, time_t when, time_t interval)
  * Start a stopped at/cron job watcher
  * @param w  Watcher to start (again)
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_cron_start(uev_t *w)
 {
@@ -147,7 +151,7 @@ int uev_cron_start(uev_t *w)
  * Stop and unregister an at/cron job watcher
  * @param w  Watcher to stop
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_cron_stop(uev_t *w)
 {

@@ -30,13 +30,18 @@
 
 
 /**
+ * Linux [eventfd(2)](https://man7.org/linux/man-pages/man2/eventfd.2.html).
+ * @file event.c
+ */
+
+/**
  * Create a generic event watcher
  * @param ctx    A valid libuEv context
  * @param w      Pointer to an uev_t watcher
  * @param cb     Callback when an event is posted
  * @param arg    Optional callback argument
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_event_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg)
 {
@@ -60,7 +65,7 @@ int uev_event_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg)
  * Post a generic event
  * @param w  Watcher to post to
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_event_post(uev_t *w)
 {
@@ -82,7 +87,7 @@ int uev_event_post(uev_t *w)
  * Stop a generic event watcher
  * @param w  Watcher to stop
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_event_stop(uev_t *w)
 {

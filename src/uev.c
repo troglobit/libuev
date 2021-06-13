@@ -22,6 +22,11 @@
  * THE SOFTWARE.
  */
 
+/** Micro event loop library
+ * @file uev.c
+ *
+ */
+
 #include <errno.h>
 #include <fcntl.h>		/* O_CLOEXEC */
 #include <string.h>		/* memset() */
@@ -178,8 +183,8 @@ int _uev_watcher_rearm(uev_t *w)
  * Create an event loop context
  * @param ctx  Pointer to an uev_ctx_t context to be initialized
  *
- * This function calls @func uev_init1() with @param maxevents set to
- * @const UEV_MAX_EVENTS.
+ * This function calls uev_init1() with @p maxevents set to
+ * ::UEV_MAX_EVENTS
  *
  * @return POSIX OK(0) on success, or non-zero on error.
  */
@@ -190,22 +195,23 @@ int uev_init(uev_ctx_t *ctx)
 
 /**
  * Create an event loop context
- * @param ctx  Pointer to an uev_ctx_t context to be initialized
+ * @param ctx       Pointer to an uev_ctx_t context to be initialized
  * @param maxevents Maximum number of events in event cache
  *
- * This function is the same as @func uev_init() except for the
- * @param maxevents argument, which controls the number of events
- * in the event cache returned to the main loop.
+ * This function is the same as uev_init() except for the @p maxevents
+ * argument, which controls the number of events in the event cache
+ * returned to the main loop.
  *
  * In cases where you have multiple events pending in the cache and some
  * event may cause later ones, already sent by the kernel to userspace,
  * to be deleted the pointer returned to the event loop for this later
  * event may be deleted.
  *
- * There are two ways around this (accessing deleted memory); 1) use
- * this function to initialize your event loop and set @param maxevents
- * to 1, 2) use a free list in you application that you garbage collect
- * at intervals relevant to your application.
+ * There are two ways around this (accessing deleted memory):
+ *   -# use this function to initialize your event loop and set
+ *      @p maxevents to 1
+ *   -# use a free list in you application that you garbage collect
+ *      at intervals relevant to your application
  *
  * @return POSIX OK(0) on success, or non-zero on error.
  */
@@ -226,7 +232,7 @@ int uev_init1(uev_ctx_t *ctx, int maxevents)
  * Terminate the event loop
  * @param ctx  A valid libuEv context
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_exit(uev_ctx_t *ctx)
 {
@@ -276,11 +282,11 @@ int uev_exit(uev_ctx_t *ctx)
 /**
  * Start the event loop
  * @param ctx    A valid libuEv context
- * @param flags  A mask of %UEV_ONCE and %UEV_NONBLOCK, or zero
+ * @param flags  A mask of ::UEV_ONCE and ::UEV_NONBLOCK, or zero
  *
- * With @flags set to %UEV_ONCE the event loop returns after the first
+ * With @p flags set to ::UEV_ONCE the event loop returns after the first
  * event has been served, useful for instance to set a timeout on a file
- * descriptor.  If @flags also has the %UEV_NONBLOCK flag set the event
+ * descriptor.  If @p flags also has the ::UEV_NONBLOCK flag set the event
  * loop will return immediately if no event is pending, useful when run
  * inside another event loop.
  *

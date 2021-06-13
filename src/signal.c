@@ -29,6 +29,15 @@
 
 #include "uev.h"
 
+/**
+ * @file signal.c
+ * Linux [signalfd(2)](https://man7.org/linux/man-pages/man2/signalfd.2.html).
+ *
+ * Notice how uev::siginfo returns a `struct signalfd_siginfo` with useful data
+ * on the sender of the signal, this information is only available to signal
+ * callbacks.
+ */
+
 
 /**
  * Create a signal watcher
@@ -38,7 +47,7 @@
  * @param arg    Optional callback argument
  * @param signo  Signal to watch for
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_signal_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo)
 {
@@ -74,7 +83,7 @@ int uev_signal_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo
  * @param w      Watcher to reset
  * @param signo  New signal to watch for
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_signal_set(uev_t *w, int signo)
 {
@@ -114,7 +123,7 @@ int uev_signal_set(uev_t *w, int signo)
  * Start a stopped signal watcher
  * @param w  Watcher to start (again)
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_signal_start(uev_t *w)
 {
@@ -133,7 +142,7 @@ int uev_signal_start(uev_t *w)
  * Stop a signal watcher
  * @param w  Watcher to stop
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_signal_stop(uev_t *w)
 {

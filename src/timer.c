@@ -28,6 +28,11 @@
 
 #include "uev.h"
 
+/**
+ * Monotonic timers, Linux [timerfd(2)](https://man7.org/linux/man-pages/man2/timerfd_create.2.html)
+ * @file timer.c
+ */
+
 
 static void msec2tspec(int msec, struct timespec *ts)
 {
@@ -46,28 +51,28 @@ static void msec2tspec(int msec, struct timespec *ts)
  * @param w        Pointer to an uev_t watcher
  * @param cb       Callback function
  * @param arg      Optional callback argument
- * @param timeout  Timeout in milliseconds before @param cb is called
- * @param period   For periodic timers this is the period time that @param timeout is reset to
+ * @param timeout  Timeout in milliseconds before @p cb is called
+ * @param period   For periodic timers this is the period time that @p timeout is reset to
  *
  * This function creates, and optionally starts, a timer watcher.  There
  * are two types of timers: one-shot and periodic.
  *
- * One-shot timers only use @param timeout, @param period is zero.
+ * One-shot timers only use @p timeout, @p period is zero.
  *
- * Periodic timers can either start their life disabled, with @param
- * timeout set to zero, or with the same value as @param period.
+ * Periodic timers can either start their life disabled, with @p timeout
+ * set to zero, or with the same value as @p period.
  *
- * When the timeout expires, for either of the two types, @param cb is
- * called, with the optional @param arg argument.  A one-shot timer ends
- * its life there, while a periodic task's @param timeout is reset to
- * the @param period and restarted.
+ * When the timeout expires, for either of the two types, @p cb is
+ * called, with the optional @p arg argument.  A one-shot timer ends its
+ * life there, while a periodic task's @p timeout is reset to the @p
+ * period and restarted.
  *
  * A timer is automatically started if the event loop is already
  * running, otherwise it is kept on hold until triggered by calling
  * uev_run().
  *
  * @see uev_timer_set
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_timer_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeout, int period)
 {
@@ -99,14 +104,14 @@ int uev_timer_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeou
 /**
  * Reset a timer
  * @param w        Watcher to reset
- * @param timeout  Timeout in milliseconds before @param cb is called, zero disarms timer
- * @param period   For periodic timers this is the period time that @param timeout is reset to
+ * @param timeout  Timeout in milliseconds before @p cb is called, zero disarms timer
+ * @param period   For periodic timers this is the period time that @p timeout is reset to
  *
- * Note, the @param timeout value must be non-zero.  Setting it to zero
- * will disarm the timer.  This is the underlying Linux function @func
- * timerfd_settimer() which has this behavior.
+ * Note, the @p timeout value must be non-zero.  Setting it to zero
+ * disarms the timer.  This is the behavior of the underlying Linux
+ * function [timerfd_settimer(2)](https://man7.org/linux/man-pages/man2/timerfd_settime.2.html)
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_timer_set(uev_t *w, int timeout, int period)
 {
@@ -150,7 +155,7 @@ int uev_timer_set(uev_t *w, int timeout, int period)
  * Start a stopped timer watcher
  * @param w  Watcher to start (again)
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_timer_start(uev_t *w)
 {
@@ -169,7 +174,7 @@ int uev_timer_start(uev_t *w)
  * Stop and unregister a timer watcher
  * @param w  Watcher to stop
  *
- * @return POSIX OK(0) or non-zero with @param errno set on error.
+ * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
 int uev_timer_stop(uev_t *w)
 {

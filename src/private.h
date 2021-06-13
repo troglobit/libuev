@@ -74,14 +74,14 @@ typedef enum {
 #define UEV_EVENT_MASK  (UEV_ERROR | UEV_READ | UEV_WRITE | UEV_PRI |	\
 			 UEV_RDHUP | UEV_HUP  | UEV_EDGE  | UEV_ONESHOT)
 
-/* Main libuEv context type */
-typedef struct {
+/* Main libuEv context type, internal use only! */
+struct uev_ctx {
 	int             running;
 	int             fd;	    /* For epoll() */
 	int             maxevents;  /* For epoll() */
 	struct uev     *watchers;
 	uint32_t        workaround; /* For workarounds, e.g. redirected stdin */
-} uev_ctx_t;
+};
 
 /* Forward declare due to dependencys, don't try this at home kids. */
 struct uev;
@@ -116,7 +116,7 @@ struct uev;
 	uev_type_t
 
 /* Internal API for dealing with generic watchers */
-int _uev_watcher_init  (uev_ctx_t *ctx, struct uev *w, uev_type_t type,
+int _uev_watcher_init  (struct uev_ctx *ctx, struct uev *w, uev_type_t type,
 			void (*cb)(struct uev *, void *, int), void *arg,
 			int fd, int events);
 int _uev_watcher_start (struct uev *w);

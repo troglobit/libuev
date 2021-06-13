@@ -17,6 +17,10 @@ env:
    - secure: "ikQcWMCLFoxq0+wMiqrNT5HRn0d4e3AxuF8VzNUNFrk6jUvHIufC/OKvr8VWPTjCaAQXZjWfdQAAARUXzJV10WZ7xpiv5qt4bt26Qih2AwMPMJeUOYrqXgQqhTPBp05iLYpo4ybICteXRI3zKKUA1wkdDC0jyu3rl+Fbveekbe0="
 
 addons:
+  apt:
+    packages:
+      - tree
+      - doxygen
   coverity_scan:
     project:
       name: "troglobit/libuev"
@@ -28,7 +32,9 @@ addons:
 
 script:
   - ./autogen.sh
-  - ./configure --disable-silent-rules --enable-examples
+  - ./configure --prefix= --disable-silent-rules --enable-examples
   - make clean
   - make -j5
   - make check
+  - DESTDIR=/tmp/tok make install-strip
+  - tree /tmp/tok

@@ -1,5 +1,5 @@
 dist_doc_DATA = API.md
-EXTRA_DIST    = Doxyfile
+EXTRA_DIST    = Doxyfile.in
 
 if ENABLE_HTML
 pkghtmldir     = $(docdir)/html

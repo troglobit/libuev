@@ -8,6 +8,19 @@ if ENABLE_EXAMPLES
 SUBDIRS            += examples
 endif
 
+if ENABLE_DOXYGEN
+SUBDIRS            += doc
+.PHONY: doc
+doc:
+	$(MAKE) -C @top_builddir@/doc $@
+
+## The distribution should include man pages, which are generated
+dist-hook: doc
+else
+doc:
+	@echo "Doxygen documentation (html + man) disabled, skipping ..."
+endif
+
 ## Check if tagged in git
 release-hook:
 	@if [ ! `git tag | grep $(PACKAGE_VERSION)` ]; then				\

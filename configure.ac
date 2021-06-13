@@ -19,4 +19,21 @@ AC_ARG_ENABLE([examples],
 	[], [enable_examples=no])
 AM_CONDITIONAL([ENABLE_EXAMPLES], [test "$enable_examples" = yes])
 
+# Check for Doxygen and enable its features.
+# For details, see m4/ax_prog_doxygen.m4 and
+# http://www.bioinf.uni-freiburg.de/~mmann/HowTo/automake.html#doxygenSupport
+DX_DOXYGEN_FEATURE(ON)
+DX_DOT_FEATURE(OFF)
+DX_CHI_FEATURE(OFF)
+DX_RTF_FEATURE(OFF)
+DX_XML_FEATURE(OFF)
+DX_PDF_FEATURE(OFF)
+DX_PS_FEATURE(OFF)
+DX_CHM_FEATURE(OFF)
+DX_HTML_FEATURE(ON)
+DX_MAN_FEATURE(OFF)
+DX_INIT_DOXYGEN(${PACKAGE_NAME}, [${top_builddir}/doc/Doxyfile], [${top_builddir}/doc])
+AM_CONDITIONAL(ENABLE_DOXYGEN,[test "x${DX_FLAG_doc}" = x1])
+AM_CONDITIONAL(ENABLE_HTML,[test "x${DX_FLAG_html}" = x1])
+
 AC_OUTPUT

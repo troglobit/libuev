@@ -1,6 +1,6 @@
 µEv | Simple event loop for Linux
 ==================================
-[![GitHub Status][]][GitHub] [![Coverity Status][]][Coverity Scan]
+[![License Badge][]][License] [![GitHub Status][]][GitHub] [![Coverity Status][]][Coverity Scan]
 
 
 * [Introduction](#introduction)
@@ -106,6 +106,8 @@ inspiration also from [picoev][] by [Oku Kazuho][].
 
 
 [ChangeLog]:       https://github.com/troglobit/libuev/blob/master/ChangeLog.md
+[License]:         https://en.wikipedia.org/wiki/MIT_License
+[License Badge]:   https://img.shields.io/badge/License-MIT-teal.svg
 [GitHub]:          https://github.com/troglobit/libuev/actions/workflows/build.yml/
 [GitHub Status]:   https://github.com/troglobit/libuev/actions/workflows/build.yml/badge.svg
 [Coverity Scan]:   https://scan.coverity.com/projects/3846

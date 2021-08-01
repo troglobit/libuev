@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS     = -I m4
-SUBDIRS             = src tests
-DIST_SUBDIRS        = doc src examples tests
+SUBDIRS             = src test
+DIST_SUBDIRS        = doc src examples test
 doc_DATA            = README.md LICENSE
 EXTRA_DIST          = README.md LICENSE AUTHORS ChangeLog.md
 

@@ -1,5 +1,5 @@
-#ifndef UEV_TESTS_CHECK_H_
-#define UEV_TESTS_CHECK_H_
+#ifndef UEV_TEST_CHECK_H_
+#define UEV_TEST_CHECK_H_
 
 #include <stdarg.h>
 #include <stdlib.h>
@@ -76,4 +76,4 @@ static inline char *timespec2str(struct timespec *ts, char *buf, size_t len)
 	return buf;
 }
 
-#endif /* UEV_TESTS_CHECK_H_ */
+#endif /* UEV_TEST_CHECK_H_ */

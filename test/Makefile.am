@@ -12,5 +12,5 @@ TESTS          += event
 
 check_PROGRAMS  = $(TESTS)
 
-CPPFLAGS        = -D_GNU_SOURCE
+CPPFLAGS        = -D_GNU_SOURCE -D_TIME_BITS=64 -D_FILE_OFFSET_BITS=64
 LDADD           = -L../src ../src/libuev.la

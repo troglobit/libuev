@@ -8,5 +8,5 @@ Description: Simple event loop for Linux
 Version: @VERSION@
 Requires:
 Libs: -L${libdir} -luev
-Cflags: -I${includedir}
+Cflags: -I${includedir} -D_TIME_BITS=64 -D_FILE_OFFSET_BITS=64
 

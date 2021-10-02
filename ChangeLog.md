@@ -10,8 +10,23 @@ All notable changes to the project are documented in this file.
 Please note, this release is a major ABI bump due to change in the
 `uev_t` which requires recompiling all programs that use libuEv.
 
+Also, libuEv is built for 64 bit `time_t`, this means all applications
+that link with libuEv also must be built with the same build flags.
+This applies in particular to systems with GLIBC v2.34, which now
+require applications to add the following to their `CPPFLAGS`:
+
+    CPPFLAGS += -D_TIME_BITS=64 -D_FILE_OFFSET_BITS=64
+
+
 ### Changes
-- Add `struct signalfd_siginfo` to `uev_t`, valid for signal watchers
+- Add `struct signalfd_siginfo` to `uev_t`, valid for signal watchers.
+  Now more metadata is available to signal callbacks
+
+### Fixes
+- Fix #25: GLIBC v2.34 require `-D_FILE_OFFSET_BITS=64` for applications
+  and libraries that want a 64-bit `time_t`.  Affects library and test
+  programs used for `make check`, as well as all other applications that
+  link with libuEv, so the `libuev.pc` file is also updated
 
 
 [v2.3.2][] - 2021-02-12

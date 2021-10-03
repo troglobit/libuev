@@ -58,7 +58,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y build-essential autoconf automake pkg-config doxygen \
-                             dpkg-dev debhelper dh-systemd devscripts
+                             dpkg-dev debhelper devscripts
       - name: Building Debian package
         run: |
           ./autogen.sh

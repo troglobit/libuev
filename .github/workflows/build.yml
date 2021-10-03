@@ -48,3 +48,22 @@ jobs:
         with:
           name: libuev-test-${{ matrix.compiler }}
           path: test/*
+  debian:
+    name: Verify Debian Package
+    needs: release
+    runs-on: ubuntu-latest
+    container: debian:stable
+    steps:
+      - uses: actions/checkout@v2
+      - name: Installing dependencies
+        run: |
+          apt-get update
+          apt-get install -y build-essential autoconf automake pkg-config doxygen \
+                             dpkg-dev debhelper dh-systemd devscripts
+      - name: Building Debian package
+        run: |
+          ./autogen.sh
+          ./configure
+          make distcheck
+          make package
+          cat ../*.changes

@@ -4,8 +4,8 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
-[v2.4.0][UNRELEASED]
---------------------
+[v2.4.0][] - 2021-10-03
+-----------------------
 
 Please note, this release is a major ABI bump due to changes in `uev_t`
 which requires recompiling all programs that use libuEv.
@@ -443,7 +443,8 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.3.2...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.4.0...HEAD
+[v2.4.0]: https://github.com/troglobit/libuev/compare/v2.3.2...v2.4.0
 [v2.3.2]: https://github.com/troglobit/libuev/compare/v2.3.1...v2.3.2
 [v2.3.1]: https://github.com/troglobit/libuev/compare/v2.3.0...v2.3.1
 [v2.3.0]: https://github.com/troglobit/libuev/compare/v2.2.0...v2.3.0

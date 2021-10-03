@@ -1,10 +1,10 @@
 libuev (2.4.0) stable; urgency=medium
 
   * Add 'struct signalfd_siginfo' to uev_t, valid for signal watchers
-  * Updated libuev.pc to include GLIBC flags for 64-bit time_t
-  * ABI bump, 2.2.0 -> 2.3.0
+  * Updated libuev.pc to include GLIBC 2.32 CPPFLAGS for 64-bit time_t
+  * ABI bump, 2.2.0 -> 3.0.0
 
- -- Joachim Wiberg <troglobit@gmail.com>  Sun, 03 Oct 2021 08:00:03 +0200
+ -- Joachim Wiberg <troglobit@gmail.com>  Sun, 03 Oct 2021 08:28:01 +0200
 
 libuev (2.3.2) stable; urgency=low
 

@@ -50,7 +50,6 @@ jobs:
           path: test/*
   debian:
     name: Verify Debian Package
-    needs: release
     runs-on: ubuntu-latest
     container: debian:stable
     steps:

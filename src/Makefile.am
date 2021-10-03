@@ -2,7 +2,7 @@ lib_LTLIBRARIES     = libuev.la
 libuev_la_SOURCES   = uev.c uev.h private.h io.c timer.c signal.c cron.c event.c
 libuev_la_CPPFLAGS  = -D_GNU_SOURCE -D_TIME_BITS=64 -D_FILE_OFFSET_BITS=64
 libuev_la_CFLAGS    = -W -Wall -Wextra -std=gnu11
-libuev_la_LDFLAGS   = $(AM_LDFLAGS) -version-info 4:0:2
+libuev_la_LDFLAGS   = $(AM_LDFLAGS) -version-info 5:0:3
 
 noinst_PROGRAMS     = bench
 bench_CPPFLAGS      = -D_GNU_SOURCE

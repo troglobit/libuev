@@ -12,7 +12,7 @@ Package: libuev-dev
 Priority: optional
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libuev2 (= ${binary:Version})
+Depends: ${misc:Depends}, libuev3 (= ${binary:Version})
 Description: static library, header files, and docs for libuev
  Static library, header files, and documentation for libuEv
  .
@@ -24,10 +24,10 @@ Description: static library, header files, and docs for libuev
  Experienced developers may appreciate libuEv is built on top of modern
  Linux APIs like epoll, eventfd, timerf, and signalfd.
 
-Package: libuev2
-Replaces: libuev
-Conflicts: libuev
-Provides: libuev
+Package: libuev3
+Replaces: libuev, libuev2
+Conflicts: libuev, libuev2
+Provides: libuev, libuev2
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Lightweight event loop library for Linux

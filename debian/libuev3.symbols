@@ -1,5 +1,5 @@
 libuev.so.2 libuev2 #MINVER#
-* Build-Depends-Package: libite-dev
+* Build-Depends-Package: libuev-dev
  _uev_watcher_active@Base 2.3.0
  _uev_watcher_init@Base 2.3.0
  _uev_watcher_rearm@Base 2.3.0

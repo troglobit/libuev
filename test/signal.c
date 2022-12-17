@@ -78,7 +78,7 @@ static void sig_cb(uev_t *w, void *cbarg, int events)
 		break;
 
 	case SIGCHLD:
-		if (arg->pid != w->siginfo.ssi_pid)
+		if (arg->pid != (pid_t)w->siginfo.ssi_pid)
 			err(1, "wrong child exited pid %d vs ssi_pid %d",
 			    arg->pid, w->siginfo.ssi_pid);
 

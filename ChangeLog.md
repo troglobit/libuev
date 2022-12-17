@@ -4,6 +4,13 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
+[v2.4.1][UNRELEASED]
+-----------------------
+
+### Fixes
+- Fix #27: possible buffer overrun in `uev_run()`, found by Steve Palmer
+
+
 [v2.4.0][] - 2021-10-03
 -----------------------
 
@@ -444,6 +451,7 @@ Lua users mailing list.
 
 
 [UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.4.0...HEAD
+[v2.4.1]: https://github.com/troglobit/libuev/compare/v2.4.0...v2.4.1
 [v2.4.0]: https://github.com/troglobit/libuev/compare/v2.3.2...v2.4.0
 [v2.3.2]: https://github.com/troglobit/libuev/compare/v2.3.1...v2.3.2
 [v2.3.1]: https://github.com/troglobit/libuev/compare/v2.3.0...v2.3.1

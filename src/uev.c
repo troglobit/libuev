@@ -295,8 +295,8 @@ int uev_exit(uev_ctx_t *ctx)
  */
 int uev_run(uev_ctx_t *ctx, int flags)
 {
-	uev_t *w;
 	int timeout = -1;
+	uev_t *w;
 
         if (!ctx || ctx->fd < 0) {
 		errno = EINVAL;
@@ -356,9 +356,9 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 		for (i = 0; ctx->running && i < nfds; i++) {
 			struct signalfd_siginfo fdsi;
+			ssize_t sz = sizeof(fdsi);
 			uint32_t events;
 			uint64_t exp;
-			ssize_t sz = sizeof(fdsi);
 
 			w = (uev_t *)ee[i].data.ptr;
 			events = ee[i].events;

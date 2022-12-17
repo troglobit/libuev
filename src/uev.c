@@ -196,11 +196,11 @@ int uev_init(uev_ctx_t *ctx)
 /**
  * Create an event loop context
  * @param ctx       Pointer to an uev_ctx_t context to be initialized
- * @param maxevents Maximum number of events in event cache
+ * @param maxevents Maximum number of events in event cache [1, 10]
  *
  * This function is the same as uev_init() except for the @p maxevents
- * argument, which controls the number of events in the event cache
- * returned to the main loop.
+ * argument, max ::UEV_MAX_EVENTS, which controls the number of events
+ * in the event cache returned to the main loop.
  *
  * In cases where you have multiple events pending in the cache and some
  * event may cause later ones, already sent by the kernel to userspace,
@@ -221,6 +221,9 @@ int uev_init1(uev_ctx_t *ctx, int maxevents)
 		errno = EINVAL;
 		return -1;
 	}
+
+	if (maxevents > UEV_MAX_EVENTS)
+		maxevents = UEV_MAX_EVENTS;
 
 	memset(ctx, 0, sizeof(*ctx));
 	ctx->maxevents = maxevents;
@@ -319,7 +322,11 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 	while (ctx->running && ctx->watchers) {
 		struct epoll_event ee[UEV_MAX_EVENTS];
+		int maxevents = ctx->maxevents;
 		int i, nfds, rerun = 0;
+
+		if (maxevents > UEV_MAX_EVENTS)
+			maxevents = UEV_MAX_EVENTS;
 
 		/* Handle special case: `application < file.txt` */
 		if (ctx->workaround) {
@@ -341,7 +348,7 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			continue;
 		ctx->workaround = 0;
 
-		while ((nfds = epoll_wait(ctx->fd, ee, ctx->maxevents, timeout)) < 0) {
+		while ((nfds = epoll_wait(ctx->fd, ee, maxevents, timeout)) < 0) {
 			if (!ctx->running)
 				break;
 

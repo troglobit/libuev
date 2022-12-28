@@ -25,6 +25,13 @@ of APIs.  It is similar to the more established [libevent][], [libev][]
 and the venerable [Xt(3)][] event loop.  The *µ* in the name refers to
 both its limited feature set and the size impact of the library.
 
+Linux APIs supported and wrapped for ease-of-use:
+
+  - `epoll(2)`
+  - `eventfd(2)`
+  - `signalfd(2)`
+  - `timerfd(2)`
+
 Failure mode changes introduced in v2.0 may affect users of v1.x, See
 the [ChangeLog][] for the full details.
 

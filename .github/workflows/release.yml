@@ -8,15 +8,31 @@ on:
 jobs:
   release:
     name: Build and upload release tarball
-    needs: release
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    env:
+      MAKEFLAGS: -j3
     steps:
       - uses: actions/checkout@v4
       - name: Installing dependencies ...
         run: |
           sudo apt-get -y update
           sudo apt-get -y install tree doxygen
+      - name: Setting release variables ...
+        id: build
+        run: |
+          ver=${GITHUB_REF#refs/tags/}
+          echo "ver=${ver}" >> $GITHUB_OUTPUT
+          if echo $ver | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?(-alpha|-beta|-rc)[0-9]*$'; then
+            echo "pre=true"  >> $GITHUB_OUTPUT
+          else
+            echo "pre=false" >> $GITHUB_OUTPUT
+          fi
+          if echo $ver | grep -qE '^[0-9.]+\.[0-9.]+(\.[0-9]+)?$'; then
+            echo "latest=true"  >> $GITHUB_OUTPUT
+          else
+            echo "latest=false" >> $GITHUB_OUTPUT
+          fi
       - name: Creating Makefiles ...
         run: |
           ./autogen.sh
@@ -35,5 +51,7 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           name: libuEv ${{ github.ref_name }}
+          prerelease: ${{ steps.build.outputs.pre }}
+          makeLatest: ${{ steps.build.outputs.latest }}
           bodyFile: "release.md"
           artifacts: "artifacts/*"

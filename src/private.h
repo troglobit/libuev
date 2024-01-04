@@ -1,7 +1,7 @@
 /* libuEv - Private methods and data types, do not use directly!
  *
  * Copyright (c) 2012       Flemming Madsen <flemming!madsen()madsensoft!dk>
- * Copyright (c) 2013-2021  Joachim Wiberg <troglobit()gmail!com>
+ * Copyright (c) 2013-2024  Joachim Wiberg <troglobit()gmail!com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

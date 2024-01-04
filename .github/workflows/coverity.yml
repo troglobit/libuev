@@ -24,9 +24,7 @@ jobs:
           wget -q https://scan.coverity.com/download/cxx/linux64         \
                --post-data "token=$TOKEN&project=${COVERITY_PROJ}&md5=1" \
                -O coverity-latest.tar.gz.md5
-          export MD5=$(cat coverity-latest.tar.gz.md5)
-          echo "Got MD5 $MD5"
-          echo ::set-output name=md5::${MD5}
+          echo "md5=$(cat coverity-latest.tar.gz.md5)" | tee -a $GITHUB_OUTPUT
       - uses: actions/cache@v3
         id: cache
         with:
@@ -50,10 +48,6 @@ jobs:
           fi
           mkdir coverity
           tar xzf coverity-latest.tar.gz --strip 1 -C coverity
-      - name: Install dependencies
-        run: |
-          sudo apt-get -y update
-          sudo apt-get -y install pkg-config libsystemd-dev libcap-dev
       - name: Configure
         run: |
           ./autogen.sh
@@ -76,7 +70,7 @@ jobs:
             --form description="${PROJECT_NAME} $(git rev-parse HEAD)" \
             https://scan.coverity.com/builds?project=${COVERITY_PROJ}
       - name: Upload build.log
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverity-build.log
           path: cov-int/build-log.txt

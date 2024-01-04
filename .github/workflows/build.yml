@@ -28,7 +28,7 @@ jobs:
         run: |
           sudo apt-get -y update
           sudo apt-get -y install tree doxygen
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Configure
         run: |
           ./autogen.sh

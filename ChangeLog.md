@@ -4,8 +4,11 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
-[v2.4.1][UNRELEASED]
+[v2.4.1][] - 2024-01-04
 -----------------------
+
+### Changes
+- Update README with list of moden Linux APIs used
 
 ### Fixes
 - Fix #27: possible buffer overrun in `uev_run()`, found by Steve Palmer

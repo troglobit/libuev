@@ -5,6 +5,7 @@ api
 complete
 cronrun
 cronrestart
+cronnow
 signal
 timer
 event

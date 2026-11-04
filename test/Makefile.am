@@ -8,6 +8,7 @@ TESTS           =
 TESTS          += active
 TESTS          += api
 TESTS          += complete
+TESTS          += cronnow
 TESTS          += cronrun
 TESTS          += cronstart
 TESTS          += error

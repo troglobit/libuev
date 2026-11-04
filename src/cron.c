@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <string.h>		/* memset() */
 #include <sys/timerfd.h>
+#include <time.h>		/* time() */
 #include <unistd.h>		/* close(), read() */
 
 #include "uev.h"
@@ -92,8 +93,11 @@ int uev_cron_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, time_t when
 /**
  * Reset an at/cron job watcher
  * @param w        Watcher to reset
- * @param when     First point in time to call @p cb
+ * @param when     First point in time to call @p cb, zero for 'now'
  * @param interval For an at job this is zero, for cron the offset interval
+ *
+ * Note, unlike uev_timer_set() a @p when of zero does not disarm the
+ * watcher, use uev_cron_stop() for that.
  *
  * @return POSIX OK(0) or non-zero with @p errno set on error.
  */
@@ -110,12 +114,12 @@ int uev_cron_set(uev_t *w, time_t when, time_t interval)
 		return -1;
 	}
 
+	/* Zero is 'now', when the event loop is started */
+	if (!when && w->ctx->running)
+		when = time(NULL);
+
 	/* Handle stopped timers */
 	if (w->fd < 0) {
-		/* Timer already stopped */
-		if (!when && !interval)
-			return 0;
-
 		if (uev_cron_init(w->ctx, w, (uev_cb_t *)w->cb, w->arg, when, interval))
 			return -1;
 	}

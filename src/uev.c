@@ -420,11 +420,9 @@ int uev_run(uev_ctx_t *ctx, int flags)
 				}
 
 				if (!w->u.c.interval)
-					w->u.c.when = 0;
+					uev_timer_stop(w);
 				else
 					w->u.c.when += w->u.c.interval;
-				if (!w->u.c.when)
-					uev_timer_stop(w);
 				break;
 
 			case UEV_EVENT_TYPE:

@@ -12,5 +12,6 @@ TESTS          += cronrun
 TESTS          += signal
 TESTS          += timer
 TESTS          += event
+TESTS          += init-error
 
 check_PROGRAMS  = $(TESTS)

@@ -361,6 +361,9 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			return -2;
 		}
 
+		if (!nfds && (flags & UEV_NONBLOCK))
+			break;
+
 		for (i = 0; ctx->running && i < nfds; i++) {
 			struct signalfd_siginfo fdsi;
 			ssize_t sz = sizeof(fdsi);

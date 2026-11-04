@@ -144,7 +144,15 @@ int uev_cron_set(uev_t *w, time_t when, time_t interval)
  */
 int uev_cron_start(uev_t *w)
 {
-	return uev_timer_start(w);
+	if (!w) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (-1 != w->fd)
+		_uev_watcher_stop(w);
+
+	return uev_cron_set(w, w->u.c.when, w->u.c.interval);
 }
 
 /**

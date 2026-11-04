@@ -5,6 +5,7 @@ api
 complete
 cronrun
 cronstart
+error
 io
 signal
 stdin

@@ -10,6 +10,7 @@ TESTS          += api
 TESTS          += complete
 TESTS          += cronrun
 TESTS          += cronstart
+TESTS          += error
 TESTS          += io
 TESTS          += signal
 TESTS          += stdin

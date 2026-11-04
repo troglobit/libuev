@@ -57,8 +57,14 @@ int uev_event_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg)
 	if (fd < 0)
 		return -1;
 
-	return _uev_watcher_init(ctx, w, UEV_EVENT_TYPE, cb, arg, fd, UEV_READ)
-		|| _uev_watcher_start(w);
+	if (_uev_watcher_init(ctx, w, UEV_EVENT_TYPE, cb, arg, fd, UEV_READ) ||
+	    _uev_watcher_start(w)) {
+		close(fd);
+		w->fd = -1;
+		return -1;
+	}
+
+	return 0;
 }
 
 /**

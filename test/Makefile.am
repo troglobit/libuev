@@ -9,8 +9,13 @@ TESTS          += active
 TESTS          += api
 TESTS          += complete
 TESTS          += cronrun
+TESTS          += cronrestart
+TESTS          += cronnow
 TESTS          += signal
 TESTS          += timer
 TESTS          += event
+TESTS          += nonblock
+TESTS          += event-error
+TESTS          += init-error
 
 check_PROGRAMS  = $(TESTS)

@@ -226,6 +226,7 @@ int uev_init1(uev_ctx_t *ctx, int maxevents)
 		maxevents = UEV_MAX_EVENTS;
 
 	memset(ctx, 0, sizeof(*ctx));
+	ctx->fd = -1;
 	ctx->maxevents = maxevents;
 
 	return _init(ctx, 0);
@@ -360,6 +361,9 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 			return -2;
 		}
+
+		if (!nfds && (flags & UEV_NONBLOCK))
+			break;
 
 		for (i = 0; ctx->running && i < nfds; i++) {
 			struct signalfd_siginfo fdsi;

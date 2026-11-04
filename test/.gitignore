@@ -4,6 +4,11 @@ active
 api
 complete
 cronrun
+cronrestart
+cronnow
 signal
 timer
 event
+nonblock
+event-error
+init-error

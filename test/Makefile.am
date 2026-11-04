@@ -15,5 +15,6 @@ TESTS          += timer
 TESTS          += event
 TESTS          += nonblock
 TESTS          += event-error
+TESTS          += init-error
 
 check_PROGRAMS  = $(TESTS)

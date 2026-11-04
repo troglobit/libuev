@@ -10,3 +10,4 @@ timer
 event
 nonblock
 event-error
+init-error

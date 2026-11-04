@@ -168,8 +168,8 @@ result = uev_run(&ctx, UEV_NONE);
 ```
 
 With `flags` set to `UEV_ONCE` the event loop returns as soon as it has
-served the first event.  If `flags` is set to `UEV_ONCE | UEV_NONBLOCK`
-the event loop returns immediately if no event is available.
+served the first event.  With `UEV_NONBLOCK` the event loop returns as
+soon as no event is available, also when combined with `UEV_ONCE`.
 
 Timers are started by the first call to `uev_run()` and keep their
 deadline between calls.  Use `uev_timer_set()` to restart a timer.

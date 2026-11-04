@@ -290,9 +290,9 @@ int uev_exit(uev_ctx_t *ctx)
  *
  * With @p flags set to ::UEV_ONCE the event loop returns after the first
  * event has been served, useful for instance to set a timeout on a file
- * descriptor.  If @p flags also has the ::UEV_NONBLOCK flag set the event
- * loop will return immediately if no event is pending, useful when run
- * inside another event loop.
+ * descriptor.  With the ::UEV_NONBLOCK flag set the event loop returns
+ * as soon as no event is pending, useful when run inside another event
+ * loop.
  *
  * Timers are started by the first call and keep their deadline between
  * calls.  Use uev_timer_set() to restart a timer.
@@ -368,6 +368,9 @@ int uev_run(uev_ctx_t *ctx, int flags)
 
 			return -2;
 		}
+
+		if (!nfds && (flags & UEV_NONBLOCK))
+			break;
 
 		for (i = 0; ctx->running && i < nfds; i++) {
 			struct signalfd_siginfo fdsi;

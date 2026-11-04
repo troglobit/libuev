@@ -12,6 +12,7 @@ TESTS          += cronrun
 TESTS          += cronstart
 TESTS          += error
 TESTS          += io
+TESTS          += nonblock
 TESTS          += resume
 TESTS          += signal
 TESTS          += stdin

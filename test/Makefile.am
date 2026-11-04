@@ -9,6 +9,7 @@ TESTS          += active
 TESTS          += api
 TESTS          += complete
 TESTS          += cronrun
+TESTS          += cronrestart
 TESTS          += signal
 TESTS          += timer
 TESTS          += event

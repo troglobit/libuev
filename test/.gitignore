@@ -4,6 +4,7 @@ active
 api
 complete
 cronrun
+cronrestart
 signal
 timer
 event

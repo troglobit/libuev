@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <string.h>		/* memset() */
 #include <sys/timerfd.h>
+#include <time.h>
 #include <unistd.h>		/* close(), read() */
 
 #include "uev.h"
@@ -110,12 +111,17 @@ int uev_cron_set(uev_t *w, time_t when, time_t interval)
 		return -1;
 	}
 
+	/* Resolve 'now' when the loop starts, not when configured. */
+	if (!when && w->ctx->running) {
+		struct timespec now;
+
+		if (clock_gettime(CLOCK_REALTIME, &now) < 0)
+			return -1;
+		when = now.tv_sec;
+	}
+
 	/* Handle stopped timers */
 	if (w->fd < 0) {
-		/* Timer already stopped */
-		if (!when && !interval)
-			return 0;
-
 		if (uev_cron_init(w->ctx, w, (uev_cb_t *)w->cb, w->arg, when, interval))
 			return -1;
 	}

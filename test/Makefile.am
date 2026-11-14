@@ -12,5 +12,6 @@ TESTS          += cronrun
 TESTS          += signal
 TESTS          += timer
 TESTS          += event
+TESTS          += io-reset
 
 check_PROGRAMS  = $(TESTS)

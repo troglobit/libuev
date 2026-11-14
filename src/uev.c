@@ -309,15 +309,15 @@ int uev_run(uev_ctx_t *ctx, int flags)
 	if (flags & UEV_NONBLOCK)
 		timeout = 0;
 
-	/* Start the event loop */
-	ctx->running = 1;
-
-	/* Start all dormant timers */
-	_UEV_FOREACH(w, ctx->watchers) {
-		if (UEV_CRON_TYPE == w->type)
-			uev_cron_set(w, w->u.c.when, w->u.c.interval);
-		if (UEV_TIMER_TYPE == w->type)
-			uev_timer_set(w, w->u.t.timeout, w->u.t.period);
+	/* Start dormant timers once, preserving deadlines when resuming. */
+	if (!ctx->running) {
+		ctx->running = 1;
+		_UEV_FOREACH(w, ctx->watchers) {
+			if (UEV_CRON_TYPE == w->type)
+				uev_cron_set(w, w->u.c.when, w->u.c.interval);
+			if (UEV_TIMER_TYPE == w->type)
+				uev_timer_set(w, w->u.t.timeout, w->u.t.period);
+		}
 	}
 
 	while (ctx->running && ctx->watchers) {

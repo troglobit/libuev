@@ -294,6 +294,9 @@ int uev_exit(uev_ctx_t *ctx)
  * loop will return immediately if no event is pending, useful when run
  * inside another event loop.
  *
+ * Timers are started by the first call and keep their deadline between
+ * calls.  Use uev_timer_set() to restart a timer.
+ *
  * @return POSIX OK(0) upon successful termination of the event loop, or
  * non-zero on error.
  */
@@ -310,15 +313,16 @@ int uev_run(uev_ctx_t *ctx, int flags)
 	if (flags & UEV_NONBLOCK)
 		timeout = 0;
 
-	/* Start the event loop */
-	ctx->running = 1;
+	/* Start the event loop and all dormant timers, first call only */
+	if (!ctx->running) {
+		ctx->running = 1;
 
-	/* Start all dormant timers */
-	_UEV_FOREACH(w, ctx->watchers) {
-		if (UEV_CRON_TYPE == w->type)
-			uev_cron_set(w, w->u.c.when, w->u.c.interval);
-		if (UEV_TIMER_TYPE == w->type)
-			uev_timer_set(w, w->u.t.timeout, w->u.t.period);
+		_UEV_FOREACH(w, ctx->watchers) {
+			if (UEV_CRON_TYPE == w->type)
+				uev_cron_set(w, w->u.c.when, w->u.c.interval);
+			if (UEV_TIMER_TYPE == w->type)
+				uev_timer_set(w, w->u.t.timeout, w->u.t.period);
+		}
 	}
 
 	while (ctx->running && ctx->watchers) {

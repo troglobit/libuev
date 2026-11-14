@@ -68,8 +68,8 @@ static void msec2tspec(int msec, struct timespec *ts)
  * period and restarted.
  *
  * A timer is automatically started if the event loop is already
- * running, otherwise it is kept on hold until triggered by calling
- * uev_run().
+ * running, otherwise it is kept on hold until triggered by the first
+ * call to uev_run().
  *
  * @see uev_timer_set
  * @return POSIX OK(0) or non-zero with @p errno set on error.

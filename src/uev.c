@@ -344,8 +344,11 @@ int uev_run(uev_ctx_t *ctx, int flags)
 			}
 		}
 
-		if (rerun)
+		if (rerun) {
+			if (flags & UEV_ONCE)
+				break;
 			continue;
+		}
 		ctx->workaround = 0;
 
 		while ((nfds = epoll_wait(ctx->fd, ee, maxevents, timeout)) < 0) {

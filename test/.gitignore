@@ -6,5 +6,6 @@ complete
 cronrun
 io
 signal
+stdin
 timer
 event

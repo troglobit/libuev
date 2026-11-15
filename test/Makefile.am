@@ -11,6 +11,7 @@ TESTS          += complete
 TESTS          += cronrun
 TESTS          += io
 TESTS          += signal
+TESTS          += stdin
 TESTS          += timer
 TESTS          += event
 

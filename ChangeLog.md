@@ -4,6 +4,21 @@ Change Log
 All notable changes to the project are documented in this file.
 
 
+[UNRELEASED][]
+--------------
+
+### Fixes
+- Fix `uev_io_set()` ignoring a new file descriptor, or new events, for
+  an active `UEV_ONESHOT` watcher
+- Fix `uev_run()` with `UEV_ONCE` not returning until end of file when
+  stdin is redirected from a regular file
+- Fix `uev_cron_start()` restarting a stopped cron watcher as a regular
+  timer, with the wrong timeout
+- Fix file descriptor leak in `uev_event_init()` when the watcher cannot
+  be added to the event loop
+- Fix `uev_exit()` closing stdin after a failed `uev_init()`
+
+
 [v2.4.1][] - 2024-01-04
 -----------------------
 
@@ -453,7 +468,7 @@ v0.0.1 - 2012-03-17
 Lua users mailing list.
 
 
-[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.4.0...HEAD
+[UNRELEASED]: https://github.com/troglobit/libuev/compare/v2.4.1...HEAD
 [v2.4.1]: https://github.com/troglobit/libuev/compare/v2.4.0...v2.4.1
 [v2.4.0]: https://github.com/troglobit/libuev/compare/v2.3.2...v2.4.0
 [v2.3.2]: https://github.com/troglobit/libuev/compare/v2.3.1...v2.3.2

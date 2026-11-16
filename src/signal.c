@@ -72,6 +72,7 @@ int uev_signal_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int signo
 		_uev_watcher_stop(w);
 	exit:
 		close(fd);
+		w->fd = -1;
 		return -1;
 	}
 

@@ -1,5 +1,6 @@
 /* Verifies cleanup on failure to set up a context or watcher */
 #include "check.h"
+#include <signal.h>
 #include <sys/resource.h>
 
 /* A failed uev_event_init() must not leak its eventfd */
@@ -41,6 +42,22 @@ static void ctx_init(void)
 	fail_unless(ctx.fd == -1);
 }
 
+/* A failed init must not leave a closed descriptor in the watcher */
+static void watcher_init(void)
+{
+	uev_ctx_t ctx;
+	uev_t w;
+
+	fail_unless(uev_init(&ctx) == 0);
+	fail_unless(close(ctx.fd) == 0);
+
+	fail_unless(uev_cron_init(&ctx, &w, NULL, NULL, time(NULL) + 3600, 0) != 0);
+	fail_unless(w.fd == -1);
+
+	fail_unless(uev_signal_init(&ctx, &w, NULL, NULL, SIGUSR1) != 0);
+	fail_unless(w.fd == -1);
+}
+
 /* Invalid arguments must not crash */
 static void null_init(void)
 {
@@ -48,12 +65,14 @@ static void null_init(void)
 
 	fail_unless(uev_init(&ctx) == 0);
 	fail_unless(uev_timer_init(&ctx, NULL, NULL, NULL, 100, 0) != 0);
+	fail_unless(uev_cron_init(&ctx, NULL, NULL, NULL, time(NULL) + 3600, 0) != 0);
 	fail_unless(uev_exit(&ctx) == 0);
 }
 
 int main(void)
 {
 	event_init();
+	watcher_init();
 	null_init();
 	ctx_init();
 

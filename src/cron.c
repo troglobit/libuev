@@ -68,6 +68,11 @@ int uev_cron_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, time_t when
 {
 	int fd;
 
+	if (!w || !ctx) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	if (when < 0 || interval < 0) {
 		errno = ERANGE;
 		return -1;
@@ -84,6 +89,7 @@ int uev_cron_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, time_t when
 		_uev_watcher_stop(w);
 	exit:
 		close(fd);
+		w->fd = -1;
 		return -1;
 	}
 

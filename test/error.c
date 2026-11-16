@@ -41,9 +41,20 @@ static void ctx_init(void)
 	fail_unless(ctx.fd == -1);
 }
 
+/* Invalid arguments must not crash */
+static void null_init(void)
+{
+	uev_ctx_t ctx;
+
+	fail_unless(uev_init(&ctx) == 0);
+	fail_unless(uev_timer_init(&ctx, NULL, NULL, NULL, 100, 0) != 0);
+	fail_unless(uev_exit(&ctx) == 0);
+}
+
 int main(void)
 {
 	event_init();
+	null_init();
 	ctx_init();
 
 	return 0;

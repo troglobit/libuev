@@ -78,6 +78,11 @@ int uev_timer_init(uev_ctx_t *ctx, uev_t *w, uev_cb_t *cb, void *arg, int timeou
 {
 	int fd;
 
+	if (!w || !ctx) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	if (timeout < 0 || period < 0) {
 		errno = ERANGE;
 		return -1;

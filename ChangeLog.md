@@ -7,6 +7,18 @@ All notable changes to the project are documented in this file.
 [UNRELEASED][]
 --------------
 
+### Changes
+- Timers now keep their deadline between calls to `uev_run()`, they are
+  only started by the first call.  Previously every call restarted all
+  timers, so with `UEV_ONCE` in a busy loop they never expired.  Use
+  `uev_timer_set()` to restart a timer for each call
+- `uev_run()` with only `UEV_NONBLOCK` now returns when no event is
+  pending, previously it never returned and used 100% CPU
+- A cron watcher with start time zero now runs when the event loop is
+  started, as documented, previously it never ran.  This means that
+  `uev_cron_set(w, 0, 0)` no longer disarms a cron watcher, it runs it
+  now.  Use `uev_cron_stop()` to stop it
+
 ### Fixes
 - Fix `uev_io_set()` ignoring a new file descriptor, or new events, for
   an active `UEV_ONESHOT` watcher
@@ -17,6 +29,10 @@ All notable changes to the project are documented in this file.
 - Fix file descriptor leak in `uev_event_init()` when the watcher cannot
   be added to the event loop
 - Fix `uev_exit()` closing stdin after a failed `uev_init()`
+- Fix NULL pointer dereference in `uev_timer_init()` when called without
+  a watcher
+- Fix `uev_cron_init()` and `uev_signal_init()` leaving a closed file
+  descriptor in the watcher on failure
 
 
 [v2.4.1][] - 2024-01-04

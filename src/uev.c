@@ -417,12 +417,13 @@ int uev_run(uev_ctx_t *ctx, int flags)
 						uev_cron_stop(w);
 						events = UEV_ERROR;
 					}
+				} else if (w->u.c.interval) {
+					/* Keep the deadline used by uev_cron_start(). */
+					w->u.c.when += exp * w->u.c.interval;
 				}
 
 				if (!w->u.c.interval)
 					uev_timer_stop(w);
-				else
-					w->u.c.when += w->u.c.interval;
 				break;
 
 			case UEV_EVENT_TYPE:
